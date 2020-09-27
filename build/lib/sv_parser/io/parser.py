@@ -33,7 +33,6 @@ def read_vcf(filepath, variant_caller="manta"):
 
     
     ls_pos = []
-    ls_profiles = []
     ls_filters = []
     dict_infos = {k: [] for k in df_infos_meta.ID}
     ls_df_formats = []
@@ -90,6 +89,7 @@ def read_vcf(filepath, variant_caller="manta"):
             row_POS2 = row_INFO['END']
             row_STRAND1 = '+'
             row_STRAND2 = '-'
+        row_SVCLASS = row_INFO['SVTYPE']
         ls_pos.append({
                 'ID': row_ID, 
                 'CHROM1': row_CHROM1, 
@@ -97,15 +97,15 @@ def read_vcf(filepath, variant_caller="manta"):
                 'CHROM2': row_CHROM2, 
                 'POS2': row_POS2, 
                 'STRAND1': row_STRAND1, 
-                'STRAND2': row_STRAND2
+                'STRAND2': row_STRAND2,
+                'REF': row_REF,
+                'ALT': row_ALT,
+                'QUAL': row_QUAL,
+                'SVCLASS': row_SVCLASS
             })
         ###/POS
 
-        ###PROFILES
-        row_SVCLASS = row_INFO['SVTYPE']
-        ls_profiles.append({'ID': row_ID, 'REF': row_REF, 'ALT': row_ALT, 'QUAL': row_QUAL, 'SVCLASS': row_SVCLASS})
         
-        ###/PROFILES
 
 
         ####FORMAT
@@ -141,17 +141,12 @@ def read_vcf(filepath, variant_caller="manta"):
     df_pos = pd.DataFrame(ls_pos)
     ###/POS
 
-    ###PROFILE
-    df_profiles = pd.DataFrame(ls_profiles)
-    ###/PROFILES
-
-
     ###FORMAT
     df_formats = pd.concat(ls_df_formats, ignore_index=True)
     columns = ['ID', 'SAMPLE', 'FORMAT'] + ['VALUE' + str(i+1) for i in range(df_formats.shape[1] - 3)]
     df_formats.columns = columns
     ###/FORMAT
     
-    return([df_pos, df_profiles, df_filters, dict_df_infos, df_formats, ls_df_headers])
+    return([df_pos, df_filters, dict_df_infos, df_formats, ls_df_headers])
 
 

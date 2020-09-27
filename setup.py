@@ -3,7 +3,7 @@
 import setuptools
 
 
-VERSION = "0.0.18"
+VERSION = "0.0.19"
 PACKAGES = setuptools.find_packages( include = ["sv_parser", "sv_parser.*"] )
 DEPENDENCIES = ["pandas", "PyVCF"]
 

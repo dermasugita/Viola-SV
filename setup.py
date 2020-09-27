@@ -3,8 +3,8 @@
 import setuptools
 
 
-VERSION = "0.0.14"
-PACKAGES = ["sv_parser"]
+VERSION = "0.0.18"
+PACKAGES = setuptools.find_packages( include = ["sv_parser", "sv_parser.*"] )
 DEPENDENCIES = ["pandas", "PyVCF"]
 
 with open("README.md", "r") as fh:

@@ -20,6 +20,14 @@ class Sgt_core(object):
     def __str__(self):
         return 'hello'
 
+    def create_info_table(self, table_name, table, number, type_, description, source=None, version=None):
+        self.ls_infokeys += [table_name]
+        self.dict_alltables[table_name] = table
+        df_meta = self.get_table('infos_meta')
+        df_replace = df_meta.append({'id': table_name.upper(), 'number': number, 'type': type_, 'description': description, 'source': source, 'version': version},
+                                    ignore_index=True)
+        self.dict_alltables['infos_meta'] = df_replace # not beautiful code...
+
 
     def get_table_list(self):
         return list(self.dict_alltables.keys())
@@ -33,6 +41,47 @@ class Sgt_core(object):
     def get_ids(self):
         df = self.get_table('positions')
         return set(df['id'])
+    def to_vcf_like(self):
+        df_base = self.get_table('positions')[['chrom1', 'pos1', 'id', 'ref', 'alt', 'qual']]
+        print(self.ls_infokeys)
+        ser_id = df_base['id']
+        ser_vcfinfo = pd.Series(["" for i in range(len(ser_id))], index=ser_id)
+        def _create_info_field(x, info):
+            if len(x) == 1:
+                if type(x.iloc[0]) == np.bool_:
+                    return info.upper()
+                else:
+                    return info.upper() + '=' + str(x.iloc[0])
+            return info.upper() + '=' + ','.join(x.astype(str))
+        for info in self.ls_infokeys:
+            df_info = self.get_table(info).set_index('id')
+            ser_be_appended = df_info.apply(_create_info_field, axis=1, **{'info':info})
+            ser_vcfinfo.loc[df_info.index] = ser_vcfinfo.loc[df_info.index] + ';' + ser_be_appended
+        ser_vcfinfo.replace("^;", "", regex=True, inplace=True)
+        df_infofield = ser_vcfinfo.reset_index(name='info')
+
+        df_format = self.get_table('formats')
+        ls_samples = self.get_table('samples_meta')['id']
+        def _create_format_field(x):
+            arr_format_ = np.unique(x['format'])
+            format_ = ':'.join(arr_format_)
+            ls_sample_format_ = []
+            for sample in ls_samples:
+                ls_sample_values_ = []
+                for a_format_ in arr_format_:
+                    mask = (x['sample'] == sample) & (x['format'] == a_format_)
+                    ls_sample_values_.append(','.join(x.loc[mask]['value'].astype(str)))
+                ls_sample_format_.append(':'.join(ls_sample_values_))
+
+            out_idx = ['format'] + list(ls_samples)
+            return pd.Series([format_]+ls_sample_format_, index=out_idx)
+
+        df_formatfield = df_format.groupby('id').apply(_create_format_field).reset_index()
+
+        df_out = pd.merge(df_base, df_infofield)
+        df_out = pd.merge(df_out, df_formatfield)
+        return df_out
+
     def to_bedpe_like(self, how='basic', custom_infonames=[], add_filters=False, add_formats=False, unique_events=False):
         if unique_events:
             df_svpos = self.get_unique_events().get_table('positions')
@@ -175,8 +224,9 @@ class Sgt_core(object):
             return set_out
 
     def filter(self, ls_query, query_logic='and'):
+        ### != operation is dangerous
         if isinstance(ls_query, str):
-            ls_query = [q]
+            ls_query = [ls_query]
         if query_logic == 'and':
             set_result = self.get_ids()
             for query in ls_query:
@@ -244,12 +294,37 @@ class Sgt_core(object):
         set_result_ids = set_all_ids - set_to_subtract
         return self.filter_by_id(set_result_ids)
 
-    def get_detail_svtype(self):
+    _sig_criteria = [["DEL", "cut", [-np.inf, -5000000, -500000, -50000, 0]],
+                     ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
+    def get_detail_svtype(self, criteria=_sig_criteria):
         if 'svtype' not in self.get_table_list():
             print("Can't find svtype table")
             return
+        ### get all svtypes
+        df_svtypes = self.get_table('svtype')
+        ls_svtypes = df_svtypes['svtype0'].unique()
 
-        pass
+        ls_df_detail_svtype = []
+
+        for criterion in criteria:
+            svtype, method, values = criterion
+            if svtype not in ls_svtypes:
+                raise KeyError(svtype)
+            q = "svtype == {}".format(svtype)
+            sgt_target = self.filter(q)
+            if method == 'cut':
+                df_svlen = sgt_target.get_table('svlen')
+                df_range = pd.cut(df_svlen['svlen0'], values).astype(str)
+                df_range = svtype + '::' + df_range
+                df_cat = pd.concat([df_svlen['id'], df_range], axis=1).rename(columns={'svlen0': 'svtype_detail0'})
+                ls_df_detail_svtype.append(df_cat)
+            else:
+                raise KeyError(method)
+        df_detail_svtype = pd.concat(ls_df_detail_svtype)    
+
+        sgt_out = Sgt_core(self.df_svpos, self.df_formats, self.dict_df_info, self.df_formats, self.dict_df_headers)
+        sgt_out.create_info_table('svtype_detail', df_detail_svtype, 1, 'String', 'Detailed SV type for signature analylsis')
+        return sgt_out
 
 
 pd.set_option('display.max_columns', 20)
@@ -262,13 +337,9 @@ q = "mouse1_T SR 1 > 0"
 q2 = "PASS"
 q3 = "mouse1_N PR 1 == 0"
 q4 = "mouse1_N SR 1 == 0"
-q5 = "svlen > 10000"
-test8 = test2.filter([q, q2, q3, q4, q5])
-print(test8.get_table('formats_meta')['description'].values)
-#test_filter2 = test_filter.get_unique_events()
-#print(test2.get_table('samples_meta'))
-#print(test2.get_table_list())
-print(test8.to_bedpe_like(how='expand', custom_infonames=['svtype', 'svlen'], add_filters=True, add_formats=True, unique_events=True))
-#print(test_filter.get_table('filters'))
-#print(test_filter.to_bedpe_like('expand', custom_infonames=['homlen']))
-#print(test_filter.get_table('formats'))
+test3 = test2.filter([q, q2, q3, q4])
+#print(test3.get_table('infos_meta'))
+#print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype', 'svlen'], add_filters=True, add_formats=False, unique_events=True).head(20))
+test4 = test2.to_vcf_like()
+print(test4)
+test3 = test2.get_detail_svtype()

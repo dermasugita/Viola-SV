@@ -130,6 +130,13 @@ class Sgt_core(object):
         e = "df_target.loc[df_target['value'] {0} threshold]['id']".format(operator)
         return set(eval(e))
 
+    def _parse_filter_query(self, query):
+        pass
+
+    def filter(self, query):
+        pass
+
+
         
 
 pd.set_option('display.max_columns', 20)

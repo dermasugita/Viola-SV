@@ -5,6 +5,7 @@ pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
 
+
 def read_vcf(filepath, variant_caller="manta"):
     # read vcf files using PyVcf package
     vcf_reader = vcf.Reader(open(filepath, 'r'))
@@ -27,10 +28,13 @@ def read_vcf(filepath, variant_caller="manta"):
 
     # obtain FILTER informations
     odict_filters = vcf_reader.filters
-    df_filters = pd.DataFrame(odict_filters, index=('id', 'description')).T.reset_index(drop=True)
+    df_filters_meta = pd.DataFrame(odict_filters, index=('id', 'description')).T.reset_index(drop=True)
 
-    dict_df_headers = {'contigs_meta': df_contigs_meta, 'alts_meta': df_alts_meta, 'infos_meta': df_infos_meta, 'formats_meta': df_formats_meta, 'filters_meta': df_filters
- }
+    # obtain SAMPLE informations
+    ls_samples = vcf_reader.samples
+    df_samples = pd.DataFrame(ls_samples, columns=['id'])
+
+    dict_df_headers = {'contigs_meta': df_contigs_meta, 'alts_meta': df_alts_meta, 'infos_meta': df_infos_meta, 'formats_meta': df_formats_meta, 'filters_meta': df_filters_meta, 'samples_meta': df_samples}
 
     
     ls_pos = []
@@ -66,11 +70,11 @@ def read_vcf(filepath, variant_caller="manta"):
             if values == 'none':
                 continue
             if isinstance(values, list):
-                ls_keys = ['id'] + [info.lower() + str(i+1) for i in range(len(values))]
+                ls_keys = ['id'] + [info.lower() + str(i) for i in range(len(values))]
                 ls_all_values = [row_ID] + [v for v in values]
                 dict_a_info = {k: v for k, v in zip(ls_keys, ls_all_values)}
             else:
-                column_name = info.lower() + '1'
+                column_name = info.lower() + '0'
                 dict_a_info = {'id': row_ID, column_name: values}
             dict_infos[info].append(dict_a_info)
         #####/INFO
@@ -87,7 +91,7 @@ def read_vcf(filepath, variant_caller="manta"):
             row_STRANDs = '-' if row_INFO.get('INV3', False) else '+'
             row_STRAND1, row_STRAND2 = row_STRANDs, row_STRANDs
         else:
-            row_CHROM2 = row_CHROM2
+            row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
             row_STRAND1 = '+'
             row_STRAND2 = '-'
@@ -119,7 +123,7 @@ def read_vcf(filepath, variant_caller="manta"):
             for a_format in format_.split(':'):
                 values = eval('a_sample.data.' + str(a_format))
                 for value_idx in range(len(values)):
-                    ls_formats.append([row_ID, a_sample.sample, a_format, value_idx + 1, values[value_idx]])
+                    ls_formats.append([row_ID, a_sample.sample, a_format, value_idx, values[value_idx]])
         df_formats_each_record = pd.DataFrame(ls_formats)
         ls_df_formats.append(df_formats_each_record)
         # end of the manta-limited operation
@@ -151,3 +155,5 @@ def read_vcf(filepath, variant_caller="manta"):
     ###/FORMAT
    
     return([df_pos, df_filters, dict_df_infos, df_formats, dict_df_headers])
+
+read_vcf('../../tests/vcf/manta1.inv.vcf')

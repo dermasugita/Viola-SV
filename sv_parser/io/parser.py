@@ -70,11 +70,11 @@ def read_vcf(filepath, variant_caller="manta"):
             if values == 'none':
                 continue
             if isinstance(values, list):
-                ls_keys = ['id'] + [info.lower() + str(i) for i in range(len(values))]
+                ls_keys = ['id'] + [info.lower() + '_' + str(i) for i in range(len(values))]
                 ls_all_values = [row_ID] + [v for v in values]
                 dict_a_info = {k: v for k, v in zip(ls_keys, ls_all_values)}
             else:
-                column_name = info.lower() + '0'
+                column_name = info.lower() + '_0'
                 dict_a_info = {'id': row_ID, column_name: values}
             dict_infos[info].append(dict_a_info)
         #####/INFO

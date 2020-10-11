@@ -88,16 +88,9 @@ class Sgt_core(object):
         else:
             df_svpos = self.get_table('positions')
         df_svpos.rename(columns={'pos1': 'start1', 'pos2': 'start2'}, inplace=True)
-        if 'homlen' in self.get_table_list():
-            df_homlen = self.get_table('homlen')
-            df_merged = df_svpos.merge(df_homlen, how='left')
-            df_merged['homlen0'] = df_merged['homlen0'].fillna(0).astype(int)
-            df_merged['end1'] = df_merged['start1'] + df_merged['homlen0'] + 1 # potential risk of name conflict!!!
-            df_merged['end2'] = df_merged['start2'] + df_merged['homlen0'] + 1
-        else:
-            df_merged = df_svpos.copy()
-            df_merged['end1'] = df_merged['start1'] + 1
-            df_merged['end2'] = df_merged['start2'] + 1
+        df_merged = df_svpos.copy()
+        df_merged['end1'] = df_merged['start1'] + 1
+        df_merged['end2'] = df_merged['start2'] + 1
         
         if how == 'basic':
             df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
@@ -264,7 +257,7 @@ class Sgt_core(object):
     def _filter_infos(self, infoname, value_idx=0, operator=None, threshold=None):## returning result ids
         df = self.get_table(infoname)
         value_idx = str(value_idx)
-        e = "df.loc[df[''.join([infoname, value_idx])] {0} threshold]['id']".format(operator)
+        e = "df.loc[df[''.join([infoname, '_', value_idx])] {0} threshold]['id']".format(operator)
         set_out = set(eval(e))
         return set_out
 
@@ -302,7 +295,7 @@ class Sgt_core(object):
             return
         ### get all svtypes
         df_svtypes = self.get_table('svtype')
-        ls_svtypes = df_svtypes['svtype0'].unique()
+        ls_svtypes = df_svtypes['svtype_0'].unique()
 
         ls_df_detail_svtype = []
 
@@ -314,9 +307,9 @@ class Sgt_core(object):
             sgt_target = self.filter(q)
             if method == 'cut':
                 df_svlen = sgt_target.get_table('svlen')
-                df_range = pd.cut(df_svlen['svlen0'], values).astype(str)
+                df_range = pd.cut(df_svlen['svlen_0'], values).astype(str)
                 df_range = svtype + '::' + df_range
-                df_cat = pd.concat([df_svlen['id'], df_range], axis=1).rename(columns={'svlen0': 'svtype_detail0'})
+                df_cat = pd.concat([df_svlen['id'], df_range], axis=1).rename(columns={'svlen_0': 'svtype_detail_0'})
                 ls_df_detail_svtype.append(df_cat)
             else:
                 raise KeyError(method)
@@ -325,6 +318,8 @@ class Sgt_core(object):
         sgt_out = Sgt_core(self.df_svpos, self.df_formats, self.dict_df_info, self.df_formats, self.dict_df_headers)
         sgt_out.create_info_table('svtype_detail', df_detail_svtype, 1, 'String', 'Detailed SV type for signature analylsis')
         return sgt_out
+    def is_reciprocal(self):
+        pass
 
 
 pd.set_option('display.max_columns', 20)

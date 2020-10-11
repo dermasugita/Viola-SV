@@ -16,6 +16,7 @@ class Sgt_core(object):
         self.dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
 
     def __repr__(self):
+        
         return 'hello'
     def __str__(self):
         return 'hello'
@@ -116,7 +117,7 @@ class Sgt_core(object):
                 df = pd.merge(df, df_to_append, how='left', left_on=left_on, right_on='id')
                 info_dtype = df_infometa.loc[df_infometa['id']==tablename.upper(), 'type'].iloc[0]
                 len_info = df_to_append.shape[1] - 1
-                ls_ind_fancy = [tablename + str(i) for i in range(len_info)]
+                ls_ind_fancy = [tablename + '_' + str(i) for i in range(len_info)]
                 if info_dtype == 'Integer':
                     df[ls_ind_fancy] = df[ls_ind_fancy].fillna(0).astype(int)
                 elif info_dtype == 'Flag':
@@ -280,7 +281,7 @@ class Sgt_core(object):
             print("Can't find mateid table")
             return
         df = self.get_table('mateid')
-        df2 = df.reset_index().set_index('mateid0').loc[df['id']]
+        df2 = df.reset_index().set_index('mateid_0').loc[df['id']]
         arr_mask = df2['index'].values > np.arange(df2.shape[0])
         set_to_subtract = set(df2.loc[arr_mask]['id'])
         set_all_ids = self.get_ids()
@@ -334,7 +335,10 @@ q3 = "mouse1_N PR 1 == 0"
 q4 = "mouse1_N SR 1 == 0"
 test3 = test2.filter([q, q2, q3, q4])
 #print(test3.get_table('infos_meta'))
-#print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype', 'svlen'], add_filters=True, add_formats=False, unique_events=True).head(20))
+print(test3.get_table('positions'))
+print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype', 'svlen'], add_filters=True, add_formats=False, unique_events=True).head(20))
 test4 = test2.to_vcf_like()
 print(test4)
 test3 = test2.get_detail_svtype()
+print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype','svtype_detail']).head(20))
+#test2.to_bedpe_like().to_csv('../../tests/manta1.bedpe', index=None, sep='\t')

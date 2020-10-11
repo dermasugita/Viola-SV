@@ -1,6 +1,5 @@
 import vcf
 import pandas as pd
-import sqlite3
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
@@ -90,11 +89,22 @@ def read_vcf(filepath, variant_caller="manta"):
             row_POS2 = row_INFO['END']
             row_STRANDs = '-' if row_INFO.get('INV3', False) else '+'
             row_STRAND1, row_STRAND2 = row_STRANDs, row_STRANDs
-        else:
+        elif row_INFO['SVTYPE'] == 'DEL':
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
             row_STRAND1 = '+'
             row_STRAND2 = '-'
+        elif row_INFO['SVTYPE'] == 'DUP':
+            row_CHROM2 = row_CHROM1
+            row_POS2 = row_INFO['END']
+            row_STRAND1 = '-'
+            row_STRAND2 = '+'
+        else:
+            row_CHROM2 = row_CHROM1
+            row_POS2 = row_INFO['END']
+            row_STRAND1 = '.'
+            row_STRAND2 = '.'
+
         row_SVTYPE = row_INFO['SVTYPE']
         ls_pos.append({
                 'id': row_ID, 
@@ -156,4 +166,86 @@ def read_vcf(filepath, variant_caller="manta"):
    
     return([df_pos, df_filters, dict_df_infos, df_formats, dict_df_headers])
 
-read_vcf('../../tests/vcf/manta1.inv.vcf')
+def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
+    df_bedpe = pd.read_csv(filepath, sep='\t')
+    ls_header = list(df_bedpe.columns)
+    ls_header_required = ls_header[:10]
+    ls_header_option = ls_header[10:]
+    ls_new_header = ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2'] + ls_header_option
+    df_bedpe.columns = ls_new_header
+    df_bedpe['pos1'] = (df_bedpe['start1'] + df_bedpe['end1']) // 2
+    df_bedpe['pos2'] = (df_bedpe['start2'] + df_bedpe['end2']) // 2
+    df_bedpe['cipos_0'] = df_bedpe['start1'] - df_bedpe['pos1']
+    df_bedpe['cipos_1'] = df_bedpe['end1'] - df_bedpe['pos1'] - 1
+    df_bedpe['ciend_0'] = df_bedpe['start2'] - df_bedpe['pos2']
+    df_bedpe['ciend_1'] = df_bedpe['end2'] - df_bedpe['pos2'] - 1
+
+    df_svpos = df_bedpe[['name', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'score']].copy()
+    df_svpos['ref'] = 'N'
+    df_svpos['alt'] = '.'
+    if svtype_col_name == '':
+        df_svpos = infer_svtype_from_position(df_svpos)
+    else:
+        df_svpos['svtype'] = df_bedpe.loc[:, svtype_col_index]
+
+
+    return df_svpos
+
+def infer_svtype_from_position(position_table):
+    df = position_table.copy()
+    df['svtype'] = '.'
+    mask_bnd = df['chrom1'] != df['chrom2']
+    mask_del = (df['chrom1'] == df['chrom2']) & \
+                (df['strand1'] == '+') & \
+                (df['strand2'] == '-')
+    mask_dup = (df['chrom1'] == df['chrom2']) & \
+                (df['strand1'] == '-') & \
+                (df['strand2'] == '+')
+    mask_inv = (df['chrom1'] == df['chrom2']) & \
+                (df['strand1'] != '.') & \
+                (df['strand1'] == df['strand2'])
+    ls_mask = [mask_bnd, mask_del, mask_dup, mask_inv]
+    ls_svtype = ['BND', 'DEL', 'DUP', 'INV']
+    for mask, svtype in zip(ls_mask, ls_svtype):
+        df.loc[mask, 'svtype'] = svtype
+    df = create_alt_field_from_position(df)
+    return df
+
+def create_alt_field_from_position(position_table):
+    '''
+    svtype column is required
+    '''
+    def _f(x):
+        if x.name == '.':
+            return x
+        elif x.name != 'BND':
+            x['alt'] = "<{}>".format(x.name)
+            return x
+        ls_out = []
+        for idx, row in x.iterrows():
+            strand1 = row['strand1']
+            strand2 = row['strand2']
+            chrom2 = row['chrom2']
+            pos2 = row['pos2']
+            ref = row['ref']
+            if (strand1 == '+') & (strand2 == '-'):
+                alt = '{0}[{1}:{2}['.format(ref, chrom2, pos2)
+            elif (strand1 == '+') & (strand2 == '+'):
+                alt = '{0}]{1}:{2}]'.format(ref, chrom2, pos2)
+            elif (strand1 == '-') & (strand2 == '+'):
+                alt = ']{0}:{1}]{2}'.format(chrom2, pos2, ref)
+            else:
+                alt = '[{0}:{1}[{2}'.format(chrom2, pos2, ref)
+            row['alt'] = alt
+            ls_out.append(row)
+        df_out = pd.DataFrame(ls_out)
+        return df_out
+    df = position_table.copy()
+    df = df.groupby('svtype').apply(_f)
+    return df
+    
+
+
+bedpe = '../../tests/manta1.bedpe'
+test = read_bedpe(bedpe)
+print(test.head(20))

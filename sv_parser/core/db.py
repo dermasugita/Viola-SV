@@ -1,7 +1,186 @@
 import numpy as np
 import pandas as pd
-from sv_parser.io.parser import read_vcf
-class Sgt_core(object):
+from sv_parser.io.parser import read_vcf, read_bedpe
+
+class Sgt_simple(object):
+    def __init__(self, df_svpos, dict_df_info):
+        self.df_svpos = df_svpos
+        self.dict_df_info = dict_df_info
+        self.ls_infokeys = [x.lower() for x in dict_df_info.keys()]
+        ls_keys = ['positions'] + self.ls_infokeys
+        ls_values = [df_svpos] + list(dict_df_info.values())
+        # self.dict_alltables is a {tablename: table} dictionary
+        self.dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+
+    def __repr__(self):
+        df_svpos = self.get_table('positions')
+        ser_id = df_svpos['id']
+        ser_pos = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str) + \
+                    '-' + df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
+        ser_strand = df_svpos['strand1'] + df_svpos['strand2']
+        ser_qual = df_svpos['qual']
+        ser_svtype = df_svpos['svtype']
+        ls_ser = [ser_id, ser_pos, ser_strand, ser_qual, ser_svtype]
+        ls_key = ['id', 'pos', 'strand', 'qual', 'svtype']
+        dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
+        df_out = pd.DataFrame(dict_)
+        str_df_out = str(df_out)
+        str_infokeys = ','.join(list(self.ls_infokeys))
+        desc = 'INFO='
+        out = desc + str_infokeys + '\n' + str_df_out
+        return str(out)
+
+    def get_table_list(self):
+        return list(self.dict_alltables.keys())
+    def get_table(self, table_name):
+        try:            
+            table = self.dict_alltables[table_name]
+        except KeyError:
+            print('no such table')
+            return
+        return table.copy()
+    def get_ids(self):
+        df = self.get_table('positions')
+        return set(df['id'])
+
+    def to_bedpe_like(self, how='basic', custom_infonames=[]):
+        df_svpos = self.get_table('positions')
+        df_svpos.rename(columns={'pos1': 'start1', 'pos2': 'start2'}, inplace=True)
+        df_merged = df_svpos.copy()
+        df_merged['end1'] = df_merged['start1'] + 1
+        df_merged['end2'] = df_merged['start2'] + 1
+        
+        if how == 'basic':
+            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
+        elif how == 'minimum':
+            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2']].copy() 
+        elif how == 'expand':
+            if len(custom_infonames) == 0:
+                print('error: specify columns to expand')
+            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
+            df_out = self.append_infos(df_out, custom_infonames)
+        df_out.rename(columns={'id': 'name', 'qual': 'score'}, inplace=True)
+        return df_out
+
+    def append_infos(self, base_df, ls_tablenames, left_on='id', auto_fillna=True):
+        df = base_df.copy()
+        for tablename in ls_tablenames:
+            df_to_append = self.get_table(tablename)
+            df = pd.merge(df, df_to_append, how='left', left_on=left_on, right_on='id')
+            if left_on != 'id':
+                df.drop('id', axis=1, inplace=True) 
+        return df
+
+    def _parse_filter_query(self, q):
+        sq = q.split(' ')
+
+        # for flag informations and filters
+        if sq[0].startswith('!'):
+            sq0 = sq[0][1:]
+        else:
+            sq0 = sq[0]
+
+        if sq0 in self.ls_infokeys:
+            df_infometa = self.get_table('infos_meta')
+            row_mask = df_infometa['id'].str.contains(sq0.upper())
+            sq_dtype = df_infometa.loc[row_mask, 'type'].iloc[0]
+            if sq_dtype == 'Integer':
+                sq[-1] = int(sq[-1])
+            elif sq_dtype == 'String':
+                sq[-1] = str(sq[-1])
+            elif sq_dtype =='Flag':
+                if len(sq) == 1:
+                    if sq[0].startswith('!'):
+                        flag = False
+                    else:
+                        flag = True
+                else:
+                    flag = True if sq[-1] == 'True' else False
+                exclude = not flag
+                set_out = self._filter_infos_flag(sq0, exclude=exclude)
+                return set_out
+
+            if len(sq) == 3:
+                set_out = self._filter_infos(sq[0], 0, sq[1], sq[2])
+            else:
+                set_out = self._filter_infos(*sq)
+            #print(set_out)
+            return set_out
+
+
+    def filter(self, ls_query, query_logic='and'):
+        ### != operation is dangerous
+        if isinstance(ls_query, str):
+            ls_query = [ls_query]
+        if query_logic == 'and':
+            set_result = self.get_ids()
+            for query in ls_query:
+                set_query = self._parse_filter_query(query)
+                set_result = set_result & set_query
+        out = self.filter_by_id(set_result)
+        return out
+
+
+    def _filter_by_id(self, tablename, arrlike_id):
+        df = self.get_table(tablename)
+        return df.loc[df['id'].isin(arrlike_id)].reset_index(drop=True)
+
+
+    def filter_by_id(self, arrlike_id):
+        out_svpos = self._filter_by_id('positions', arrlike_id)
+        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self.ls_infokeys}
+        return Sgt_simple(out_svpos, out_dict_df_info)
+
+    def _filter_pos_table(self, item, operator, threshold):
+        df = self.get_table('positions')
+        e = "df.loc[df[item] {0} threshold]['id']".format(operator)
+        return set(eval(e))
+
+    def _filter_infos(self, infoname, value_idx=0, operator=None, threshold=None):## returning result ids
+        df = self.get_table(infoname)
+        value_idx = str(value_idx)
+        e = "df.loc[df[''.join([infoname, '_', value_idx])] {0} threshold]['id']".format(operator)
+        set_out = set(eval(e))
+        return set_out
+
+    _sig_criteria = [["DEL", "cut", [-np.inf, -5000000, -500000, -50000, 0]],
+                     ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
+
+    def get_detail_svtype(self, criteria=_sig_criteria):
+        if 'svtype' not in self.get_table_list():
+            print("Can't find svtype table")
+            return
+        ### get all svtypes
+        df_svtypes = self.get_table('svtype')
+        ls_svtypes = df_svtypes['svtype_0'].unique()
+
+        ls_df_detail_svtype = []
+
+        for criterion in criteria:
+            svtype, method, values = criterion
+            if svtype not in ls_svtypes:
+                raise KeyError(svtype)
+            q = "svtype == {}".format(svtype)
+            sgt_target = self.filter(q)
+            if method == 'cut':
+                df_svlen = sgt_target.get_table('svlen')
+                df_range = pd.cut(df_svlen['svlen_0'], values).astype(str)
+                df_range = svtype + '::' + df_range
+                df_cat = pd.concat([df_svlen['id'], df_range], axis=1).rename(columns={'svlen_0': 'svtype_detail_0'})
+                ls_df_detail_svtype.append(df_cat)
+            else:
+                raise KeyError(method)
+        df_detail_svtype = pd.concat(ls_df_detail_svtype)    
+
+        sgt_out = Sgt_core(self.df_svpos, self.df_formats, self.dict_df_info, self.df_formats, self.dict_df_headers)
+        sgt_out.create_info_table('svtype_detail', df_detail_svtype, 1, 'String', 'Detailed SV type for signature analylsis')
+        return sgt_out
+    def is_reciprocal(self):
+        pass
+
+
+
+class Sgt_core(Sgt_simple):
     def __init__(self, df_svpos, df_filters, dict_df_info, df_formats, dict_df_headers = {}):
         self.df_svpos = df_svpos
         self.df_filters = df_filters
@@ -30,18 +209,6 @@ class Sgt_core(object):
         self.dict_alltables['infos_meta'] = df_replace # not beautiful code...
 
 
-    def get_table_list(self):
-        return list(self.dict_alltables.keys())
-    def get_table(self, table_name):
-        try:            
-            table = self.dict_alltables[table_name]
-        except KeyError:
-            print('no such table')
-            return
-        return table.copy()
-    def get_ids(self):
-        df = self.get_table('positions')
-        return set(df['id'])
     def to_vcf_like(self):
         df_base = self.get_table('positions')[['chrom1', 'pos1', 'id', 'ref', 'alt', 'qual']]
         print(self.ls_infokeys)
@@ -288,57 +455,44 @@ class Sgt_core(object):
         set_result_ids = set_all_ids - set_to_subtract
         return self.filter_by_id(set_result_ids)
 
-    _sig_criteria = [["DEL", "cut", [-np.inf, -5000000, -500000, -50000, 0]],
-                     ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
-    def get_detail_svtype(self, criteria=_sig_criteria):
-        if 'svtype' not in self.get_table_list():
-            print("Can't find svtype table")
-            return
-        ### get all svtypes
-        df_svtypes = self.get_table('svtype')
-        ls_svtypes = df_svtypes['svtype_0'].unique()
 
-        ls_df_detail_svtype = []
 
-        for criterion in criteria:
-            svtype, method, values = criterion
-            if svtype not in ls_svtypes:
-                raise KeyError(svtype)
-            q = "svtype == {}".format(svtype)
-            sgt_target = self.filter(q)
-            if method == 'cut':
-                df_svlen = sgt_target.get_table('svlen')
-                df_range = pd.cut(df_svlen['svlen_0'], values).astype(str)
-                df_range = svtype + '::' + df_range
-                df_cat = pd.concat([df_svlen['id'], df_range], axis=1).rename(columns={'svlen_0': 'svtype_detail_0'})
-                ls_df_detail_svtype.append(df_cat)
-            else:
-                raise KeyError(method)
-        df_detail_svtype = pd.concat(ls_df_detail_svtype)    
 
-        sgt_out = Sgt_core(self.df_svpos, self.df_formats, self.dict_df_info, self.df_formats, self.dict_df_headers)
-        sgt_out.create_info_table('svtype_detail', df_detail_svtype, 1, 'String', 'Detailed SV type for signature analylsis')
-        return sgt_out
-    def is_reciprocal(self):
-        pass
 
 
 pd.set_option('display.max_columns', 20)
 pd.set_option('display.max_colwidth', 35)
 pd.set_option('display.width', 1500) 
+
  
-test = read_vcf('../../tests/vcf/manta1.inv.vcf')
-test2 = Sgt_core(*test)
-q = "mouse1_T SR 1 > 0"
-q2 = "PASS"
-q3 = "mouse1_N PR 1 == 0"
-q4 = "mouse1_N SR 1 == 0"
-test3 = test2.filter([q, q2, q3, q4])
-#print(test3.get_table('infos_meta'))
-print(test3.get_table('positions'))
-print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype', 'svlen'], add_filters=True, add_formats=False, unique_events=True).head(20))
-test4 = test2.to_vcf_like()
-print(test4)
+#path_lumpy = '../../tests/vcf/lumpy1.vcf'
+path_bedpe = '../../tests/manta1.bedpe'
+
+test = read_bedpe(path_bedpe)
+test2 = Sgt_simple(*test)
 test3 = test2.get_detail_svtype()
-print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype','svtype_detail']).head(20))
-#test2.to_bedpe_like().to_csv('../../tests/manta1.bedpe', index=None, sep='\t')
+test3 = test2.to_bedpe_like('expand', custom_infonames=['svlen'])
+print(test2)
+print(test3)
+
+
+
+#test = read_vcf('../../tests/vcf/manta1.inv.vcf')
+#test = read_vcf('../../tests/vcf/lumpy1.vcf')
+#test2 = Sgt_core(*test)
+#test3 = test2.get_table('infos_meta')
+#print(test3)
+
+#q = "mouse1_T SR 1 > 0"
+#q2 = "PASS"
+#q3 = "mouse1_N PR 1 == 0"
+#q4 = "mouse1_N SR 1 == 0"
+#test3 = test2.filter([q, q2, q3, q4])
+##print(test3.get_table('infos_meta'))
+#print(test3.get_table('positions'))
+#print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype', 'svlen'], add_filters=True, add_formats=False, unique_events=True).head(20))
+#test4 = test2.to_vcf_like()
+#print(test4)
+#test3 = test2.get_detail_svtype()
+#print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype','svtype_detail']).head(20))
+#test2.to_bedpe_like(how='expand', custom_infonames=['svlen', 'imprecise']).to_csv('../../tests/manta1.bedpe', index=None, sep='\t')

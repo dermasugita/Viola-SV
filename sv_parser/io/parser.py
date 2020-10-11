@@ -55,7 +55,9 @@ def read_vcf(filepath, variant_caller="manta"):
         
         #####FILTER
         ls_filter = record.FILTER
-        if len(ls_filter) == 0:
+        if ls_filter is None:
+            ls_filter = ['PASS']
+        elif len(ls_filter) == 0:
             ls_filter = ['PASS'] 
         row_FILTER = ls_filter
         for filter_ in row_FILTER:
@@ -132,6 +134,8 @@ def read_vcf(filepath, variant_caller="manta"):
         for a_sample in record.samples:
             for a_format in format_.split(':'):
                 values = eval('a_sample.data.' + str(a_format))
+                if not isinstance(values, list):
+                    values = [values]
                 for value_idx in range(len(values)):
                     ls_formats.append([row_ID, a_sample.sample, a_format, value_idx, values[value_idx]])
         df_formats_each_record = pd.DataFrame(ls_formats)
@@ -166,6 +170,7 @@ def read_vcf(filepath, variant_caller="manta"):
    
     return([df_pos, df_filters, dict_df_infos, df_formats, dict_df_headers])
 
+
 def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
     df_bedpe = pd.read_csv(filepath, sep='\t')
     ls_header = list(df_bedpe.columns)
@@ -175,21 +180,55 @@ def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
     df_bedpe.columns = ls_new_header
     df_bedpe['pos1'] = (df_bedpe['start1'] + df_bedpe['end1']) // 2
     df_bedpe['pos2'] = (df_bedpe['start2'] + df_bedpe['end2']) // 2
+
+    if svtype_col_name == '':
+        df_bedpe = infer_svtype_from_position(df_bedpe)
+        df_svpos = df_bedpe[['name', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'score', 'svtype']].copy()
+    else:
+        df_svpos = df_bedpe[['name', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'score', svtype_col_name]].rename(columns={svtype_col_name: 'svtype'}).copy()
+
+    df_svpos = df_svpos.rename(columns={'name': 'id', 'score': 'qual'})
+    df_svpos['ref'] = 'N'
+    df_svpos['alt'] = '.'
+
+    def _add_svlen(x):
+        if x.name == 'BND':
+            x['svlen_0'] = 0
+            return x
+        elif x.name == 'DEL':
+            x['svlen_0'] = x['pos1'] - x['pos2']
+            return x
+        elif x.name == 'DUP':
+            x['svlen_0'] = x['pos2'] - x['pos1']
+            return x
+        elif x.name == 'INV':
+            x['svlen_0'] = x['pos2'] - x['pos1']
+            return x
+        else:
+            x['svlen_0'] = 0
+            return x
+
+    df_bedpe = df_bedpe.groupby('svtype').apply(_add_svlen)
+
     df_bedpe['cipos_0'] = df_bedpe['start1'] - df_bedpe['pos1']
     df_bedpe['cipos_1'] = df_bedpe['end1'] - df_bedpe['pos1'] - 1
     df_bedpe['ciend_0'] = df_bedpe['start2'] - df_bedpe['pos2']
     df_bedpe['ciend_1'] = df_bedpe['end2'] - df_bedpe['pos2'] - 1
 
-    df_svpos = df_bedpe[['name', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'score']].copy()
-    df_svpos['ref'] = 'N'
-    df_svpos['alt'] = '.'
-    if svtype_col_name == '':
-        df_svpos = infer_svtype_from_position(df_svpos)
-    else:
-        df_svpos['svtype'] = df_bedpe.loc[:, svtype_col_index]
+    df_svlen = df_bedpe[['name', 'svlen_0']].rename(columns={'name': 'id'})
+    df_svtype = df_svpos[['id', 'svtype']].rename(columns={'svtype': 'svtype_0'})
+    df_cipos = df_bedpe[['name', 'cipos_0', 'cipos_1']].rename(columns={'name': 'id'})
+    df_ciend = df_bedpe[['name', 'ciend_0', 'ciend_1']].rename(columns={'name': 'id'})
 
+    ls_df_infos = []
+    for info in ls_header_option:
+        df_info = df_bedpe[['name', info]].rename(columns={info: info + '_0', 'name': 'id'})
+        ls_df_infos.append(df_info)
+    ls_df_infos = [df_svlen, df_svtype, df_cipos, df_ciend] + ls_df_infos   
+    ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend'] + ls_header_option
+    dict_df_infos = {k: v for k, v in zip(ls_infokeys, ls_df_infos)}
 
-    return df_svpos
+    return [df_svpos, dict_df_infos]
 
 def infer_svtype_from_position(position_table):
     df = position_table.copy()
@@ -208,7 +247,6 @@ def infer_svtype_from_position(position_table):
     ls_svtype = ['BND', 'DEL', 'DUP', 'INV']
     for mask, svtype in zip(ls_mask, ls_svtype):
         df.loc[mask, 'svtype'] = svtype
-    df = create_alt_field_from_position(df)
     return df
 
 def create_alt_field_from_position(position_table):
@@ -246,6 +284,6 @@ def create_alt_field_from_position(position_table):
     
 
 
-bedpe = '../../tests/manta1.bedpe'
-test = read_bedpe(bedpe)
-print(test.head(20))
+#bedpe = '../../tests/manta1.bedpe'
+#test = read_bedpe(bedpe)
+#print(test.head(20))

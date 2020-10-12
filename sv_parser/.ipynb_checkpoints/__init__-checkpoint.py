@@ -1,8 +1,4 @@
 import pandas
 import vcf
-
-def read_vcf(
-    filepath,
-    variant_caller="manta"
-):
-    vcf_reader = vcf.Reader(open(filepath, 'r'))
+from sv_parser.io.parser import read_vcf, read_bedpe
+from sv_parser.core.db import Sgt_core, Sgt_simple

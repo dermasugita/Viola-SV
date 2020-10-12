@@ -172,9 +172,28 @@ def read_vcf(filepath, variant_caller="manta"):
     args = [df_pos, df_filters, dict_df_infos, df_formats, dict_df_headers]
     return Sgt_core(*args)
 
+def _read_bedpe_empty(df_bedpe):
+    ls_header = list(df_bedpe.columns)
+    ls_header_required = ls_header[:10]
+    ls_header_option = ls_header[10:]
+    df_svpos = pd.DataFrame(columns=('id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype'))
+    df_svlen = pd.DataFrame(columns=('id', 'svlen_0'))
+    df_svtype = pd.DataFrame(columns=('id', 'svtype_0'))
+    ls_df_infos = []
+    for info in ls_header_option:
+        df_info = pd.DataFrame(columns=('id', info + '_0'))
+        ls_df_infos.append(df_info)
+    ls_df_infos = [df_svlen, df_svtype] + ls_df_infos   
+    ls_infokeys = ['svlen', 'svtype'] + ls_header_option
+    dict_df_infos = {k: v for k, v in zip(ls_infokeys, ls_df_infos)}
+    args = [df_svpos, dict_df_infos]
+    return Sgt_simple(*args)
+    
 
 def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
     df_bedpe = pd.read_csv(filepath, sep='\t')
+    if df_bedpe.shape[0] == 0:
+        return _read_bedpe_empty(df_bedpe)
     ls_header = list(df_bedpe.columns)
     ls_header_required = ls_header[:10]
     ls_header_option = ls_header[10:]
@@ -188,6 +207,7 @@ def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
         df_svpos = df_bedpe[['name', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'score', 'svtype']].copy()
     else:
         df_svpos = df_bedpe[['name', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'score', svtype_col_name]].rename(columns={svtype_col_name: 'svtype'}).copy()
+        df_bedpe['svtype'] = df_svpos['svtype']
 
     df_svpos = df_svpos.rename(columns={'name': 'id', 'score': 'qual'})
     df_svpos['ref'] = 'N'
@@ -291,6 +311,3 @@ def create_alt_field_from_position(position_table):
 
 
 
-bedpe = '../../tests/manta1.bedpe'
-test = read_bedpe(bedpe)
-print(test)

@@ -1,5 +1,6 @@
 import vcf
 import pandas as pd
+from sv_parser.core.db import Sgt_core, Sgt_simple
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
@@ -168,7 +169,8 @@ def read_vcf(filepath, variant_caller="manta"):
     df_formats.columns = columns
     ###/FORMAT
    
-    return([df_pos, df_filters, dict_df_infos, df_formats, dict_df_headers])
+    args = [df_pos, df_filters, dict_df_infos, df_formats, dict_df_headers]
+    return Sgt_core(*args)
 
 
 def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
@@ -193,6 +195,9 @@ def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
 
     def _add_svlen(x):
         if x.name == 'BND':
+            x['svlen_0'] = 0
+            return x
+        elif x.name == 'TRA':
             x['svlen_0'] = 0
             return x
         elif x.name == 'DEL':
@@ -228,7 +233,8 @@ def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
     ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend'] + ls_header_option
     dict_df_infos = {k: v for k, v in zip(ls_infokeys, ls_df_infos)}
 
-    return [df_svpos, dict_df_infos]
+    args = [df_svpos, dict_df_infos]
+    return Sgt_simple(*args)
 
 def infer_svtype_from_position(position_table):
     df = position_table.copy()
@@ -256,7 +262,7 @@ def create_alt_field_from_position(position_table):
     def _f(x):
         if x.name == '.':
             return x
-        elif x.name != 'BND':
+        elif (x.name != 'BND') & (x.name != 'TRA'):
             x['alt'] = "<{}>".format(x.name)
             return x
         ls_out = []

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sv_parser.io.parser import read_vcf, read_bedpe
+#from sv_parser.io.parser import read_vcf, read_bedpe
 
 class Sgt_simple(object):
     def __init__(self, df_svpos, dict_df_info):
@@ -36,7 +36,7 @@ class Sgt_simple(object):
         try:            
             table = self.dict_alltables[table_name]
         except KeyError:
-            print('no such table')
+            print('no such table: {}'.format(table_name))
             return
         return table.copy()
     def get_ids(self):
@@ -81,9 +81,29 @@ class Sgt_simple(object):
             sq0 = sq[0]
 
         if sq0 in self.ls_infokeys:
-            df_infometa = self.get_table('infos_meta')
-            row_mask = df_infometa['id'].str.contains(sq0.upper())
-            sq_dtype = df_infometa.loc[row_mask, 'type'].iloc[0]
+            sqtail = sq[-1]
+            def _isfloat(value):
+                try:
+                    float(value)
+                    return True
+                except ValueError:
+                    return False
+            def _isflag(value):
+                if value == 'True':
+                    return True
+                elif value == 'False':
+                    return True
+                else:
+                    return False
+            if sqtail.isdigit():
+                sq_dtype = 'Integer'
+            elif _isfloat(sqtail):
+                sq_dtype = 'Float'
+            elif _isflag(sqtail):
+                sq_dtype = 'Flag'
+            else:
+                sq_dtype = 'String'
+
             if sq_dtype == 'Integer':
                 sq[-1] = int(sq[-1])
             elif sq_dtype == 'String':
@@ -171,9 +191,10 @@ class Sgt_simple(object):
             else:
                 raise KeyError(method)
         df_detail_svtype = pd.concat(ls_df_detail_svtype)    
+        dict_df_info = self.dict_df_info
+        dict_df_info['svtype_detail'] = df_detail_svtype
 
-        sgt_out = Sgt_core(self.df_svpos, self.df_formats, self.dict_df_info, self.df_formats, self.dict_df_headers)
-        sgt_out.create_info_table('svtype_detail', df_detail_svtype, 1, 'String', 'Detailed SV type for signature analylsis')
+        sgt_out = Sgt_simple(self.df_svpos, dict_df_info)
         return sgt_out
     def is_reciprocal(self):
         pass
@@ -457,42 +478,3 @@ class Sgt_core(Sgt_simple):
 
 
 
-
-
-
-pd.set_option('display.max_columns', 20)
-pd.set_option('display.max_colwidth', 35)
-pd.set_option('display.width', 1500) 
-
- 
-#path_lumpy = '../../tests/vcf/lumpy1.vcf'
-path_bedpe = '../../tests/manta1.bedpe'
-
-test = read_bedpe(path_bedpe)
-test2 = Sgt_simple(*test)
-test3 = test2.get_detail_svtype()
-test3 = test2.to_bedpe_like('expand', custom_infonames=['svlen'])
-print(test2)
-print(test3)
-
-
-
-#test = read_vcf('../../tests/vcf/manta1.inv.vcf')
-#test = read_vcf('../../tests/vcf/lumpy1.vcf')
-#test2 = Sgt_core(*test)
-#test3 = test2.get_table('infos_meta')
-#print(test3)
-
-#q = "mouse1_T SR 1 > 0"
-#q2 = "PASS"
-#q3 = "mouse1_N PR 1 == 0"
-#q4 = "mouse1_N SR 1 == 0"
-#test3 = test2.filter([q, q2, q3, q4])
-##print(test3.get_table('infos_meta'))
-#print(test3.get_table('positions'))
-#print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype', 'svlen'], add_filters=True, add_formats=False, unique_events=True).head(20))
-#test4 = test2.to_vcf_like()
-#print(test4)
-#test3 = test2.get_detail_svtype()
-#print(test3.to_bedpe_like(how='expand', custom_infonames=['svtype','svtype_detail']).head(20))
-#test2.to_bedpe_like(how='expand', custom_infonames=['svlen', 'imprecise']).to_csv('../../tests/manta1.bedpe', index=None, sep='\t')

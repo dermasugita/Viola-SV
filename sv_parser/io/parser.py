@@ -290,6 +290,7 @@ def create_alt_field_from_position(position_table):
     
 
 
-#bedpe = '../../tests/manta1.bedpe'
-#test = read_bedpe(bedpe)
-#print(test.head(20))
+
+bedpe = '../../tests/manta1.bedpe'
+test = read_bedpe(bedpe)
+print(test)

@@ -20,6 +20,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/dermasugita/SV_parser",
     packages=PACKAGES,
+    package_dir={'': 'src'}
     classifiers=[
         "Programming Language :: Python :: 3",
         "Intended Audience :: Science/Research",

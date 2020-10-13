@@ -154,7 +154,10 @@ def read_vcf(filepath, variant_caller="manta"):
     ###INFO
     ls_df_infos = []
     for info in df_infos_meta.id:
-        df_a_info = pd.DataFrame(dict_infos[info])
+        if len(dict_infos[info]) == 0:
+            df_a_info = pd.DataFrame(columns=('id', info + '_0'))
+        else:
+            df_a_info = pd.DataFrame(dict_infos[info])
         ls_df_infos.append(df_a_info)
     dict_df_infos = {k: v for k, v in zip(df_infos_meta.id, ls_df_infos)}
     ###/INFO

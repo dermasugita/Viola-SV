@@ -3,14 +3,55 @@ import pandas as pd
 #from sv_parser.io.parser import read_vcf, read_bedpe
 
 class Sgt_simple(object):
+    """
+    Relational database-like object containing SV position dataframes and INFO dataframes.
+
+    ...
+
+    Attributes
+    ----------
+    sv_count: int
+        Number of SV records
+    
+    Parameters
+    ----------
+    df_svpos: DataFrame
+        DataFrame containing information such as position, strand, svtype, etc.
+        Columns should be following:
+        ['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']
+        Main key is 'id'.
+    dict_df_info: dict[str, DataFrame]
+        Dictionary of DataFrames which contain additional information on SV record (equivalent to INFO field of vcf).
+        Each item of the dictionary contains single INFO.
+        The dictionary key is the name of each INFO and should be in lowercase.
+        Columns of the DataFrame should be following:
+        ['id', 'infoname_0', 'infoname_1', ...]
+        Column names other than 'id' need to be suffixed as above because INFO may contain multiple values (e.g. CIPOS).
+        For now, the '_0' suffix is needed even when an INFO has only one value.
+        Main key is 'id' and it is also the foreign key coming from df_svpos table.
+
+    Methods
+    ----------
+    get_table_list()
+        Return a list of names of all tables in the object
+    get_table(table_name)
+    to_bedpe_like()
+
+    """
     def __init__(self, df_svpos, dict_df_info):
-        self.df_svpos = df_svpos
-        self.dict_df_info = dict_df_info
-        self.ls_infokeys = [x.lower() for x in dict_df_info.keys()]
-        ls_keys = ['positions'] + self.ls_infokeys
+        self._df_svpos = df_svpos
+        self._dict_df_info = dict_df_info
+        self._ls_infokeys = [x.lower() for x in dict_df_info.keys()]
+        ls_keys = ['positions'] + self._ls_infokeys
         ls_values = [df_svpos] + list(dict_df_info.values())
-        # self.dict_alltables is a {tablename: table} dictionary
-        self.dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        self._dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+    
+    @property
+    def sv_count(self):
+        """
+        Return number of SV records in the Sgt_simple object
+        """
+        return self._df_svpos.shape[0]
 
     def __repr__(self):
         df_svpos = self.get_table('positions')
@@ -25,16 +66,16 @@ class Sgt_simple(object):
         dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
         df_out = pd.DataFrame(dict_)
         str_df_out = str(df_out)
-        str_infokeys = ','.join(list(self.ls_infokeys))
+        str_infokeys = ','.join(list(self._ls_infokeys))
         desc = 'INFO='
         out = desc + str_infokeys + '\n' + str_df_out
         return str(out)
 
     def get_table_list(self):
-        return list(self.dict_alltables.keys())
+        return list(self._dict_alltables.keys())
     def get_table(self, table_name):
         try:            
-            table = self.dict_alltables[table_name]
+            table = self._dict_alltables[table_name]
         except KeyError:
             print('no such table: {}'.format(table_name))
             return
@@ -80,7 +121,7 @@ class Sgt_simple(object):
         else:
             sq0 = sq[0]
 
-        if sq0 in self.ls_infokeys:
+        if sq0 in self._ls_infokeys:
             sqtail = sq[-1]
             def _isfloat(value):
                 try:
@@ -153,7 +194,7 @@ class Sgt_simple(object):
 
     def filter_by_id(self, arrlike_id):
         out_svpos = self._filter_by_id('positions', arrlike_id)
-        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self.ls_infokeys}
+        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
         return Sgt_simple(out_svpos, out_dict_df_info)
 
     def _filter_pos_table(self, item, operator, threshold):
@@ -186,9 +227,9 @@ class Sgt_simple(object):
         df_svtypes = self.get_table('svtype')
         if df_svtypes.shape[0] == 0:
             df_detail_svtype = pd.DataFrame(columns=('id', 'svtype_detail_0'))
-            dict_df_info = self.dict_df_info
+            dict_df_info = self._dict_df_info
             dict_df_info['svtype_detail'] = df_detail_svtype
-            sgt_out = Sgt_simple(self.df_svpos, dict_df_info)
+            sgt_out = Sgt_simple(self._df_svpos, dict_df_info)
             return sgt_out
         ls_svtypes = df_svtypes['svtype_0'].unique()
 
@@ -209,10 +250,10 @@ class Sgt_simple(object):
             else:
                 raise KeyError(method)
         df_detail_svtype = pd.concat(ls_df_detail_svtype)    
-        dict_df_info = self.dict_df_info
+        dict_df_info = self._dict_df_info
         dict_df_info['svtype_detail'] = df_detail_svtype
 
-        sgt_out = Sgt_simple(self.df_svpos, dict_df_info)
+        sgt_out = Sgt_simple(self._df_svpos, dict_df_info)
         return sgt_out
     def is_reciprocal(self):
         pass
@@ -221,17 +262,17 @@ class Sgt_simple(object):
 
 class Sgt_core(Sgt_simple):
     def __init__(self, df_svpos, df_filters, dict_df_info, df_formats, dict_df_headers = {}):
-        self.df_svpos = df_svpos
-        self.df_filters = df_filters
-        self.dict_df_info = dict_df_info
-        self.df_formats = df_formats
-        self.dict_df_headers = dict_df_headers
-        self.ls_infokeys = [ x.lower() for x in dict_df_info.keys() ]
-        ls_keys = ['positions', 'filters'] + self.ls_infokeys + ['formats'] + \
+        self._df_svpos = df_svpos
+        self._df_filters = df_filters
+        self._dict_df_info = dict_df_info
+        self._df_formats = df_formats
+        self._dict_df_headers = dict_df_headers
+        self._ls_infokeys = [ x.lower() for x in dict_df_info.keys() ]
+        ls_keys = ['positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(dict_df_headers.keys())
         ls_values = [df_svpos, df_filters] + list(dict_df_info.values()) + [df_formats] + list(dict_df_headers.values())
-        # self.dict_alltables is a {tablename: table} dictionary
-        self.dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        # self._dict_alltables is a {tablename: table} dictionary
+        self._dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
 
     def __repr__(self):
         
@@ -240,17 +281,17 @@ class Sgt_core(Sgt_simple):
         return 'hello'
 
     def create_info_table(self, table_name, table, number, type_, description, source=None, version=None):
-        self.ls_infokeys += [table_name]
-        self.dict_alltables[table_name] = table
+        self._ls_infokeys += [table_name]
+        self._dict_alltables[table_name] = table
         df_meta = self.get_table('infos_meta')
         df_replace = df_meta.append({'id': table_name.upper(), 'number': number, 'type': type_, 'description': description, 'source': source, 'version': version},
                                     ignore_index=True)
-        self.dict_alltables['infos_meta'] = df_replace # not beautiful code...
+        self._dict_alltables['infos_meta'] = df_replace # not beautiful code...
 
 
     def to_vcf_like(self):
         df_base = self.get_table('positions')[['chrom1', 'pos1', 'id', 'ref', 'alt', 'qual']]
-        print(self.ls_infokeys)
+        print(self._ls_infokeys)
         ser_id = df_base['id']
         ser_vcfinfo = pd.Series(["" for i in range(len(ser_id))], index=ser_id)
         def _create_info_field(x, info):
@@ -260,7 +301,7 @@ class Sgt_core(Sgt_simple):
                 else:
                     return info.upper() + '=' + str(x.iloc[0])
             return info.upper() + '=' + ','.join(x.astype(str))
-        for info in self.ls_infokeys:
+        for info in self._ls_infokeys:
             df_info = self.get_table(info).set_index('id')
             ser_be_appended = df_info.apply(_create_info_field, axis=1, **{'info':info})
             ser_vcfinfo.loc[df_info.index] = ser_vcfinfo.loc[df_info.index] + ';' + ser_be_appended
@@ -365,7 +406,7 @@ class Sgt_core(Sgt_simple):
         else:
             sq0 = sq[0]
 
-        if sq0 in self.ls_infokeys:
+        if sq0 in self._ls_infokeys:
             df_infometa = self.get_table('infos_meta')
             row_mask = df_infometa['id'].str.contains(sq0.upper())
             sq_dtype = df_infometa.loc[row_mask, 'type'].iloc[0]
@@ -444,9 +485,9 @@ class Sgt_core(Sgt_simple):
     def filter_by_id(self, arrlike_id):
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_filters = self._filter_by_id('filters', arrlike_id)
-        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self.ls_infokeys}
+        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
         out_formats = self._filter_by_id('formats', arrlike_id)
-        out_dict_df_headers = self.dict_df_headers.copy()
+        out_dict_df_headers = self._dict_df_headers.copy()
         return Sgt_core(out_svpos, out_filters, out_dict_df_info, out_formats, out_dict_df_headers)
 
     def _filter_pos_table(self, item, operator, threshold):

@@ -164,6 +164,7 @@ def read_vcf(filepath, variant_caller="manta"):
 
     ###POS
     df_pos = pd.DataFrame(ls_pos)
+    df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
     ###/POS
 
     ###FORMAT

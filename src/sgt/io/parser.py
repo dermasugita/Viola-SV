@@ -1,6 +1,6 @@
 import vcf
 import pandas as pd
-from sv_parser.core.db import Sgt_core, Sgt_simple
+from sgt.core.db import Sgt_core, Sgt_simple
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 

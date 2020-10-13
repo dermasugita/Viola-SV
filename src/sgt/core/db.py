@@ -168,6 +168,13 @@ class Sgt_simple(object):
         set_out = set(eval(e))
         return set_out
 
+    def _filter_infos_flag(self, infoname, exclude=False):
+        df = self.get_table(infoname)
+        set_out = set(df['id'])
+        if exclude:
+            set_out = self.get_ids() - set_out
+        return set_out
+
     _sig_criteria = [["DEL", "cut", [-np.inf, -5000000, -500000, -50000, 0]],
                      ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
 
@@ -461,12 +468,6 @@ class Sgt_core(Sgt_simple):
         set_out = set(eval(e))
         return set_out
 
-    def _filter_infos_flag(self, infoname, exclude=False):
-        df = self.get_table(infoname)
-        set_out = set(df['id'])
-        if exclude:
-            set_out = self.get_ids() - set_out
-        return set_out
         
     def _filter_formats(self, sample, item, item_idx=0, operator=None, threshold=None):
         df = self.get_table('formats')

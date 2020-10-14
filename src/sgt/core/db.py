@@ -456,7 +456,7 @@ class Sgt_core(Sgt_simple):
                  'strand1',
                  'strand2']
         """
-        df_out = super().to_bedpe_like(custom_infonames=[], confidence_intervals=confidence_intervals)
+        df_out = super().to_bedpe_like(custom_infonames=custom_infonames, confidence_intervals=confidence_intervals)
         if add_filters:
             df_out = self.append_filters(df_out, left_on='name')
         if add_formats:

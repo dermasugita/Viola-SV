@@ -9,7 +9,6 @@ from typing import (
 from sgt._typing import (
     IntOrStr,
 )
-#from sv_parser.io.parser import read_vcf, read_bedpe
 
 class Sgt_simple(object):
     """

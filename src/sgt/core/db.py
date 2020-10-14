@@ -49,7 +49,7 @@ class Sgt_simple(object):
     @property
     def sv_count(self):
         """
-        Return number of SV records in the Sgt_simple object
+        Return number of SV records
         """
         return self._df_svpos.shape[0]
 
@@ -72,6 +72,9 @@ class Sgt_simple(object):
         return str(out)
 
     def get_table_list(self):
+        """
+        Return a list of names of all tables in the instance. 
+        """
         return list(self._dict_alltables.keys())
     def get_table(self, table_name):
         try:            

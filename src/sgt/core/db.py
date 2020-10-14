@@ -1,5 +1,14 @@
 import numpy as np
 import pandas as pd
+from typing import (
+    List,
+    Dict,
+    Set,
+    Iterable,
+)
+from sgt._typing import (
+    IntOrStr,
+)
 #from sv_parser.io.parser import read_vcf, read_bedpe
 
 class Sgt_simple(object):
@@ -12,6 +21,10 @@ class Sgt_simple(object):
     ----------
     sv_count: int
         Number of SV records
+    table_list
+        List of names of all tables included in the object 
+    ids
+        List of all SV id.
     
     Parameters
     ----------
@@ -32,13 +45,13 @@ class Sgt_simple(object):
 
     Methods
     ----------
-    get_table_list()
-        Return a list of names of all tables in the object
     get_table(table_name)
+        Return a table specified in the argument as pandas DataFrame object.
     to_bedpe_like()
+        Return a DataFrame in bedpe-like format.
 
     """
-    def __init__(self, df_svpos, dict_df_info):
+    def __init__(self, df_svpos: pd.DataFrame, dict_df_info: Dict[str, pd.DataFrame]):
         self._df_svpos = df_svpos
         self._dict_df_info = dict_df_info
         self._ls_infokeys = [x.lower() for x in dict_df_info.keys()]
@@ -47,11 +60,25 @@ class Sgt_simple(object):
         self._dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
     
     @property
-    def sv_count(self):
+    def sv_count(self) -> int:
         """
-        Return number of SV records
+        Return number of SV records.
         """
         return self._df_svpos.shape[0]
+    
+    @property
+    def table_list(self) -> List[str]:
+        """
+        Return a list of names of all tables in the object. 
+        """
+        return list(self._dict_alltables.keys())
+    
+    @property
+    def ids(self):
+        """
+        Return all SV ids as list.
+        """
+        return list(self.get_ids())
 
     def __repr__(self):
         df_svpos = self.get_table('positions')
@@ -71,37 +98,90 @@ class Sgt_simple(object):
         out = desc + str_infokeys + '\n' + str_df_out
         return str(out)
 
-    def get_table_list(self):
+    def get_table(self, table_name: str) -> pd.DataFrame:
         """
-        Return a list of names of all tables in the instance. 
+        get_table(table_name: str)
+        Return a table specified in the argument as pandas DataFrame object.
+
+        Parameters
+        ----------
+        table_name: str
+            The name of the table to return.
+
+        Returns
+        ----------
+        DataFrame
+            A table specified in the table_name argument.
+        
+        Raises
+        ----------
+        KeyError
+            If the table_name doesn't exist in the object.
         """
-        return list(self._dict_alltables.keys())
-    def get_table(self, table_name):
-        try:            
-            table = self._dict_alltables[table_name]
-        except KeyError:
-            print('no such table: {}'.format(table_name))
-            return
+        if table_name not in self.table_list:
+            raise KeyError('Table not found: {}'.format(table_name))
+        table = self._dict_alltables[table_name]
         return table.copy()
-    def get_ids(self):
+
+    def get_ids(self) -> Set[IntOrStr]:
+        """
+        Return all SV ids as the set type.
+        """
         df = self.get_table('positions')
         return set(df['id'])
 
-    def to_bedpe_like(self, how='basic', custom_infonames=[]):
-        df_svpos = self.get_table('positions')
-        df_svpos.rename(columns={'pos1': 'start1', 'pos2': 'start2'}, inplace=True)
-        df_merged = df_svpos.copy()
-        df_merged['end1'] = df_merged['start1'] + 1
-        df_merged['end2'] = df_merged['start2'] + 1
+    def to_bedpe_like(
+        self,
+        custom_infonames: Iterable[str] = [],
+        confidence_intervals: bool = False
+    ) -> pd.DataFrame:
+        """
+        to_bedpe_like(custom_infonames=[], confidence_intervals: bool=False)
+        Return a DataFrame in bedpe-like format.
+        When specified, you can add INFOs as additional columns.
+
+        Parameters:
+        ----------
+        custom_infonames: list-like[str]
+            The table names of INFOs to append.
+        confidence_intervals: bool, default False
+            Whether or not to consider confidence intervals of the breakpoints.  
+            If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
+            Otherwise, breakpoints are represented by a single-nucleotide resolution.
         
-        if how == 'basic':
-            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
-        elif how == 'minimum':
-            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2']].copy() 
-        elif how == 'expand':
-            if len(custom_infonames) == 0:
-                print('error: specify columns to expand')
-            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
+        Returns:
+        ----------
+        DataFrame
+            A Dataframe in bedpe-like format.
+            The columns include at least the following:
+                ['chrom1',
+                 'start1',
+                 'end1',
+                 'chrom2',
+                 'start2',
+                 'end2',
+                 'name',
+                 'score',
+                 'strand1',
+                 'strand2']
+        """
+        df_svpos = self.get_table('positions')
+        if confidence_intervals:
+            if 'cipos' in self.table_list and 'ciend' in self.table_list:
+                df_svpos = self.append_infos(df_svpos, ['cipos', 'ciend'])
+                df_svpos['start1'] = df_svpos['pos1'] - df_svpos['cipos_0']
+                df_svpos['end1'] = df_svpos['pos1'] + df_svpos['cipos_1'] + 1
+                df_svpos['start2'] = df_svpos['pos2'] - df_svpos['ciend_0']
+                df_svpos['end2'] = df_svpos['pos2'] + df_svpos['ciend_1'] + 1
+            else:
+                pass # raise some exception
+        else:
+            df_svpos.rename(columns={'pos1': 'start1', 'pos2': 'start2'}, inplace=True)
+            df_svpos['end1'] = df_svpos['start1'] + 1
+            df_svpos['end2'] = df_svpos['start2'] + 1
+        
+        df_out = df_svpos[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
+        if len(custom_infonames) != 0:
             df_out = self.append_infos(df_out, custom_infonames)
         df_out.rename(columns={'id': 'name', 'qual': 'score'}, inplace=True)
         return df_out
@@ -223,7 +303,7 @@ class Sgt_simple(object):
                      ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
 
     def get_detail_svtype(self, criteria=_sig_criteria):
-        if 'svtype' not in self.get_table_list():
+        if 'svtype' not in self.table_list:
             print("Can't find svtype table")
             return
         ### get all svtypes
@@ -333,34 +413,65 @@ class Sgt_core(Sgt_simple):
         df_out = pd.merge(df_out, df_formatfield)
         return df_out
 
-    def to_bedpe_like(self, how='basic', custom_infonames=[], add_filters=False, add_formats=False, unique_events=False):
-        if unique_events:
-            df_svpos = self.get_unique_events().get_table('positions')
-        else:
-            df_svpos = self.get_table('positions')
-        df_svpos.rename(columns={'pos1': 'start1', 'pos2': 'start2'}, inplace=True)
-        df_merged = df_svpos.copy()
-        df_merged['end1'] = df_merged['start1'] + 1
-        df_merged['end2'] = df_merged['start2'] + 1
+    def to_bedpe_like(
+        self,
+        custom_infonames: Iterable[str] = [],
+        add_filters: bool = False,
+        add_formats: bool = False, 
+        confidence_intervals: bool = False,
+        unique_events: bool = False
+    ) -> pd.DataFrame:
+        """
+        to_bedpe_like(custom_infonames=[], add_filters, add_formats, confidence_intervals: bool=False)
+        Return a DataFrame in bedpe-like format.
+        When specified, you can add INFOs, FILTERs, and FORMATs as additional columns.
+
+        Parameters:
+        ----------
+        custom_infonames: list-like[str]
+            The table names of INFOs to append.
+        add_filters: bool, default False
+            sth
+        add_formats: bool, default False
+            sth
+        confidence_intervals: bool, default False
+            Whether or not to consider confidence intervals of the breakpoints.  
+            If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
+            Otherwise, breakpoints are represented by a single-nucleotide resolution.
+        unique_events: bool, default False
         
-        if how == 'basic':
-            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
-        elif how == 'minimum':
-            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2']].copy() 
-        elif how == 'expand':
-            if len(custom_infonames) == 0:
-                print('warning: no columns will be added')
-            df_out = df_merged[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
-            df_out = self.append_infos(df_out, custom_infonames)
-            if add_filters:
-                df_out = self.append_filters(df_out)
-            if add_formats:
-                df_out = self.append_formats(df_out)
-        df_out.rename(columns={'id': 'name', 'qual': 'score'}, inplace=True)
+        Returns:
+        ----------
+        DataFrame
+            A Dataframe in bedpe-like format.
+            The columns include at least the following:
+                ['chrom1',
+                 'start1',
+                 'end1',
+                 'chrom2',
+                 'start2',
+                 'end2',
+                 'name',
+                 'score',
+                 'strand1',
+                 'strand2']
+        """
+        df_out = super().to_bedpe_like(custom_infonames=[], confidence_intervals=confidence_intervals)
+        if add_filters:
+            df_out = self.append_filters(df_out, left_on='name')
+        if add_formats:
+            df_out = self.append_formats(df_out, left_on='name')
+        if unique_events:
+            # deprecated for now
+            set_unique_ids = self._get_unique_events_ids()
+            df_out.set_index('name', inplace=True)
+            df_out = df_out.loc[set_unique_ids]
+            df_out.reset_index(inplace=True)
         return df_out
+
     def append_infos(self, base_df, ls_tablenames, left_on='id', auto_fillna=True):
         df = base_df.copy()
-        if ('infos_meta' in self.get_table_list()) & auto_fillna:
+        if ('infos_meta' in self.table_list) & auto_fillna:
             df_infometa = self.get_table('infos_meta')
             for tablename in ls_tablenames:
                 df_to_append = self.get_table(tablename)
@@ -519,9 +630,13 @@ class Sgt_core(Sgt_simple):
         df_target = df.loc[target_q]
         e = "df_target.loc[df_target['value'] {0} threshold]['id']".format(operator)
         return set(eval(e))
-
-    def get_unique_events(self):
-        if 'mateid' not in self.get_table_list():
+    
+    def _get_unique_events_ids(self) -> Set[IntOrStr]:
+        """
+        now deprecated
+        ATOMAWASHI!!!
+        """
+        if 'mateid' not in self.table_list:
             print("Can't find mateid table")
             return
         df = self.get_table('mateid')
@@ -530,6 +645,10 @@ class Sgt_core(Sgt_simple):
         set_to_subtract = set(df2.loc[arr_mask]['id'])
         set_all_ids = self.get_ids()
         set_result_ids = set_all_ids - set_to_subtract
+        return set_result_ids
+
+    def get_unique_events(self):
+        set_result_ids = self._get_unique_events_ids()
         return self.filter_by_id(set_result_ids)
 
 

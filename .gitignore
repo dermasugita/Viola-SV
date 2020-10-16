@@ -7,3 +7,4 @@ tox.ini
 .tox/
 .vscode/
 circle.yml
+.python_version

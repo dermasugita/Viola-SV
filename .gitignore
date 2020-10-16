@@ -5,4 +5,3 @@ Pipfile
 Pipfile.lock
 tox.ini
 .tox/
-.vscode/

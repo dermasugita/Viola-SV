@@ -9,6 +9,9 @@ from typing import (
 from sgt._typing import (
     IntOrStr,
 )
+from sgt._exceptions import (
+    TableNotFoundError,
+)
 #from sv_parser.io.parser import read_vcf, read_bedpe
 
 class Sgt_simple(object):
@@ -119,7 +122,7 @@ class Sgt_simple(object):
             If the table_name doesn't exist in the object.
         """
         if table_name not in self.table_list:
-            raise KeyError('Table not found: {}'.format(table_name))
+            raise TableNotFoundError(table_name)
         table = self._dict_alltables[table_name]
         return table.copy()
 

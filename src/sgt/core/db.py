@@ -118,7 +118,7 @@ class Sgt_simple(object):
         
         Raises
         ----------
-        KeyError
+        TableNotFoundError
             If the table_name doesn't exist in the object.
         """
         if table_name not in self.table_list:

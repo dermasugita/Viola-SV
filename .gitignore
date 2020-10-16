@@ -6,3 +6,4 @@ Pipfile.lock
 tox.ini
 .tox/
 .vscode/
+circle.yml

@@ -71,14 +71,13 @@ def read_vcf(filepath, variant_caller="manta"):
             values = row_INFO.get(info, 'none')
             if values == 'none':
                 continue
-            if isinstance(values, list):
-                ls_keys = ['id'] + [info.lower() + '_' + str(i) for i in range(len(values))]
-                ls_all_values = [row_ID] + [v for v in values]
-                dict_a_info = {k: v for k, v in zip(ls_keys, ls_all_values)}
-            else:
-                column_name = info.lower() + '_0'
-                dict_a_info = {'id': row_ID, column_name: values}
-            dict_infos[info].append(dict_a_info)
+            if not isinstance(values, list):
+                values = [values]
+            ls_keys = ['id', 'value_idx', info.lower()] 
+            for idx, value in enumerate(values):
+                ls_value = [row_ID, idx, value]
+                dict_a_info = {k: v for k, v in zip(ls_keys, ls_value)}
+                dict_infos[info].append(dict_a_info)
         #####/INFO
 
         ###POS
@@ -124,9 +123,6 @@ def read_vcf(filepath, variant_caller="manta"):
             })
         ###/POS
 
-        
-
-
         ####FORMAT
         format_ = record.FORMAT
 
@@ -145,8 +141,6 @@ def read_vcf(filepath, variant_caller="manta"):
 
         ####/FORMAT
 
-        
-
     ###FILTER
     df_filters = pd.DataFrame(ls_filters)
     ###/FILTER
@@ -155,7 +149,7 @@ def read_vcf(filepath, variant_caller="manta"):
     ls_df_infos = []
     for info in df_infos_meta.id:
         if len(dict_infos[info]) == 0:
-            df_a_info = pd.DataFrame(columns=('id', info + '_0'))
+            df_a_info = pd.DataFrame(columns=('id', 'value_idx', info.lower()))
         else:
             df_a_info = pd.DataFrame(dict_infos[info])
         ls_df_infos.append(df_a_info)
@@ -194,19 +188,18 @@ def _read_bedpe_empty(df_bedpe):
     return SgtSimple(*args)
     
 
-def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
+def read_bedpe(filepath, header_info_path=None, svtype_col_name=None):
     df_bedpe = pd.read_csv(filepath, sep='\t')
     if df_bedpe.shape[0] == 0:
         return _read_bedpe_empty(df_bedpe)
     ls_header = list(df_bedpe.columns)
-    ls_header_required = ls_header[:10]
     ls_header_option = ls_header[10:]
     ls_new_header = ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2'] + ls_header_option
     df_bedpe.columns = ls_new_header
     df_bedpe['pos1'] = (df_bedpe['start1'] + df_bedpe['end1']) // 2
     df_bedpe['pos2'] = (df_bedpe['start2'] + df_bedpe['end2']) // 2
 
-    if svtype_col_name == '':
+    if svtype_col_name is None:
         df_bedpe = infer_svtype_from_position(df_bedpe)
         df_svpos = df_bedpe[['name', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'score', 'svtype']].copy()
     else:

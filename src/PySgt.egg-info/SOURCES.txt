@@ -6,7 +6,10 @@ src/PySgt.egg-info/dependency_links.txt
 src/PySgt.egg-info/requires.txt
 src/PySgt.egg-info/top_level.txt
 src/sgt/__init__.py
+<<<<<<< HEAD
 src/sgt/_exceptions.py
+=======
+>>>>>>> hotfix/doc_for_developer
 src/sgt/_typing.py
 src/sgt/core/__init__.py
 src/sgt/core/db.py

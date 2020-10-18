@@ -10,7 +10,7 @@ from sgt._typing import (
     IntOrStr,
 )
 
-class Sgt_simple(object):
+class SgtSimple(object):
     """
     Relational database-like object containing SV position dataframes and INFO dataframes.
 
@@ -277,7 +277,7 @@ class Sgt_simple(object):
     def filter_by_id(self, arrlike_id):
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
-        return Sgt_simple(out_svpos, out_dict_df_info)
+        return SgtSimple(out_svpos, out_dict_df_info)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')
@@ -311,7 +311,7 @@ class Sgt_simple(object):
             df_detail_svtype = pd.DataFrame(columns=('id', 'svtype_detail_0'))
             dict_df_info = self._dict_df_info
             dict_df_info['svtype_detail'] = df_detail_svtype
-            sgt_out = Sgt_simple(self._df_svpos, dict_df_info)
+            sgt_out = SgtSimple(self._df_svpos, dict_df_info)
             return sgt_out
         ls_svtypes = df_svtypes['svtype_0'].unique()
 
@@ -335,14 +335,14 @@ class Sgt_simple(object):
         dict_df_info = self._dict_df_info
         dict_df_info['svtype_detail'] = df_detail_svtype
 
-        sgt_out = Sgt_simple(self._df_svpos, dict_df_info)
+        sgt_out = SgtSimple(self._df_svpos, dict_df_info)
         return sgt_out
     def is_reciprocal(self):
         pass
 
 
 
-class Sgt_core(Sgt_simple):
+class SgtCore(SgtSimple):
     def __init__(self, df_svpos, df_filters, dict_df_info, df_formats, dict_df_headers = {}):
         self._df_svpos = df_svpos
         self._df_filters = df_filters
@@ -601,7 +601,7 @@ class Sgt_core(Sgt_simple):
         out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
         out_formats = self._filter_by_id('formats', arrlike_id)
         out_dict_df_headers = self._dict_df_headers.copy()
-        return Sgt_core(out_svpos, out_filters, out_dict_df_info, out_formats, out_dict_df_headers)
+        return SgtCore(out_svpos, out_filters, out_dict_df_info, out_formats, out_dict_df_headers)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')

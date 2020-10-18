@@ -74,12 +74,25 @@ tox -- 何かオプション
 
 
 ## コーディングの決まり
-
-### 変数の命名規則
 以下のコーディング規則でお願いします。途中途中で決めているので、僕自身の初期のコードのなかにも遵守されていないものがあるかもしれません。気がついたら直しておいてください（怖い場合は連絡ください）。
+### 命名規則
 - 変数のprefix
-<br>`list dictionary set tuple ndarray pd.Series pd.DataFrame`の場合は、それぞれ`ls_ dict_ set_ tuple_ arr_ ser_ df_`というprefixをつけてください。 
-
+<br>`list dictionary set tuple ndarray pd.Series pd.DataFrame`の場合は、それぞれ`ls_ dict_ set_ tuple_ arr_ ser_ df_`というprefixをつけてください。 intとかstrとかはテキトーでOKです。
 - 変数、関数、メソッドはアンダースコア区切りで全て小文字
 - クラス、例外、自定義型は最初大文字+大文字区切り
 - 定数はアンダースコア区切りで全て大文字
+- クラス内変数・メソッドはアンダースコアで始めてください。 例: `_inner_class_method()`
+
+### Docstringsを書きましょう
+- [numpy style](https://numpydoc.readthedocs.io/en/latest/format.html)でお願いします。
+- classのDocstringsはclass定義の真下に書き、`__init__()`の下には何も書かないこと。
+
+### 型ヒントは出来るだけ書いといてください
+- 変数の引数や出力の型が定まっている場合は、型ヒントを書いておいてください
+- 確定できない変数は、悩んで時間をとられるよりは何も書かずに次に進んで良いです
+- 新しい型を定義したい場合は、_typing.pyに追加してください。
+
+### その他
+- 規則を破った人を怒るのはやめましょう。
+- 困ったらslackで
+- ディレクトリ構成はpandasを参考にしています。

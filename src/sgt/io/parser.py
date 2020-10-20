@@ -208,43 +208,58 @@ def read_bedpe(filepath, header_info_path=None, svtype_col_name=None):
 
     df_svpos = df_svpos.rename(columns={'name': 'id', 'score': 'qual'})
     df_svpos['ref'] = 'N'
-    df_svpos['alt'] = '.'
+    df_svpos = create_alt_field_from_position(df_svpos)
 
+    ## below: construct INFO tables
+
+    ### svlen table
     def _add_svlen(x):
+        x['value_idx'] = 0
         if x.name == 'BND':
-            x['svlen_0'] = 0
+            x['svlen'] = 0
             return x
         elif x.name == 'TRA':
-            x['svlen_0'] = 0
+            x['svlen'] = 0
             return x
         elif x.name == 'DEL':
-            x['svlen_0'] = x['pos1'] - x['pos2']
+            x['svlen'] = x['pos1'] - x['pos2']
             return x
         elif x.name == 'DUP':
-            x['svlen_0'] = x['pos2'] - x['pos1']
+            x['svlen'] = x['pos2'] - x['pos1']
             return x
         elif x.name == 'INV':
-            x['svlen_0'] = x['pos2'] - x['pos1']
+            x['svlen'] = x['pos2'] - x['pos1']
             return x
         else:
-            x['svlen_0'] = 0
+            x['svlen'] = 0
             return x
+    df_svlen = df_svpos.groupby('svtype').apply(_add_svlen)
 
-    df_bedpe = df_bedpe.groupby('svtype').apply(_add_svlen)
+    ### svtype table
+    df_svtype = df_svpos[['id', 'svtype']].copy()
+    df_svtype['value_idx'] = 0
+    df_svtype = df_svtype[['id', 'value_idx', 'svtype']]
 
-    df_bedpe['cipos_0'] = df_bedpe['start1'] - df_bedpe['pos1']
-    df_bedpe['cipos_1'] = df_bedpe['end1'] - df_bedpe['pos1'] - 1
-    df_bedpe['ciend_0'] = df_bedpe['start2'] - df_bedpe['pos2']
-    df_bedpe['ciend_1'] = df_bedpe['end2'] - df_bedpe['pos2'] - 1
-
-    df_svlen = df_bedpe[['name', 'svlen_0']].rename(columns={'name': 'id'})
-    df_svtype = df_svpos[['id', 'svtype']].rename(columns={'svtype': 'svtype_0'})
-    df_cipos = df_bedpe[['name', 'cipos_0', 'cipos_1']].rename(columns={'name': 'id'})
-    df_ciend = df_bedpe[['name', 'ciend_0', 'ciend_1']].rename(columns={'name': 'id'})
+    ### cipos and ciend
+    df_ci = df_bedpe.copy()
+    df_ci[0] = df_ci['start1'] - df_ci['pos1']
+    df_ci[1] = df_ci['end1'] - df_ci['pos1'] - 1
+    df_cipos = df_ci[['name', 0, 1]].rename(columns={'name': 'id'}).set_index('id')
+    df_cipos = df_cipos.stack()
+    df_cipos = df_cipos.reset_index().rename(columns={'level_1': 'value_idx', 0: 'cipos'})
+    
+    df_ci = df_bedpe.copy()
+    df_ci[0] = df_ci['start2'] - df_ci['pos2']
+    df_ci[1] = df_ci['end2'] - df_ci['pos2'] - 1
+    df_ciend = df_ci[['name', 0, 1]].rename(columns={'name': 'id'}).set_index('id')
+    df_ciend = df_ciend.stack()
+    df_ciend = df_ciend.reset_index().rename(columns={'level_1': 'value_idx', 0: 'ciend'})
 
     ls_df_infos = []
     for info in ls_header_option:
-        df_info = df_bedpe[['name', info]].rename(columns={info: info + '_0', 'name': 'id'})
+        df_info = df_bedpe[['name', info]].rename(columns={'name': 'id'}).copy()
+        df_info['value_idx'] = 0
+        df_info = df_info[['id', 'value_idx', info]]
         ls_df_infos.append(df_info)
     ls_df_infos = [df_svlen, df_svtype, df_cipos, df_ciend] + ls_df_infos   
     ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend'] + ls_header_option
@@ -278,6 +293,7 @@ def create_alt_field_from_position(position_table):
     '''
     def _f(x):
         if x.name == '.':
+            x['alt'] = '.'
             return x
         elif (x.name != 'BND') & (x.name != 'TRA'):
             x['alt'] = "<{}>".format(x.name)
@@ -303,8 +319,5 @@ def create_alt_field_from_position(position_table):
         return df_out
     df = position_table.copy()
     df = df.groupby('svtype').apply(_f)
+    df.index = df.index.droplevel()
     return df
-    
-
-
-

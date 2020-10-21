@@ -8,6 +8,7 @@ src/PySgt.egg-info/top_level.txt
 src/sgt/__init__.py
 src/sgt/_exceptions.py
 src/sgt/_typing.py
+src/sgt/testing.py
 src/sgt/core/__init__.py
 src/sgt/core/db.py
 src/sgt/io/__init__.py

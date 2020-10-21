@@ -1,14 +1,21 @@
 import vcf
 import pandas as pd
+import os
+from io import StringIO
 from sgt.core.db import SgtCore, SgtSimple
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
 
 
-def read_vcf(filepath, variant_caller="manta"):
+def read_vcf(filepath_or_buffer, variant_caller="manta"):
     # read vcf files using PyVcf package
-    vcf_reader = vcf.Reader(open(filepath, 'r'))
+    if isinstance(filepath_or_buffer, str):
+        vcf_reader = vcf.Reader(open(filepath_or_buffer, 'r'))
+    elif isinstance(filepath_or_buffer, StringIO):
+        vcf_reader = vcf.Reader(filepath_or_buffer)
+    else:
+        raise TypeError("should be file or buffer")
 
     # obtain header informations
     odict_contigs = vcf_reader.contigs
@@ -71,14 +78,13 @@ def read_vcf(filepath, variant_caller="manta"):
             values = row_INFO.get(info, 'none')
             if values == 'none':
                 continue
-            if isinstance(values, list):
-                ls_keys = ['id'] + [info.lower() + '_' + str(i) for i in range(len(values))]
-                ls_all_values = [row_ID] + [v for v in values]
-                dict_a_info = {k: v for k, v in zip(ls_keys, ls_all_values)}
-            else:
-                column_name = info.lower() + '_0'
-                dict_a_info = {'id': row_ID, column_name: values}
-            dict_infos[info].append(dict_a_info)
+            if not isinstance(values, list):
+                values = [values]
+            ls_keys = ['id', 'value_idx', info.lower()] 
+            for idx, value in enumerate(values):
+                ls_value = [row_ID, idx, value]
+                dict_a_info = {k: v for k, v in zip(ls_keys, ls_value)}
+                dict_infos[info].append(dict_a_info)
         #####/INFO
 
         ###POS
@@ -124,9 +130,6 @@ def read_vcf(filepath, variant_caller="manta"):
             })
         ###/POS
 
-        
-
-
         ####FORMAT
         format_ = record.FORMAT
 
@@ -145,8 +148,6 @@ def read_vcf(filepath, variant_caller="manta"):
 
         ####/FORMAT
 
-        
-
     ###FILTER
     df_filters = pd.DataFrame(ls_filters)
     ###/FILTER
@@ -155,7 +156,7 @@ def read_vcf(filepath, variant_caller="manta"):
     ls_df_infos = []
     for info in df_infos_meta.id:
         if len(dict_infos[info]) == 0:
-            df_a_info = pd.DataFrame(columns=('id', info + '_0'))
+            df_a_info = pd.DataFrame(columns=('id', 'value_idx', info.lower()))
         else:
             df_a_info = pd.DataFrame(dict_infos[info])
         ls_df_infos.append(df_a_info)
@@ -194,19 +195,18 @@ def _read_bedpe_empty(df_bedpe):
     return SgtSimple(*args)
     
 
-def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
+def read_bedpe(filepath, header_info_path=None, svtype_col_name=None):
     df_bedpe = pd.read_csv(filepath, sep='\t')
     if df_bedpe.shape[0] == 0:
         return _read_bedpe_empty(df_bedpe)
     ls_header = list(df_bedpe.columns)
-    ls_header_required = ls_header[:10]
     ls_header_option = ls_header[10:]
     ls_new_header = ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2'] + ls_header_option
     df_bedpe.columns = ls_new_header
     df_bedpe['pos1'] = (df_bedpe['start1'] + df_bedpe['end1']) // 2
     df_bedpe['pos2'] = (df_bedpe['start2'] + df_bedpe['end2']) // 2
 
-    if svtype_col_name == '':
+    if svtype_col_name is None:
         df_bedpe = infer_svtype_from_position(df_bedpe)
         df_svpos = df_bedpe[['name', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'score', 'svtype']].copy()
     else:
@@ -215,43 +215,58 @@ def read_bedpe(filepath, header_info_path=None, svtype_col_name=''):
 
     df_svpos = df_svpos.rename(columns={'name': 'id', 'score': 'qual'})
     df_svpos['ref'] = 'N'
-    df_svpos['alt'] = '.'
+    df_svpos = create_alt_field_from_position(df_svpos)
 
+    ## below: construct INFO tables
+
+    ### svlen table
     def _add_svlen(x):
+        x['value_idx'] = 0
         if x.name == 'BND':
-            x['svlen_0'] = 0
+            x['svlen'] = 0
             return x
         elif x.name == 'TRA':
-            x['svlen_0'] = 0
+            x['svlen'] = 0
             return x
         elif x.name == 'DEL':
-            x['svlen_0'] = x['pos1'] - x['pos2']
+            x['svlen'] = x['pos1'] - x['pos2']
             return x
         elif x.name == 'DUP':
-            x['svlen_0'] = x['pos2'] - x['pos1']
+            x['svlen'] = x['pos2'] - x['pos1']
             return x
         elif x.name == 'INV':
-            x['svlen_0'] = x['pos2'] - x['pos1']
+            x['svlen'] = x['pos2'] - x['pos1']
             return x
         else:
-            x['svlen_0'] = 0
+            x['svlen'] = 0
             return x
+    df_svlen = df_svpos.groupby('svtype').apply(_add_svlen)
 
-    df_bedpe = df_bedpe.groupby('svtype').apply(_add_svlen)
+    ### svtype table
+    df_svtype = df_svpos[['id', 'svtype']].copy()
+    df_svtype['value_idx'] = 0
+    df_svtype = df_svtype[['id', 'value_idx', 'svtype']]
 
-    df_bedpe['cipos_0'] = df_bedpe['start1'] - df_bedpe['pos1']
-    df_bedpe['cipos_1'] = df_bedpe['end1'] - df_bedpe['pos1'] - 1
-    df_bedpe['ciend_0'] = df_bedpe['start2'] - df_bedpe['pos2']
-    df_bedpe['ciend_1'] = df_bedpe['end2'] - df_bedpe['pos2'] - 1
-
-    df_svlen = df_bedpe[['name', 'svlen_0']].rename(columns={'name': 'id'})
-    df_svtype = df_svpos[['id', 'svtype']].rename(columns={'svtype': 'svtype_0'})
-    df_cipos = df_bedpe[['name', 'cipos_0', 'cipos_1']].rename(columns={'name': 'id'})
-    df_ciend = df_bedpe[['name', 'ciend_0', 'ciend_1']].rename(columns={'name': 'id'})
+    ### cipos and ciend
+    df_ci = df_bedpe.copy()
+    df_ci[0] = df_ci['start1'] - df_ci['pos1']
+    df_ci[1] = df_ci['end1'] - df_ci['pos1'] - 1
+    df_cipos = df_ci[['name', 0, 1]].rename(columns={'name': 'id'}).set_index('id')
+    df_cipos = df_cipos.stack()
+    df_cipos = df_cipos.reset_index().rename(columns={'level_1': 'value_idx', 0: 'cipos'})
+    
+    df_ci = df_bedpe.copy()
+    df_ci[0] = df_ci['start2'] - df_ci['pos2']
+    df_ci[1] = df_ci['end2'] - df_ci['pos2'] - 1
+    df_ciend = df_ci[['name', 0, 1]].rename(columns={'name': 'id'}).set_index('id')
+    df_ciend = df_ciend.stack()
+    df_ciend = df_ciend.reset_index().rename(columns={'level_1': 'value_idx', 0: 'ciend'})
 
     ls_df_infos = []
     for info in ls_header_option:
-        df_info = df_bedpe[['name', info]].rename(columns={info: info + '_0', 'name': 'id'})
+        df_info = df_bedpe[['name', info]].rename(columns={'name': 'id'}).copy()
+        df_info['value_idx'] = 0
+        df_info = df_info[['id', 'value_idx', info]]
         ls_df_infos.append(df_info)
     ls_df_infos = [df_svlen, df_svtype, df_cipos, df_ciend] + ls_df_infos   
     ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend'] + ls_header_option
@@ -285,6 +300,7 @@ def create_alt_field_from_position(position_table):
     '''
     def _f(x):
         if x.name == '.':
+            x['alt'] = '.'
             return x
         elif (x.name != 'BND') & (x.name != 'TRA'):
             x['alt'] = "<{}>".format(x.name)
@@ -310,8 +326,5 @@ def create_alt_field_from_position(position_table):
         return df_out
     df = position_table.copy()
     df = df.groupby('svtype').apply(_f)
+    df.index = df.index.droplevel()
     return df
-    
-
-
-

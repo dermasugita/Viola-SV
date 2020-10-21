@@ -3,7 +3,7 @@
 ## 推奨開発環境
 
 ### OSに関して
-client OS: Any
+client OS: Any<br>
 remote OS: Linux
 
 ### Pythonのバージョン
@@ -90,9 +90,32 @@ tox -- 何かオプション
 ### 型ヒントは出来るだけ書いといてください
 - 変数の引数や出力の型が定まっている場合は、型ヒントを書いておいてください
 - 確定できない変数は、悩んで時間をとられるよりは何も書かずに次に進んで良いです
-- 新しい型を定義したい場合は、_typing.pyに追加してください。
+- 新しい型を定義したい場合は、`_typing.py`に追加してください。
 
-### その他
+### Errorの定義
+- Exceptionを自分で定義したい場合は`_exception.py`に書いてください。
+
+## Gitでの管理に関して
+### 基本事項
+- コードの管理はGitHubで行います。
+- 開発のメインはdevelopブランチです。masterには触らないこと。
+- developは直接編集しないこと。
+- developからfeature/somethingという名前のブランチを切って作業してください。
+
+### 最新のorigin/developを自分の作業ブランチ(feature/something)に取り込みたい
+- `git pull --rebase origin develop`を叩いてください。
+- `git push origin feature/something`が通らない場合は、`--force-with-lease`をつけてください。
+
+### developへのマージ
+- developへのマージはGitHub上で行います
+- `git pull --rebase origin develop`を叩いてから`git push origin feature/something`し、GitHub上でPull Requestしてください
+
+### やってしまった！
+- まずは`git log`して落ち着く(多くの場合commit idから復活できる)
+- 対応がわからなければslackで
+
+
+## その他
 - 規則を破った人を怒るのはやめましょう。
 - 困ったらslackで
 - ディレクトリ構成はpandasを参考にしています。

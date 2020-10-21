@@ -6,8 +6,10 @@ from typing import (
     Set,
     Iterable,
 )
+import sgt
 from sgt._typing import (
     IntOrStr,
+    StrOrIterableStr,
 )
 from sgt._exceptions import (
     TableNotFoundError,
@@ -142,7 +144,7 @@ class SgtSimple(object):
         Return a DataFrame in bedpe-like format.
         When specified, you can add INFOs as additional columns.
 
-        Parameters:
+        Parameters
         ----------
         custom_infonames: list-like[str]
             The table names of INFOs to append.
@@ -151,21 +153,12 @@ class SgtSimple(object):
             If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
             Otherwise, breakpoints are represented by a single-nucleotide resolution.
         
-        Returns:
+        Returns
         ----------
         DataFrame
             A Dataframe in bedpe-like format.
             The columns include at least the following:
-                ['chrom1',
-                 'start1',
-                 'end1',
-                 'chrom2',
-                 'start2',
-                 'end2',
-                 'name',
-                 'score',
-                 'strand1',
-                 'strand2']
+                'chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2'
         """
         df_svpos = self.get_table('positions')
         if confidence_intervals:
@@ -188,7 +181,30 @@ class SgtSimple(object):
         df_out.rename(columns={'id': 'name', 'qual': 'score'}, inplace=True)
         return df_out
 
-    def append_infos(self, base_df, ls_tablenames, left_on='id'):
+    def append_infos(self,
+        base_df: pd.DataFrame,
+        ls_tablenames: Iterable[str],
+        left_on: str = 'id') -> pd.DataFrame:
+        """
+        append_infos(base_df, ls_tablenames, left_on='id')
+        Append INFO tables to the right of the base_df, based on the SV id columns.
+        If the name of the SV id column in base_df is not 'id', specify column name into left_on argument. 
+
+        Parameters
+        ---------------
+        base_df: DataFrame
+            The DataFrame to which the INFO tables are appended.
+        ls_tablenames: list-like
+            The list of INFO table names to be appended.
+        left_on: str
+            The name of SV id column of base_df
+        
+        Returns
+        ---------------
+        DataFrame
+            A DataFrame which the INFO tables are added.
+
+        """
         df = base_df.copy()
         for tablename in ls_tablenames:
             df_to_append_pre = self.get_table(tablename)
@@ -256,7 +272,14 @@ class SgtSimple(object):
             return set_out
 
 
-    def filter(self, ls_query, query_logic='and'):
+    def filter(self,
+        ls_query: StrOrIterableStr,
+        query_logic: str = 'and'):
+        """
+        filter(ls_query, query_logic)
+        Filter SgtSimple object by the list of queries.
+        Return object is also an instance of the SgtSimple object
+        """
         ### != operation is dangerous
         if isinstance(ls_query, str):
             ls_query = [ls_query]
@@ -280,6 +303,23 @@ class SgtSimple(object):
 
 
     def filter_by_id(self, arrlike_id):
+        """
+        filter_by_id(arrlike_id)
+        Filter SgtSimple object by the list of SV ids.
+        Return object is also an instance of the SgtSimple object
+
+        Parameters
+        ---------------
+        arrlike_id: list-like
+            SV ids which you would like to keep.
+        
+        Returns
+        ---------------
+        SgtSimple
+            A SgtSimple object with the SV id specified in the arrlike_id argument.
+            All records associated with SV ids that are not in arrlike_id will be discarded.
+        
+        """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
         return SgtSimple(out_svpos, out_dict_df_info)

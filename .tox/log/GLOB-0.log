@@ -10,57 +10,57 @@ writing top-level names to src/PySgt.egg-info/top_level.txt
 reading manifest file 'src/PySgt.egg-info/SOURCES.txt'
 writing manifest file 'src/PySgt.egg-info/SOURCES.txt'
 running check
-creating PySgt-0.0.19
-creating PySgt-0.0.19/src
-creating PySgt-0.0.19/src/PySgt.egg-info
-creating PySgt-0.0.19/src/sgt
-creating PySgt-0.0.19/src/sgt/core
-creating PySgt-0.0.19/src/sgt/io
-creating PySgt-0.0.19/src/sgt/utils
-copying files to PySgt-0.0.19...
-copying README.md -> PySgt-0.0.19
-copying setup.py -> PySgt-0.0.19
-copying src/PySgt.egg-info/PKG-INFO -> PySgt-0.0.19/src/PySgt.egg-info
-copying src/PySgt.egg-info/SOURCES.txt -> PySgt-0.0.19/src/PySgt.egg-info
-copying src/PySgt.egg-info/dependency_links.txt -> PySgt-0.0.19/src/PySgt.egg-info
-copying src/PySgt.egg-info/requires.txt -> PySgt-0.0.19/src/PySgt.egg-info
-copying src/PySgt.egg-info/top_level.txt -> PySgt-0.0.19/src/PySgt.egg-info
-copying src/sgt/__init__.py -> PySgt-0.0.19/src/sgt
-copying src/sgt/_exceptions.py -> PySgt-0.0.19/src/sgt
-copying src/sgt/_typing.py -> PySgt-0.0.19/src/sgt
-copying src/sgt/core/__init__.py -> PySgt-0.0.19/src/sgt/core
-copying src/sgt/core/db.py -> PySgt-0.0.19/src/sgt/core
-copying src/sgt/io/__init__.py -> PySgt-0.0.19/src/sgt/io
-copying src/sgt/io/parser.py -> PySgt-0.0.19/src/sgt/io
-copying src/sgt/utils/__init__.py -> PySgt-0.0.19/src/sgt/utils
-copying src/sgt/utils/cluster.py -> PySgt-0.0.19/src/sgt/utils
-copying src/sgt/utils/utils.py -> PySgt-0.0.19/src/sgt/utils
-Writing PySgt-0.0.19/setup.cfg
-creating '.tox/dist/PySgt-0.0.19.zip' and adding 'PySgt-0.0.19' to it
-adding 'PySgt-0.0.19'
-adding 'PySgt-0.0.19/src'
-adding 'PySgt-0.0.19/setup.py'
-adding 'PySgt-0.0.19/PKG-INFO'
-adding 'PySgt-0.0.19/README.md'
-adding 'PySgt-0.0.19/setup.cfg'
-adding 'PySgt-0.0.19/src/PySgt.egg-info'
-adding 'PySgt-0.0.19/src/sgt'
-adding 'PySgt-0.0.19/src/PySgt.egg-info/SOURCES.txt'
-adding 'PySgt-0.0.19/src/PySgt.egg-info/PKG-INFO'
-adding 'PySgt-0.0.19/src/PySgt.egg-info/requires.txt'
-adding 'PySgt-0.0.19/src/PySgt.egg-info/top_level.txt'
-adding 'PySgt-0.0.19/src/PySgt.egg-info/dependency_links.txt'
-adding 'PySgt-0.0.19/src/sgt/io'
-adding 'PySgt-0.0.19/src/sgt/utils'
-adding 'PySgt-0.0.19/src/sgt/core'
-adding 'PySgt-0.0.19/src/sgt/__init__.py'
-adding 'PySgt-0.0.19/src/sgt/_exceptions.py'
-adding 'PySgt-0.0.19/src/sgt/_typing.py'
-adding 'PySgt-0.0.19/src/sgt/io/__init__.py'
-adding 'PySgt-0.0.19/src/sgt/io/parser.py'
-adding 'PySgt-0.0.19/src/sgt/utils/cluster.py'
-adding 'PySgt-0.0.19/src/sgt/utils/utils.py'
-adding 'PySgt-0.0.19/src/sgt/utils/__init__.py'
-adding 'PySgt-0.0.19/src/sgt/core/__init__.py'
-adding 'PySgt-0.0.19/src/sgt/core/db.py'
-removing 'PySgt-0.0.19' (and everything under it)
+creating PySgt-0.1
+creating PySgt-0.1/src
+creating PySgt-0.1/src/PySgt.egg-info
+creating PySgt-0.1/src/sgt
+creating PySgt-0.1/src/sgt/core
+creating PySgt-0.1/src/sgt/io
+creating PySgt-0.1/src/sgt/utils
+copying files to PySgt-0.1...
+copying README.md -> PySgt-0.1
+copying setup.py -> PySgt-0.1
+copying src/PySgt.egg-info/PKG-INFO -> PySgt-0.1/src/PySgt.egg-info
+copying src/PySgt.egg-info/SOURCES.txt -> PySgt-0.1/src/PySgt.egg-info
+copying src/PySgt.egg-info/dependency_links.txt -> PySgt-0.1/src/PySgt.egg-info
+copying src/PySgt.egg-info/requires.txt -> PySgt-0.1/src/PySgt.egg-info
+copying src/PySgt.egg-info/top_level.txt -> PySgt-0.1/src/PySgt.egg-info
+copying src/sgt/__init__.py -> PySgt-0.1/src/sgt
+copying src/sgt/_exceptions.py -> PySgt-0.1/src/sgt
+copying src/sgt/_typing.py -> PySgt-0.1/src/sgt
+copying src/sgt/core/__init__.py -> PySgt-0.1/src/sgt/core
+copying src/sgt/core/db.py -> PySgt-0.1/src/sgt/core
+copying src/sgt/io/__init__.py -> PySgt-0.1/src/sgt/io
+copying src/sgt/io/parser.py -> PySgt-0.1/src/sgt/io
+copying src/sgt/utils/__init__.py -> PySgt-0.1/src/sgt/utils
+copying src/sgt/utils/cluster.py -> PySgt-0.1/src/sgt/utils
+copying src/sgt/utils/utils.py -> PySgt-0.1/src/sgt/utils
+Writing PySgt-0.1/setup.cfg
+creating '.tox/dist/PySgt-0.1.zip' and adding 'PySgt-0.1' to it
+adding 'PySgt-0.1'
+adding 'PySgt-0.1/src'
+adding 'PySgt-0.1/README.md'
+adding 'PySgt-0.1/PKG-INFO'
+adding 'PySgt-0.1/setup.cfg'
+adding 'PySgt-0.1/setup.py'
+adding 'PySgt-0.1/src/PySgt.egg-info'
+adding 'PySgt-0.1/src/sgt'
+adding 'PySgt-0.1/src/PySgt.egg-info/SOURCES.txt'
+adding 'PySgt-0.1/src/PySgt.egg-info/dependency_links.txt'
+adding 'PySgt-0.1/src/PySgt.egg-info/requires.txt'
+adding 'PySgt-0.1/src/PySgt.egg-info/PKG-INFO'
+adding 'PySgt-0.1/src/PySgt.egg-info/top_level.txt'
+adding 'PySgt-0.1/src/sgt/utils'
+adding 'PySgt-0.1/src/sgt/io'
+adding 'PySgt-0.1/src/sgt/core'
+adding 'PySgt-0.1/src/sgt/_exceptions.py'
+adding 'PySgt-0.1/src/sgt/__init__.py'
+adding 'PySgt-0.1/src/sgt/_typing.py'
+adding 'PySgt-0.1/src/sgt/utils/cluster.py'
+adding 'PySgt-0.1/src/sgt/utils/__init__.py'
+adding 'PySgt-0.1/src/sgt/utils/utils.py'
+adding 'PySgt-0.1/src/sgt/io/parser.py'
+adding 'PySgt-0.1/src/sgt/io/__init__.py'
+adding 'PySgt-0.1/src/sgt/core/db.py'
+adding 'PySgt-0.1/src/sgt/core/__init__.py'
+removing 'PySgt-0.1' (and everything under it)

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: PySgt
-Version: 0.0.19
+Version: 0.1
 Summary: Useful SV vcf parser
 Home-page: https://github.com/dermasugita/SV_parser
 Author: Itsuki Sugita

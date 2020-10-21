@@ -291,8 +291,9 @@ class SgtSimple(object):
 
     def _filter_infos(self, infoname, value_idx=0, operator=None, threshold=None):## returning result ids
         df = self.get_table(infoname)
-        value_idx = str(value_idx)
-        e = "df.loc[df[''.join([infoname, '_', value_idx])] {0} threshold]['id']".format(operator)
+        value_idx = int(value_idx)
+        df = df.loc[df['value_idx'] == value_idx]
+        e = "df.loc[df[infoname] {0} threshold]['id']".format(operator)
         set_out = set(eval(e))
         return set_out
 
@@ -538,13 +539,13 @@ class SgtCore(SgtSimple):
                 else:
                     flag = True if sq[-1] == 'True' else False
                 exclude = not flag
-                set_out = self._filter_infos_flag(sq0, exclude=exclude)
+                set_out = self._filter_infos_flag(sq0, exclude=exclude) # defined in SgtSimple
                 return set_out
 
             if len(sq) == 3:
-                set_out = self._filter_infos(sq[0], 0, sq[1], sq[2])
+                set_out = self._filter_infos(sq[0], 0, sq[1], sq[2]) # defined in SgtSimple
             else:
-                set_out = self._filter_infos(*sq)
+                set_out = self._filter_infos(*sq) # defined in SgtSimple
             #print(set_out)
             return set_out
 
@@ -615,13 +616,6 @@ class SgtCore(SgtSimple):
         set_out = set(df.loc[df['filter'] ==  _filter]['id'])
         if exclude:
             set_out = self.get_ids() - set_out
-        return set_out
-
-    def _filter_infos(self, infoname, value_idx=0, operator=None, threshold=None):## returning result ids
-        df = self.get_table(infoname)
-        value_idx = str(value_idx)
-        e = "df.loc[df[''.join([infoname, '_', value_idx])] {0} threshold]['id']".format(operator)
-        set_out = set(eval(e))
         return set_out
 
         

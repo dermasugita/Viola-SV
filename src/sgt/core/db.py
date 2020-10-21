@@ -9,6 +9,9 @@ from typing import (
 from sgt._typing import (
     IntOrStr,
 )
+from sgt._exceptions import (
+    TableNotFoundError,
+)
 
 class SgtSimple(object):
     """
@@ -114,11 +117,11 @@ class SgtSimple(object):
         
         Raises
         ----------
-        KeyError
+        TableNotFoundError
             If the table_name doesn't exist in the object.
         """
         if table_name not in self.table_list:
-            raise KeyError('Table not found: {}'.format(table_name))
+            raise TableNotFoundError(table_name)
         table = self._dict_alltables[table_name]
         return table.copy()
 
@@ -455,7 +458,7 @@ class SgtCore(SgtSimple):
                  'strand1',
                  'strand2']
         """
-        df_out = super().to_bedpe_like(custom_infonames=[], confidence_intervals=confidence_intervals)
+        df_out = super().to_bedpe_like(custom_infonames=custom_infonames, confidence_intervals=confidence_intervals)
         if add_filters:
             df_out = self.append_filters(df_out, left_on='name')
         if add_formats:

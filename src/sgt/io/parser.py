@@ -1,14 +1,21 @@
 import vcf
 import pandas as pd
+import os
+from io import StringIO
 from sgt.core.db import SgtCore, SgtSimple
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
 
 
-def read_vcf(filepath, variant_caller="manta"):
+def read_vcf(filepath_or_buffer, variant_caller="manta"):
     # read vcf files using PyVcf package
-    vcf_reader = vcf.Reader(open(filepath, 'r'))
+    if isinstance(filepath_or_buffer, str):
+        vcf_reader = vcf.Reader(open(filepath_or_buffer, 'r'))
+    elif isinstance(filepath_or_buffer, StringIO):
+        vcf_reader = vcf.Reader(filepath_or_buffer)
+    else:
+        raise TypeError("should be file or buffer")
 
     # obtain header informations
     odict_contigs = vcf_reader.contigs

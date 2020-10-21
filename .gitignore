@@ -3,3 +3,8 @@ dist/
 SV_parser.egg-info/
 Pipfile
 Pipfile.lock
+tox.ini
+.tox/
+.vscode/
+circle.yml
+.python_version

@@ -1,0 +1,2 @@
+class TableNotFoundError(KeyError):
+    pass

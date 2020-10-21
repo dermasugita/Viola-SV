@@ -188,10 +188,12 @@ class SgtSimple(object):
         df_out.rename(columns={'id': 'name', 'qual': 'score'}, inplace=True)
         return df_out
 
-    def append_infos(self, base_df, ls_tablenames, left_on='id', auto_fillna=True):
+    def append_infos(self, base_df, ls_tablenames, left_on='id'):
         df = base_df.copy()
         for tablename in ls_tablenames:
-            df_to_append = self.get_table(tablename)
+            df_to_append_pre = self.get_table(tablename)
+            df_to_append_pre['new_column_names'] = tablename + '_' + df_to_append_pre['value_idx'].astype(str)
+            df_to_append = df_to_append_pre.pivot(index='id', columns='new_column_names', values=tablename)
             df = pd.merge(df, df_to_append, how='left', left_on=left_on, right_on='id')
             if left_on != 'id':
                 df.drop('id', axis=1, inplace=True) 
@@ -289,8 +291,9 @@ class SgtSimple(object):
 
     def _filter_infos(self, infoname, value_idx=0, operator=None, threshold=None):## returning result ids
         df = self.get_table(infoname)
-        value_idx = str(value_idx)
-        e = "df.loc[df[''.join([infoname, '_', value_idx])] {0} threshold]['id']".format(operator)
+        value_idx = int(value_idx)
+        df = df.loc[df['value_idx'] == value_idx]
+        e = "df.loc[df[infoname] {0} threshold]['id']".format(operator)
         set_out = set(eval(e))
         return set_out
 
@@ -458,7 +461,9 @@ class SgtCore(SgtSimple):
                  'strand1',
                  'strand2']
         """
-        df_out = super().to_bedpe_like(custom_infonames=custom_infonames, confidence_intervals=confidence_intervals)
+        df_out = super().to_bedpe_like(confidence_intervals=confidence_intervals)
+        if len(custom_infonames) != 0:
+            df_out = self.append_infos(df_out, custom_infonames)
         if add_filters:
             df_out = self.append_filters(df_out, left_on='name')
         if add_formats:
@@ -473,28 +478,23 @@ class SgtCore(SgtSimple):
 
     def append_infos(self, base_df, ls_tablenames, left_on='id', auto_fillna=True):
         df = base_df.copy()
-        if ('infos_meta' in self.table_list) & auto_fillna:
-            df_infometa = self.get_table('infos_meta')
-            for tablename in ls_tablenames:
-                df_to_append = self.get_table(tablename)
-                df = pd.merge(df, df_to_append, how='left', left_on=left_on, right_on='id')
-                info_dtype = df_infometa.loc[df_infometa['id']==tablename.upper(), 'type'].iloc[0]
-                len_info = df_to_append.shape[1] - 1
-                ls_ind_fancy = [tablename + '_' + str(i) for i in range(len_info)]
-                if info_dtype == 'Integer':
-                    df[ls_ind_fancy] = df[ls_ind_fancy].fillna(0).astype(int)
-                elif info_dtype == 'Flag':
-                    df[ls_ind_fancy] = df[ls_ind_fancy].fillna(False)
-                if left_on != 'id':
-                    df.drop('id', axis=1, inplace=True)
-            return df        
-        else:
-            for tablename in ls_tablenames:
-                df_to_append = self.get_table(tablename)
-                df = pd.merge(df, df_to_append, how='left', left_on=left_on, right_on='id')
-                if left_on != 'id':
-                    df.drop('id', axis=1, inplace=True) 
-            return df
+        df_infometa = self.get_table('infos_meta')
+        for tablename in ls_tablenames:
+            df_to_append_pre = self.get_table(tablename)
+            df_to_append_pre['new_column_names'] = tablename + '_' + df_to_append_pre['value_idx'].astype(str)
+            df_to_append = df_to_append_pre.pivot(index='id', columns='new_column_names', values=tablename)
+            df = pd.merge(df, df_to_append, how='left', left_on=left_on, right_index=True)
+            info_dtype = df_infometa.loc[df_infometa['id']==tablename.upper(), 'type'].iloc[0]
+            len_info = df_to_append.shape[1]
+            ls_ind_fancy = [tablename + '_' + str(i) for i in range(len_info)]
+            if info_dtype == 'Integer':
+                df[ls_ind_fancy] = df[ls_ind_fancy].fillna(0).astype(int)
+            elif info_dtype == 'Flag':
+                df[ls_ind_fancy] = df[ls_ind_fancy].fillna(False)
+            if left_on != 'id':
+                df.drop('id', axis=1, inplace=True)
+        return df        
+
     def append_formats(self, base_df, left_on='id'):
         df_format = self.get_table('formats')
         df_format['format_id'] = df_format['sample'] + '_' + df_format['format'] + '_' + df_format['value_idx'].astype(str) 
@@ -539,13 +539,13 @@ class SgtCore(SgtSimple):
                 else:
                     flag = True if sq[-1] == 'True' else False
                 exclude = not flag
-                set_out = self._filter_infos_flag(sq0, exclude=exclude)
+                set_out = self._filter_infos_flag(sq0, exclude=exclude) # defined in SgtSimple
                 return set_out
 
             if len(sq) == 3:
-                set_out = self._filter_infos(sq[0], 0, sq[1], sq[2])
+                set_out = self._filter_infos(sq[0], 0, sq[1], sq[2]) # defined in SgtSimple
             else:
-                set_out = self._filter_infos(*sq)
+                set_out = self._filter_infos(*sq) # defined in SgtSimple
             #print(set_out)
             return set_out
 
@@ -618,13 +618,6 @@ class SgtCore(SgtSimple):
             set_out = self.get_ids() - set_out
         return set_out
 
-    def _filter_infos(self, infoname, value_idx=0, operator=None, threshold=None):## returning result ids
-        df = self.get_table(infoname)
-        value_idx = str(value_idx)
-        e = "df.loc[df[''.join([infoname, '_', value_idx])] {0} threshold]['id']".format(operator)
-        set_out = set(eval(e))
-        return set_out
-
         
     def _filter_formats(self, sample, item, item_idx=0, operator=None, threshold=None):
         df = self.get_table('formats')
@@ -652,6 +645,3 @@ class SgtCore(SgtSimple):
     def get_unique_events(self):
         set_result_ids = self._get_unique_events_ids()
         return self.filter_by_id(set_result_ids)
-
-
-

@@ -1,6 +1,7 @@
 import vcf
 import pandas as pd
 import os
+from typing import Union
 from io import StringIO
 from sgt.core.db import SgtCore, SgtSimple
 pd.set_option('display.max_columns', 10)
@@ -8,7 +9,25 @@ pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
 
 
-def read_vcf(filepath_or_buffer, variant_caller="manta"):
+def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "manta"):
+    """
+    read_vcf(filepath_or_buffer, variant_callser = "manta")
+    Read vcf file of SV and return SgtCore object.
+
+    Parameters
+    ---------------
+    filepath_or_buffer: str or StringIO
+        String path to the vcf file. StringIO is also acceptable.
+        (Wether URL is acceptable or not hasn't been tested.)
+        (Acceptable types should be extended in the future)
+    variant_caller: str
+        Let this function know which SV caller was used to create vcf file.
+        Only "manta" is supported for now.
+    
+    Returns
+    ---------------
+    A SgtCore object
+    """
     # read vcf files using PyVcf package
     if isinstance(filepath_or_buffer, str):
         vcf_reader = vcf.Reader(open(filepath_or_buffer, 'r'))

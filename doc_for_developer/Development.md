@@ -108,7 +108,28 @@ tox -- 何かオプション
 
 ### developへのマージ
 - developへのマージはGitHub上で行います
-- `git pull --rebase origin develop`を叩いてから`git push origin feature/something`し、GitHub上でPull Requestしてください
+- `git pull --rebase origin develop`を叩いてから`git push --force-with-lease origin feature/something`し、GitHub上でPull Requestしてください
+
+## こうしておけば基本的に間違いない、という流れ
+
+### 自分用のブランチを切る
+- まず`git checkout develop`でdevelopに行く
+- `git checkout -b feature/something`
+
+### 自分のブランチでの作業してリモートにpushするまでの流れ
+- `git checkout feature/something`で自分のブランチへ行く
+- 今いるブランチは`git branch`でわかる
+- コーディングする
+- 一通りコーディングできたら`git add .`してコミット`git commit -m "some message"`
+- pushする際は、まずdevelopをrebaseする。`git pull --rebase origin develop`
+- rebaseできたらリモートにプッシュ(初めて) `git push origin feature/something` 
+- プッシュ2回目以降 `git push --force-with-lease origin feature/something`
+
+### 結構ちゃんとできたのでdevelopにマージしたいときの流れ
+- 真上のフローで`git push --force-with-lease origin feature/something`までやる
+- GitHub上でPull Requestする
+- 皆にSlackする
+- 杉田が確認しマージする
 
 ### やってしまった！
 - まずは`git log`して落ち着く(多くの場合commit idから復活できる)

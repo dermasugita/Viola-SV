@@ -122,6 +122,9 @@ tox -- 何かオプション
 - コーディングする
 - 一通りコーディングできたら`git add .`してコミット`git commit -m "some message"`
 - pushする際は、まずdevelopをrebaseする。`git pull --rebase origin develop`
+    - conflictした際は手動で解消し、addする。`git add コンフリクト解消したファイル`
+    - `git rebase --continue`
+    - 下に合流
 - rebaseできたらリモートにプッシュ(初めて) `git push origin feature/something` 
 - プッシュ2回目以降 `git push --force-with-lease origin feature/something`
 

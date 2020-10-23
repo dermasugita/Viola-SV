@@ -8,3 +8,4 @@ tox.ini
 .vscode/
 circle.yml
 .python_version
+*.pptx

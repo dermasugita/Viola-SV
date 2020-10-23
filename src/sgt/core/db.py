@@ -380,9 +380,9 @@ class SgtSimple(object):
         df_detail_svtype = pd.concat(ls_df_detail_svtype)    
         dict_df_info = self._dict_df_info
         dict_df_info['svtype_detail'] = df_detail_svtype
-
         sgt_out = SgtSimple(self._df_svpos, dict_df_info)
         return sgt_out
+
     def is_reciprocal(self):
         pass
 

@@ -424,9 +424,9 @@ class SgtCore(SgtSimple):
 
     def __repr__(self):
         
-        return 'hello'
+        return super().__repr__() 
     def __str__(self):
-        return 'hello'
+        return super().__repr__() 
 
     def create_info_table(self, table_name, table, number, type_, description, source=None, version=None):
         self._ls_infokeys += [table_name]
@@ -492,8 +492,8 @@ class SgtCore(SgtSimple):
         Return a DataFrame in bedpe-like format.
         When specified, you can add INFOs, FILTERs, and FORMATs as additional columns.
 
-        Parameters:
-        ----------
+        Parameters
+        ---------------
         custom_infonames: list-like[str]
             The table names of INFOs to append.
         add_filters: bool, default False
@@ -506,8 +506,8 @@ class SgtCore(SgtSimple):
             Otherwise, breakpoints are represented by a single-nucleotide resolution.
         unique_events: bool, default False
         
-        Returns:
-        ----------
+        Returns
+        ---------------
         DataFrame
             A Dataframe in bedpe-like format.
             The columns include at least the following:  

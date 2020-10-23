@@ -544,8 +544,8 @@ class SgtCore(SgtSimple):
                 df[ls_ind_fancy] = df[ls_ind_fancy].fillna(0).astype(int)
             elif info_dtype == 'Flag':
                 df[ls_ind_fancy] = df[ls_ind_fancy].fillna(False)
-            if left_on != 'id':
-                df.drop('id', axis=1, inplace=True)
+            #if left_on != 'id':
+            #    df.drop('id', axis=1, inplace=True)
         return df        
 
     def append_formats(self, base_df, left_on='id'):

@@ -1,2 +1,0 @@
-chrom1	start1	end1	chrom2	start2	end2	sv_id	pe_support	strand1	strand2	svclass	svmethod
-20	46612551	46612552	20	46987895	46987896	SVMERGE1	10	+	+	h2hINV	SNOWMAN_DELLY

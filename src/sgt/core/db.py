@@ -516,7 +516,7 @@ class SgtCore(SgtSimple):
         """
         df_out = super().to_bedpe_like(confidence_intervals=confidence_intervals)
         if len(custom_infonames) != 0:
-            df_out = self.append_infos(df_out, custom_infonames)
+            df_out = self.append_infos(df_out, custom_infonames, left_on='name')
         if add_filters:
             df_out = self.append_filters(df_out, left_on='name')
         if add_formats:
@@ -544,8 +544,6 @@ class SgtCore(SgtSimple):
                 df[ls_ind_fancy] = df[ls_ind_fancy].fillna(0).astype(int)
             elif info_dtype == 'Flag':
                 df[ls_ind_fancy] = df[ls_ind_fancy].fillna(False)
-            if left_on != 'id':
-                df.drop('id', axis=1, inplace=True)
         return df        
 
     def append_formats(self, base_df, left_on='id'):

@@ -1,0 +1,333 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Quick Start &mdash; PySgt 0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="test" href="sources/test.html" />
+    <link rel="prev" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PySgt
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#import-pysgt-to-your-script">Import PySgt to your script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#read-the-vcf-file">Read the vcf file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#viewing-the-contents-of-sgtcore-object">Viewing the contents of SgtCore object</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sources/test.html">test</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PySgt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Quick Start</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<p>This is a short examples how to analyse vcf files.</p>
+<p>When you read this page, you can</p>
+<ul class="simple">
+<li><p>Import PySgt package to your script.</p></li>
+<li><p>Read vcf file to create PySgt core object.</p></li>
+<li><p>Convert the vcf file into a bedpe file, with any features you want such as INFO fields, and FORMAT fields.</p></li>
+<li><p>Filter the SVs by any features, including genomic positions, INFO fields, and FORMAT fields.</p></li>
+</ul>
+<div class="section" id="import-pysgt-to-your-script">
+<h2>Import PySgt to your script<a class="headerlink" href="#import-pysgt-to-your-script" title="Permalink to this headline">¶</a></h2>
+<p>How to import PySgt package is as follow:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">sgt</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="read-the-vcf-file">
+<h2>Read the vcf file<a class="headerlink" href="#read-the-vcf-file" title="Permalink to this headline">¶</a></h2>
+<p>In order to use PySgt’s features, you must first import a vcf file to create an SgtCore object.</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [2]: </span><span class="n">sgt_object</span> <span class="o">=</span> <span class="n">sgt</span><span class="o">.</span><span class="n">read_vcf</span><span class="p">(</span><span class="s1">&#39;tutorial.vcf&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now you’re ready to perform a number of functions that the PySgt package has.</p>
+</div>
+<div class="section" id="viewing-the-contents-of-sgtcore-object">
+<h2>Viewing the contents of SgtCore object<a class="headerlink" href="#viewing-the-contents-of-sgtcore-object" title="Permalink to this headline">¶</a></h2>
+<p>You may want to view the content of SgtCore objects after creating them.
+To do so, you have three options.</p>
+<ol class="arabic simple">
+<li><p>Simply print the object.</p></li>
+</ol>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="nb">print</span><span class="p">(</span><span class="n">sgt_object</span><span class="p">)</span>
+<span class="go">INFO=imprecise,svtype,svlen,end,cipos,ciend,cigar,mateid,event,homlen,homseq,svinslen,svinsseq,left_svinsseq,right_svinsseq,contig,bnd_depth,mate_bnd_depth,somatic,somaticscore,junction_somaticscore,inv3,inv5</span>
+<span class="go">      id                          pos strand  qual svtype</span>
+<span class="go">0  test1  chr1:82550461-chr1:82554225     +-  None    DEL</span>
+<span class="go">1  test2  chr1:22814216-chr1:92581131     ++  None    INV</span>
+<span class="go">2  test3  chr1:60567906-chr1:60675940     +-  None    DEL</span>
+<span class="go">3  test4  chr1:69583190-chr1:69590947     +-  None    DEL</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Generate bedpe like pandas.DataFrame.</p></li>
+</ol>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="n">sgt_bedpe_like</span> <span class="o">=</span> <span class="n">sgt_object</span><span class="o">.</span><span class="n">to_bedpe_like</span><span class="p">()</span>
+
+<span class="gp">In [5]: </span><span class="nb">print</span><span class="p">(</span><span class="n">sgt_bedpe_like</span><span class="p">)</span>
+<span class="go">  chrom1    start1      end1 chrom2    start2      end2   name score strand1 strand2</span>
+<span class="go">0   chr1  82550461  82550462   chr1  82554225  82554226  test1  None       +       -</span>
+<span class="go">1   chr1  22814216  22814217   chr1  92581131  92581132  test2  None       +       +</span>
+<span class="go">2   chr1  60567906  60567907   chr1  60675940  60675941  test3  None       +       -</span>
+<span class="go">3   chr1  69583190  69583191   chr1  69590947  69590948  test4  None       +       -</span>
+</pre></div>
+</div>
+<p>If you want to add “SVLEN” and “CIPOS” fields, which recorded in original vcf file, run as follows:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [6]: </span><span class="n">sgt_bedpe_like_with_info</span> <span class="o">=</span> <span class="n">sgt_object</span><span class="o">.</span><span class="n">to_bedpe_like</span><span class="p">(</span><span class="n">custom_infonames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;svlen&#39;</span><span class="p">,</span> <span class="s1">&#39;cipos&#39;</span><span class="p">])</span>
+<span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">KeyError</span><span class="g g-Whitespace">                                  </span>Traceback (most recent call last)
+<span class="o">&lt;</span><span class="n">ipython</span><span class="o">-</span><span class="nb">input</span><span class="o">-</span><span class="mi">6</span><span class="o">-</span><span class="n">cc9243bdec78</span><span class="o">&gt;</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">sgt_bedpe_like_with_info</span> <span class="o">=</span> <span class="n">sgt_object</span><span class="o">.</span><span class="n">to_bedpe_like</span><span class="p">(</span><span class="n">custom_infonames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;svlen&#39;</span><span class="p">,</span> <span class="s1">&#39;cipos&#39;</span><span class="p">])</span>
+
+<span class="nn">~/Documents/prm/SV_parser/src/sgt/core/db.py</span> in <span class="ni">to_bedpe_like</span><span class="nt">(self, custom_infonames, add_filters, add_formats, confidence_intervals, unique_events)</span>
+<span class="g g-Whitespace">    </span><span class="mi">517</span>         <span class="n">df_out</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to_bedpe_like</span><span class="p">(</span><span class="n">confidence_intervals</span><span class="o">=</span><span class="n">confidence_intervals</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">518</span>         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">custom_infonames</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+<span class="ne">--&gt; </span><span class="mi">519</span>             <span class="n">df_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">append_infos</span><span class="p">(</span><span class="n">df_out</span><span class="p">,</span> <span class="n">custom_infonames</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">520</span>         <span class="k">if</span> <span class="n">add_filters</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">521</span>             <span class="n">df_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">append_filters</span><span class="p">(</span><span class="n">df_out</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+
+<span class="nn">~/Documents/prm/SV_parser/src/sgt/core/db.py</span> in <span class="ni">append_infos</span><span class="nt">(self, base_df, ls_tablenames, left_on, auto_fillna)</span>
+<span class="g g-Whitespace">    </span><span class="mi">537</span>             <span class="n">df_to_append_pre</span><span class="p">[</span><span class="s1">&#39;new_column_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tablename</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">df_to_append_pre</span><span class="p">[</span><span class="s1">&#39;value_idx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">538</span>             <span class="n">df_to_append</span> <span class="o">=</span> <span class="n">df_to_append_pre</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;new_column_names&#39;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">tablename</span><span class="p">)</span>
+<span class="ne">--&gt; </span><span class="mi">539</span>             <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">df_to_append</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="n">left_on</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">540</span>             <span class="n">info_dtype</span> <span class="o">=</span> <span class="n">df_infometa</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_infometa</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">tablename</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="g g-Whitespace">    </span><span class="mi">541</span>             <span class="n">len_info</span> <span class="o">=</span> <span class="n">df_to_append</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="nn">~/.local/share/virtualenvs/SV_parser-8LF1OCOL/lib/python3.7/site-packages/pandas/core/reshape/merge.py</span> in <span class="ni">merge</span><span class="nt">(left, right, how, on, left_on, right_on, left_index, right_index, sort, suffixes, copy, indicator, validate)</span>
+<span class="g g-Whitespace">     </span><span class="mi">85</span>         <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">86</span>         <span class="n">indicator</span><span class="o">=</span><span class="n">indicator</span><span class="p">,</span>
+<span class="ne">---&gt; </span><span class="mi">87</span>         <span class="n">validate</span><span class="o">=</span><span class="n">validate</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">88</span>     <span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">89</span>     <span class="k">return</span> <span class="n">op</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span>
+
+<span class="nn">~/.local/share/virtualenvs/SV_parser-8LF1OCOL/lib/python3.7/site-packages/pandas/core/reshape/merge.py</span> in <span class="ni">__init__</span><span class="nt">(self, left, right, how, on, left_on, right_on, axis, left_index, right_index, sort, suffixes, copy, indicator, validate)</span>
+<span class="g g-Whitespace">    </span><span class="mi">650</span>             <span class="bp">self</span><span class="o">.</span><span class="n">right_join_keys</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">651</span>             <span class="bp">self</span><span class="o">.</span><span class="n">join_names</span><span class="p">,</span>
+<span class="ne">--&gt; </span><span class="mi">652</span>         <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_merge_keys</span><span class="p">()</span>
+<span class="g g-Whitespace">    </span><span class="mi">653</span> 
+<span class="g g-Whitespace">    </span><span class="mi">654</span>         <span class="c1"># validate the merge keys dtypes. We may need to coerce</span>
+
+<span class="nn">~/.local/share/virtualenvs/SV_parser-8LF1OCOL/lib/python3.7/site-packages/pandas/core/reshape/merge.py</span> in <span class="ni">_get_merge_keys</span><span class="nt">(self)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1028</span>                     <span class="n">join_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1029</span>                 <span class="k">else</span><span class="p">:</span>
+<span class="ne">-&gt; </span><span class="mi">1030</span>                     <span class="n">left_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left</span><span class="o">.</span><span class="n">_get_label_or_level_values</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+<span class="g g-Whitespace">   </span><span class="mi">1031</span>                     <span class="n">join_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1032</span>             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">MultiIndex</span><span class="p">):</span>
+
+<span class="nn">~/.local/share/virtualenvs/SV_parser-8LF1OCOL/lib/python3.7/site-packages/pandas/core/generic.py</span> in <span class="ni">_get_label_or_level_values</span><span class="nt">(self, key, axis)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1558</span>             <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">_values</span>
+<span class="g g-Whitespace">   </span><span class="mi">1559</span>         <span class="k">else</span><span class="p">:</span>
+<span class="ne">-&gt; </span><span class="mi">1560</span>             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1561</span> 
+<span class="g g-Whitespace">   </span><span class="mi">1562</span>         <span class="c1"># Check for duplicates</span>
+
+<span class="ne">KeyError</span>: &#39;id&#39;
+
+<span class="gp">In [7]: </span><span class="nb">print</span><span class="p">(</span><span class="n">sgt_bedpe_like_with_info</span><span class="p">)</span>
+<span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">NameError</span><span class="g g-Whitespace">                                 </span>Traceback (most recent call last)
+<span class="o">&lt;</span><span class="n">ipython</span><span class="o">-</span><span class="nb">input</span><span class="o">-</span><span class="mi">7</span><span class="o">-</span><span class="mi">9</span><span class="n">ce432c57dfb</span><span class="o">&gt;</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="nb">print</span><span class="p">(</span><span class="n">sgt_bedpe_like_with_info</span><span class="p">)</span>
+
+<span class="ne">NameError</span>: name &#39;sgt_bedpe_like_with_info&#39; is not defined
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sources/test.html" class="btn btn-neutral float-right" title="test" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Itsuki Sugita
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

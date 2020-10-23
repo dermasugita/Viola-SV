@@ -4,10 +4,11 @@ SV_parser.egg-info/
 Pipfile
 Pipfile.lock
 tox.ini
-.tox/
+.tox/*
 .vscode/
 circle.yml
 .python_version
 *.pptx
 .*
 !/.gitignore
+*__pychache__*

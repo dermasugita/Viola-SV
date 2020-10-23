@@ -9,3 +9,5 @@ tox.ini
 circle.yml
 .python_version
 *.pptx
+.*
+!/.gitignore

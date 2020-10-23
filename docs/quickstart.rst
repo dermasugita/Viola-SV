@@ -1,3 +1,5 @@
+.. _quickstart:
+
 Quick Start
 ===========
 This is a short examples how to analyse vcf files.
@@ -48,10 +50,6 @@ To do so, you have three options.
    sgt_bedpe_like = sgt_object.to_bedpe_like()
    print(sgt_bedpe_like)
 
-If you want to add "SVLEN" and "CIPOS" fields, which recorded in original vcf file, run as follows:
+The way to add INFO, FILTER, and FORMAT to this bedpe-like DataFrame is explained :ref:`here<bedpe_generation>` (no link for now).
 
-.. ipython:: python
-   :okexcept:
-
-   sgt_bedpe_like_with_info = sgt_object.to_bedpe_like(custom_infonames=['svlen', 'cipos'])
-   print(sgt_bedpe_like_with_info)
+3) Use the ``get_table()`` method to get individual tables composing the SgtCore object.

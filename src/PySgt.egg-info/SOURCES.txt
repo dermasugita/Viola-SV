@@ -1,4 +1,5 @@
 README.md
+pyproject.toml
 setup.py
 src/PySgt.egg-info/PKG-INFO
 src/PySgt.egg-info/SOURCES.txt

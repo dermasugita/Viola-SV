@@ -1,2 +1,0 @@
-class TableNotFoundError(KeyError):
-    pass

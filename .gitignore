@@ -1,0 +1,19 @@
+ld/
+dist/
+*.egg-info/
+.py[cod]
+Pipfile
+Pipfile.lock
+/tox.ini
+.tox/
+/.vscode/
+circle.yml
+.python-version
+*.pptx
+!/.gitignore
+__pychache__/
+.DS_Store
+.Rhistory
+
+## docs
+_build/

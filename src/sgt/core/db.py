@@ -18,7 +18,7 @@ from sgt._exceptions import (
 class SgtSimple(object):
     """
     Relational database-like object containing SV position dataframes and INFO dataframes.
-
+    The instances of this class have information equal to the BEDPE files.
     ...
 
     Attributes
@@ -42,17 +42,23 @@ class SgtSimple(object):
         Each item of the dictionary contains single INFO.
         The dictionary key is the name of each INFO and should be in lowercase.
         Columns of the DataFrame should be following:
-        ['id', 'infoname_0', 'infoname_1', ...]
-        Column names other than 'id' need to be suffixed as above because INFO may contain multiple values (e.g. CIPOS).
-        For now, the '_0' suffix is needed even when an INFO has only one value.
-        Main key is 'id' and it is also the foreign key coming from df_svpos table.
+        ['id', 'value_idx', 'infoname']
+        The 'value_idx' column contains 0-origin indice of INFO values.
+        This is important when one SV record has multiple values of an INFO (eg. cipos). 
+        Main key is the combination of ('id', 'value_idx') and 'id' is the foreign key coming from df_svpos table.
 
     Methods
     ----------
     get_table(table_name)
         Return a table specified in the argument as pandas DataFrame object.
-    to_bedpe_like()
+    to_bedpe_like(custom_infonames=[], confidence_intervals=False)
         Return a DataFrame in bedpe-like format.
+    filter(ls_query, query_logic="and")
+        Filter SgtSimple object by the list of queries.
+        Return object is also an instance of the SgtSimple object
+    filter_by_id(arrlike_id)
+        Filter SgtSimple object according to the list of SV ids.
+        Return object is also an instance of the SgtSimple object
 
     """
     def __init__(self, df_svpos: pd.DataFrame, dict_df_info: Dict[str, pd.DataFrame]):
@@ -158,7 +164,7 @@ class SgtSimple(object):
         DataFrame
             A Dataframe in bedpe-like format.
             The columns include at least the following:
-                'chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2'
+            ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2']
         """
         df_svpos = self.get_table('positions')
         if confidence_intervals:
@@ -305,7 +311,7 @@ class SgtSimple(object):
     def filter_by_id(self, arrlike_id):
         """
         filter_by_id(arrlike_id)
-        Filter SgtSimple object by the list of SV ids.
+        Filter SgtSimple object according to the list of SV ids.
         Return object is also an instance of the SgtSimple object
 
         Parameters
@@ -389,6 +395,20 @@ class SgtSimple(object):
 
 
 class SgtCore(SgtSimple):
+    """
+    Relational database-like object containing SV position dataframes,
+    FILTER dataframe, INFO dataframes, FORMAT dataframe, and HEADER dataframes.
+    The instances of this class have information equal to the VCF files.
+
+    Attributes
+    ---------------
+    sv_count: int
+        Number of SV records
+    table_list
+        List of names of all tables included in the object 
+    ids
+        List of all SV id.
+    """
     def __init__(self, df_svpos, df_filters, dict_df_info, df_formats, dict_df_headers = {}):
         self._df_svpos = df_svpos
         self._df_filters = df_filters
@@ -404,9 +424,9 @@ class SgtCore(SgtSimple):
 
     def __repr__(self):
         
-        return 'hello'
+        return super().__repr__() 
     def __str__(self):
-        return 'hello'
+        return super().__repr__() 
 
     def create_info_table(self, table_name, table, number, type_, description, source=None, version=None):
         self._ls_infokeys += [table_name]
@@ -438,6 +458,7 @@ class SgtCore(SgtSimple):
 
         df_format = self.get_table('formats')
         ls_samples = self.get_table('samples_meta')['id']
+
         def _create_format_field(x):
             arr_format_ = np.unique(x['format'])
             format_ = ':'.join(arr_format_)
@@ -471,8 +492,8 @@ class SgtCore(SgtSimple):
         Return a DataFrame in bedpe-like format.
         When specified, you can add INFOs, FILTERs, and FORMATs as additional columns.
 
-        Parameters:
-        ----------
+        Parameters
+        ---------------
         custom_infonames: list-like[str]
             The table names of INFOs to append.
         add_filters: bool, default False
@@ -485,21 +506,13 @@ class SgtCore(SgtSimple):
             Otherwise, breakpoints are represented by a single-nucleotide resolution.
         unique_events: bool, default False
         
-        Returns:
-        ----------
+        Returns
+        ---------------
         DataFrame
             A Dataframe in bedpe-like format.
-            The columns include at least the following:
-                ['chrom1',
-                 'start1',
-                 'end1',
-                 'chrom2',
-                 'start2',
-                 'end2',
-                 'name',
-                 'score',
-                 'strand1',
-                 'strand2']
+            The columns include at least the following:  
+            ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2',
+             'name', 'score', 'strand1', 'strand2']
         """
         df_out = super().to_bedpe_like(confidence_intervals=confidence_intervals)
         if len(custom_infonames) != 0:
@@ -543,7 +556,6 @@ class SgtCore(SgtSimple):
         df_out = pd.merge(base_df, df_format, how='left', left_on=left_on, right_index=True)
         return df_out
 
-
     def append_filters(self, base_df, left_on='id'):
         df_filters = self.get_table('filters')
         df_filters_expand = df_filters['filter'].str.get_dummies()
@@ -552,7 +564,6 @@ class SgtCore(SgtSimple):
         df_out = pd.merge(base_df, df_be_appended, how='left', left_on=left_on, right_on='id')
         return df_out
     
-
     def _parse_filter_query(self, q):
         sq = q.split(' ')
 
@@ -632,11 +643,9 @@ class SgtCore(SgtSimple):
         out = self.filter_by_id(set_result)
         return out
 
-
     def _filter_by_id(self, tablename, arrlike_id):
         df = self.get_table(tablename)
         return df.loc[df['id'].isin(arrlike_id)].reset_index(drop=True)
-
 
     def filter_by_id(self, arrlike_id):
         out_svpos = self._filter_by_id('positions', arrlike_id)
@@ -658,7 +667,6 @@ class SgtCore(SgtSimple):
             set_out = self.get_ids() - set_out
         return set_out
 
-        
     def _filter_formats(self, sample, item, item_idx=0, operator=None, threshold=None):
         df = self.get_table('formats')
         target_q = (df['sample'] == sample) & (df['format'] == item) & (df['value_idx'] == item_idx)
@@ -668,7 +676,7 @@ class SgtCore(SgtSimple):
     
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """
-        now deprecated
+        now yields errors!!!
         ATOMAWASHI!!!
         """
         if 'mateid' not in self.table_list:

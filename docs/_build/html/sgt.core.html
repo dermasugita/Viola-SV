@@ -1,0 +1,553 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>sgt.core package &mdash; PySgt 0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PySgt
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sources/test.html">test</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PySgt</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>sgt.core package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/sgt.core.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="sgt-core-package">
+<h1>sgt.core package<a class="headerlink" href="#sgt-core-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-sgt.core.db">
+<span id="sgt-core-db-module"></span><h2>sgt.core.db module<a class="headerlink" href="#module-sgt.core.db" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="sgt.core.db.SgtCore">
+<em class="property">class </em><code class="sig-name descname">SgtCore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df_svpos</span></em>, <em class="sig-param"><span class="n">df_filters</span></em>, <em class="sig-param"><span class="n">dict_df_info</span></em>, <em class="sig-param"><span class="n">df_formats</span></em>, <em class="sig-param"><span class="n">dict_df_headers</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sgt.core.db.SgtSimple" title="sgt.core.db.SgtSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">sgt.core.db.SgtSimple</span></code></a></p>
+<p>Relational database-like object containing SV position dataframes,
+FILTER dataframe, INFO dataframes, FORMAT dataframe, and HEADER dataframes.
+The instances of this class have information equal to the VCF files.</p>
+<dl class="py attribute">
+<dt id="sgt.core.db.SgtCore.sv_count">
+<code class="sig-name descname">sv_count</code><a class="headerlink" href="#sgt.core.db.SgtCore.sv_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of SV records</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sgt.core.db.SgtCore.table_list">
+<code class="sig-name descname">table_list</code><a class="headerlink" href="#sgt.core.db.SgtCore.table_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of names of all tables included in the object</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sgt.core.db.SgtCore.ids">
+<code class="sig-name descname">ids</code><a class="headerlink" href="#sgt.core.db.SgtCore.ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of all SV id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.append_filters">
+<code class="sig-name descname">append_filters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_df</span></em>, <em class="sig-param"><span class="n">left_on</span><span class="o">=</span><span class="default_value">'id'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.append_filters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.append_formats">
+<code class="sig-name descname">append_formats</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_df</span></em>, <em class="sig-param"><span class="n">left_on</span><span class="o">=</span><span class="default_value">'id'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.append_formats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.append_infos">
+<code class="sig-name descname">append_infos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_df</span></em>, <em class="sig-param"><span class="n">ls_tablenames</span></em>, <em class="sig-param"><span class="n">left_on</span><span class="o">=</span><span class="default_value">'id'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.append_infos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append INFO tables to the right of the base_df, based on the SV id columns.
+If the name of the SV id column in base_df is not ‘id’, specify column name into left_on argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_df</strong> (<em>DataFrame</em>) – The DataFrame to which the INFO tables are appended.</p></li>
+<li><p><strong>ls_tablenames</strong> (<em>list-like</em>) – The list of INFO table names to be appended.</p></li>
+<li><p><strong>left_on</strong> (<em>str</em>) – The name of SV id column of base_df</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A DataFrame which the INFO tables are added.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.create_info_table">
+<code class="sig-name descname">create_info_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">table_name</span></em>, <em class="sig-param"><span class="n">table</span></em>, <em class="sig-param"><span class="n">number</span></em>, <em class="sig-param"><span class="n">type_</span></em>, <em class="sig-param"><span class="n">description</span></em>, <em class="sig-param"><span class="n">source</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">version</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.create_info_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ls_query</span></em>, <em class="sig-param"><span class="n">query_logic</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter SgtSimple object by the list of queries.
+Return object is also an instance of the SgtSimple object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.filter_by_id">
+<code class="sig-name descname">filter_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arrlike_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.filter_by_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter SgtSimple object according to the list of SV ids.
+Return object is also an instance of the SgtSimple object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>arrlike_id</strong> (<em>list-like</em>) – SV ids which you would like to keep.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A SgtSimple object with the SV id specified in the arrlike_id argument.
+All records associated with SV ids that are not in arrlike_id will be discarded.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#sgt.core.db.SgtSimple" title="sgt.core.db.SgtSimple">SgtSimple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.get_unique_events">
+<code class="sig-name descname">get_unique_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.get_unique_events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.to_bedpe_like">
+<code class="sig-name descname">to_bedpe_like</code><span class="sig-paren">(</span><em class="sig-param">custom_infonames=[]</em>, <em class="sig-param">add_filters</em>, <em class="sig-param">add_formats</em>, <em class="sig-param">confidence_intervals: bool=False</em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.to_bedpe_like" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DataFrame in bedpe-like format.
+When specified, you can add INFOs, FILTERs, and FORMATs as additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>custom_infonames</strong> (<em>list-like</em><em>[</em><em>str</em><em>]</em>) – The table names of INFOs to append.</p></li>
+<li><p><strong>add_filters</strong> (<em>bool</em><em>, </em><em>default False</em>) – sth</p></li>
+<li><p><strong>add_formats</strong> (<em>bool</em><em>, </em><em>default False</em>) – sth</p></li>
+<li><p><strong>confidence_intervals</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether or not to consider confidence intervals of the breakpoints.
+If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
+Otherwise, breakpoints are represented by a single-nucleotide resolution.</p></li>
+<li><p><strong>unique_events</strong> (<em>bool</em><em>, </em><em>default False</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A Dataframe in bedpe-like format.
+The columns include at least the following:
+[‘chrom1’, ‘start1’, ‘end1’, ‘chrom2’, ‘start2’, ‘end2’,</p>
+<blockquote>
+<div><p>’name’, ‘score’, ‘strand1’, ‘strand2’]</p>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtCore.to_vcf_like">
+<code class="sig-name descname">to_vcf_like</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtCore.to_vcf_like" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="sgt.core.db.SgtSimple">
+<em class="property">class </em><code class="sig-name descname">SgtSimple</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df_svpos</span><span class="p">:</span> <span class="n">pandas.core.frame.DataFrame</span></em>, <em class="sig-param"><span class="n">dict_df_info</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>pandas.core.frame.DataFrame<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtSimple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Relational database-like object containing SV position dataframes and INFO dataframes.
+The instances of this class have information equal to the BEDPE files.
+…</p>
+<dl class="py attribute">
+<dt id="sgt.core.db.SgtSimple.sv_count">
+<code class="sig-name descname">sv_count</code><a class="headerlink" href="#sgt.core.db.SgtSimple.sv_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of SV records</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sgt.core.db.SgtSimple.table_list">
+<code class="sig-name descname">table_list</code><a class="headerlink" href="#sgt.core.db.SgtSimple.table_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of names of all tables included in the object</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sgt.core.db.SgtSimple.ids">
+<code class="sig-name descname">ids</code><a class="headerlink" href="#sgt.core.db.SgtSimple.ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of all SV id.</p>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_svpos</strong> (<em>DataFrame</em>) – DataFrame containing information such as position, strand, svtype, etc.
+Columns should be following:
+[‘id’, ‘chrom1’, ‘pos1’, ‘chrom2’, ‘pos2’, ‘strand1’, ‘strand2’, ‘ref’, ‘alt’, ‘qual’, ‘svtype’]
+Main key is ‘id’.</p></li>
+<li><p><strong>dict_df_info</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>DataFrame</em><em>]</em>) – Dictionary of DataFrames which contain additional information on SV record (equivalent to INFO field of vcf).
+Each item of the dictionary contains single INFO.
+The dictionary key is the name of each INFO and should be in lowercase.
+Columns of the DataFrame should be following:
+[‘id’, ‘value_idx’, ‘infoname’]
+The ‘value_idx’ column contains 0-origin indice of INFO values.
+This is important when one SV record has multiple values of an INFO (eg. cipos).
+Main key is the combination of (‘id’, ‘value_idx’) and ‘id’ is the foreign key coming from df_svpos table.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="sgt.core.db.SgtSimple.get_table">
+<code class="sig-name descname">get_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">table_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtSimple.get_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a table specified in the argument as pandas DataFrame object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtSimple.to_bedpe_like">
+<code class="sig-name descname">to_bedpe_like</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">custom_infonames</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">confidence_intervals</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtSimple.to_bedpe_like" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DataFrame in bedpe-like format.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtSimple.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ls_query</span></em>, <em class="sig-param"><span class="n">query_logic</span><span class="o">=</span><span class="default_value">'and'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtSimple.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter SgtSimple object by the list of queries.
+Return object is also an instance of the SgtSimple object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtSimple.filter_by_id">
+<code class="sig-name descname">filter_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arrlike_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtSimple.filter_by_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter SgtSimple object according to the list of SV ids.
+Return object is also an instance of the SgtSimple object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtSimple.append_infos">
+<code class="sig-name descname">append_infos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_df</span></em>, <em class="sig-param"><span class="n">ls_tablenames</span></em>, <em class="sig-param"><span class="n">left_on</span><span class="o">=</span><span class="default_value">'id'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtSimple.append_infos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append INFO tables to the right of the base_df, based on the SV id columns.
+If the name of the SV id column in base_df is not ‘id’, specify column name into left_on argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_df</strong> (<em>DataFrame</em>) – The DataFrame to which the INFO tables are appended.</p></li>
+<li><p><strong>ls_tablenames</strong> (<em>list-like</em>) – The list of INFO table names to be appended.</p></li>
+<li><p><strong>left_on</strong> (<em>str</em>) – The name of SV id column of base_df</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A DataFrame which the INFO tables are added.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id0">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ls_query</span></em>, <em class="sig-param"><span class="n">query_logic</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter SgtSimple object by the list of queries.
+Return object is also an instance of the SgtSimple object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id1">
+<code class="sig-name descname">filter_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arrlike_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter SgtSimple object according to the list of SV ids.
+Return object is also an instance of the SgtSimple object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>arrlike_id</strong> (<em>list-like</em>) – SV ids which you would like to keep.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A SgtSimple object with the SV id specified in the arrlike_id argument.
+All records associated with SV ids that are not in arrlike_id will be discarded.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#sgt.core.db.SgtSimple" title="sgt.core.db.SgtSimple">SgtSimple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtSimple.get_detail_svtype">
+<code class="sig-name descname">get_detail_svtype</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">criteria</span><span class="o">=</span><span class="default_value">[['DEL', 'cut', [- inf, - 5000000, - 500000, - 50000, 0]], ['DUP', 'cut', [0, 50000, 500000, 5000000, inf]]]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtSimple.get_detail_svtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtSimple.get_ids">
+<code class="sig-name descname">get_ids</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Set<span class="p">[</span>Union<span class="p">[</span>int<span class="p">, </span>str<span class="p">]</span><span class="p">]</span><a class="headerlink" href="#sgt.core.db.SgtSimple.get_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all SV ids as the set type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id2">
+<code class="sig-name descname">get_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">table_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a table specified in the argument as pandas DataFrame object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>table_name</strong> (<em>str</em>) – The name of the table to return.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A table specified in the table_name argument.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TableNotFoundError</strong> – If the table_name doesn’t exist in the object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id3">
+<em class="property">property </em><code class="sig-name descname">ids</code><a class="headerlink" href="#id3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all SV ids as list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sgt.core.db.SgtSimple.is_reciprocal">
+<code class="sig-name descname">is_reciprocal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgt.core.db.SgtSimple.is_reciprocal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="id4">
+<em class="property">property </em><code class="sig-name descname">sv_count</code><a class="headerlink" href="#id4" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of SV records.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id5">
+<em class="property">property </em><code class="sig-name descname">table_list</code><a class="headerlink" href="#id5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of names of all tables in the object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id6">
+<code class="sig-name descname">to_bedpe_like</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">custom_infonames</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">confidence_intervals</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id6" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DataFrame in bedpe-like format.
+When specified, you can add INFOs as additional columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>custom_infonames</strong> (<em>list-like</em><em>[</em><em>str</em><em>]</em>) – The table names of INFOs to append.</p></li>
+<li><p><strong>confidence_intervals</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether or not to consider confidence intervals of the breakpoints.
+If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
+Otherwise, breakpoints are represented by a single-nucleotide resolution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Dataframe in bedpe-like format.
+The columns include at least the following:
+[‘chrom1’, ‘start1’, ‘end1’, ‘chrom2’, ‘start2’, ‘end2’, ‘name’, ‘score’, ‘strand1’, ‘strand2’]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sgt.core">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-sgt.core" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Itsuki Sugita
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

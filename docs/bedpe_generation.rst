@@ -1,5 +1,11 @@
 .. _bedpe_generation:
 
+.. meta::
+   :robots: noindex, nofollow
+
+.. meta::
+   :robots: nofollow
+
 Flexible BEDPE generation
 =========================
 
@@ -7,7 +13,7 @@ The first step is to create an SgtCore object.
 
 .. ipython:: python
    :okexcept:
-   
+
    import sgt
    sgt_object = sgt.read_vcf('tutorial.vcf')
 

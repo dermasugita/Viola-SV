@@ -22,3 +22,12 @@ Attributes
    SgtSimple.sv_count
    SgtSimple.table_list
    SgtSimple.ids
+
+Accessing the Tables
+--------------------
+
+.. autosummary::
+   :toctree: api/
+
+   SgtSimple.get_table
+   SgtSimple.to_bedpe_like

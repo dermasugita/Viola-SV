@@ -11,3 +11,22 @@ Constructor
    :toctree: api/
    
    SgtCore
+
+Attributes
+----------
+
+.. autosummary::
+   :toctree: api/
+
+   SgtCore.sv_count
+   SgtCore.table_list
+   SgtCore.ids
+
+Accessing the Tables
+--------------------
+
+.. autosummary::
+   :toctree: api/
+
+   SgtCore.get_table
+   SgtCore.to_bedpe_like

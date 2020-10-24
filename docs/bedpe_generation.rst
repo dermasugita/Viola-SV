@@ -1,8 +1,8 @@
 .. _bedpe_generation:
 
 .. meta::
-   :robots: noindex, nofollow
-
+   :robots: noindex
+   
 .. meta::
    :robots: nofollow
 

@@ -1,8 +1,8 @@
 .. include:: ../README.rst
 
 .. meta::
-   :robots: noindex, nofollow
-
+   :robots: noindex
+   
 .. meta::
    :robots: nofollow
 

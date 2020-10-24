@@ -2,7 +2,7 @@
 
 .. meta::
    :robots: noindex
-   
+
 .. meta::
    :robots: nofollow
 
@@ -12,7 +12,7 @@
 
    install
    quickstart
-   sources/test
+   reference/index
 
 
 

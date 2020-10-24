@@ -1,7 +1,7 @@
 .. _quickstart:
 
 .. meta::
-   :robots: noindex, nofollow
+   :robots: noindex
 
 .. meta::
    :robots: nofollow

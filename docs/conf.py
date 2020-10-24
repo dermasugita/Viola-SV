@@ -61,6 +61,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'sphinx_rtd_theme'
 html_favicon='_static/favicon.ico'
 
+# sphinx.ext.autodoc
+autodoc_inherit_docstrings = True
+
 # sphinx.ext.napoleon
 napoleon_use_ivar = True
 

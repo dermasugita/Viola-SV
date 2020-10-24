@@ -1,5 +1,11 @@
 .. _quickstart:
 
+.. meta::
+   :robots: noindex, nofollow
+
+.. meta::
+   :robots: nofollow
+
 Quick Start
 ===========
 This is a short examples how to analyse vcf files.

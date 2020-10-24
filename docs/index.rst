@@ -1,5 +1,11 @@
 .. include:: ../README.rst
 
+.. meta::
+   :robots: noindex, nofollow
+
+.. meta::
+   :robots: nofollow
+
 .. toctree::
    :maxdepth: 1
    :caption: Contents:

@@ -4,8 +4,8 @@ Welcom to PySgt Package!
 
 PySgt is a flexible and powerful python package designed specifically for genomic structural variation (SV) analysis.
 
-Installation
-============
+Installation(Unable now)
+=========================
 
 The package can be installed with ``pip``:
 
@@ -23,7 +23,7 @@ Documentation
 =============
 
 - :ref:`Quick Start<quickstart>`
-- API Reference
+- :ref:`API Reference<api_reference>`
 
 
 Philosophy of PySgt

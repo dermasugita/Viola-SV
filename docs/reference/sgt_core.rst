@@ -3,11 +3,11 @@
 SgtCore
 =======
 
-.. currentmodule:: sgt.core.db.SgtSimple
+.. currentmodule:: sgt.core.db
 
 Constructor
 -----------
 .. autosummary::
-   :toctree: api_reference/
+   :toctree: api/
    
-   sgt.core.db.SgtSimple
+   SgtCore

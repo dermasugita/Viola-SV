@@ -57,10 +57,6 @@ coverage.xml
 # pyenv
 .python-version
 
-# Pipenv
-Pipfile
-Pipfile.lock
-
 # Environments
 .env
 .venv

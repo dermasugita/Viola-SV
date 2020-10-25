@@ -1,7 +1,10 @@
 import vcf
 import pandas as pd
 import os
-from typing import Union
+from typing import (
+    Union,
+    Optional,
+)
 from io import StringIO
 from sgt.core.db import SgtCore, SgtSimple
 pd.set_option('display.max_columns', 10)
@@ -214,7 +217,26 @@ def _read_bedpe_empty(df_bedpe):
     return SgtSimple(*args)
     
 
-def read_bedpe(filepath, header_info_path=None, svtype_col_name=None):
+def read_bedpe(filepath,
+    header_info_path = None,
+    svtype_col_name: Optional[str] = None):
+    """
+    read_bedpe(filepath, header_info_path, svtype_col_name)
+    Read bedpe file of SV and return SgtSimple object.
+
+    Parameters
+    ---------------
+    filepath: str or file-like object
+        Acceptable type is equivalent to that of pandas.read_csv().
+    header_info_path:
+        Haven't been coded yet.
+    svtype_col_name: str or None, default None
+        If the bedpe file has a svtype column, please pass the column name to this argument.
+    
+    Returns
+    ---------------
+    A SgtSimple object
+    """
     df_bedpe = pd.read_csv(filepath, sep='\t')
     if df_bedpe.shape[0] == 0:
         return _read_bedpe_empty(df_bedpe)

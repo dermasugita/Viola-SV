@@ -1,6 +1,25 @@
 .. _io:
 
+============
 Input/Output
 ============
 
-test
+.. currentmodule:: sgt.io.parser
+
+--------
+VCF file
+--------
+.. autosummary::
+   :toctree: api/
+
+   read_vcf
+
+----------
+BEDPE file
+----------
+.. autosummary::
+   :toctree: api/
+
+   read_bedpe
+
+

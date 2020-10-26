@@ -31,3 +31,12 @@ Accessing the Tables
 
    SgtSimple.get_table
    SgtSimple.to_bedpe_like
+
+Filtering
+---------
+
+.. autosummary::
+   :toctree: api/
+
+   SgtSimple.filter
+   SgtSimple.filter_by_id

@@ -729,6 +729,11 @@ class SgtCore(SgtSimple):
             return set_out
 
     def filter(self, ls_query, query_logic='and'):
+        """
+        filter(ls_query, query_logic)
+        Filter SgtCore object by the list of queries.
+        Return object is also an instance of the SgtCore object
+        """
         ### != operation is dangerous
         if isinstance(ls_query, str):
             ls_query = [ls_query]

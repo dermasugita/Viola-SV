@@ -82,3 +82,6 @@ circle.yml
 # Others
 !/.gitignore
 .DS_Store
+
+# Free Testing Directory
+free_testing/

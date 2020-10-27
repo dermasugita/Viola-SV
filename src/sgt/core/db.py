@@ -443,16 +443,15 @@ class SgtCore(SgtSimple):
         ser_id = df_base['id']
         ser_vcfinfo = pd.Series(["" for i in range(len(ser_id))], index=ser_id)
         def _create_info_field(x, info):
-            if len(x) == 1:
-                if type(x.iloc[0]) == np.bool_:
-                    return info.upper()
-                else:
-                    return info.upper() + '=' + str(x.iloc[0])
-            return info.upper() + '=' + ','.join(x.astype(str))
+            if x.iloc[0] > 0:
+                return ',' + str(x.iloc[1])
+            if type(x.iloc[1]) == bool:
+                return ';' + info.upper()
+            return ';' + info.upper() + '=' + str(x.iloc[1])
         for info in self._ls_infokeys:
             df_info = self.get_table(info).set_index('id')
             ser_be_appended = df_info.apply(_create_info_field, axis=1, **{'info':info})
-            ser_vcfinfo.loc[df_info.index] = ser_vcfinfo.loc[df_info.index] + ';' + ser_be_appended
+            ser_vcfinfo.loc[df_info.index] = ser_vcfinfo.loc[df_info.index] + ser_be_appended
         ser_vcfinfo.replace("^;", "", regex=True, inplace=True)
         df_infofield = ser_vcfinfo.reset_index(name='info')
 

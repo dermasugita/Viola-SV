@@ -13,6 +13,7 @@
    install
    quickstart
    reference/index
+   userguide/index
 
 
 

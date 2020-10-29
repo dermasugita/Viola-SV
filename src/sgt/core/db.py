@@ -415,7 +415,7 @@ class SgtCore(SgtSimple):
         self._dict_df_info = dict_df_info
         self._df_formats = df_formats
         self._dict_df_headers = dict_df_headers
-        self._ls_infokeys = [ x.lower() for x in dict_df_info.keys() ]
+        self._ls_infokeys = [ x.lower() for x in dict_df_headers['infos_meta']['id'].tolist()]
         ls_keys = ['positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(dict_df_headers.keys())
         ls_values = [df_svpos, df_filters] + list(dict_df_info.values()) + [df_formats] + list(dict_df_headers.values())

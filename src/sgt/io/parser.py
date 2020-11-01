@@ -324,7 +324,7 @@ def create_alt_field_from_position(position_table):
         elif (x.name != 'BND') & (x.name != 'TRA'):
             x['alt'] = "<{}>".format(x.name)
             return x
-        ls_out = []
+        ls_alt = []
         for idx, row in x.iterrows():
             strand1 = row['strand1']
             strand2 = row['strand2']
@@ -339,11 +339,9 @@ def create_alt_field_from_position(position_table):
                 alt = ']{0}:{1}]{2}'.format(chrom2, pos2, ref)
             else:
                 alt = '[{0}:{1}[{2}'.format(chrom2, pos2, ref)
-            row['alt'] = alt
-            ls_out.append(row)
-        df_out = pd.DataFrame(ls_out)
-        return df_out
+            ls_alt.append(alt)
+        x['alt'] = ls_alt
+        return x
     df = position_table.copy()
     df = df.groupby('svtype').apply(_f)
-    df.index = df.index.droplevel()
     return df

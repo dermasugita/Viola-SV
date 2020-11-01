@@ -68,6 +68,9 @@ class SgtSimple(object):
         ls_keys = ['positions'] + self._ls_infokeys
         ls_values = [df_svpos] + list(dict_df_info.values())
         self._dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        self._repr_config = {
+            'info': None,
+        }
     
     @property
     def sv_count(self) -> int:
@@ -89,8 +92,33 @@ class SgtSimple(object):
         Return all SV ids as list.
         """
         return list(self.get_ids())
+    
+    @property
+    def repr_config(self):
+        """
+        Return current configuration of __repr__() function.
+        """
+        return self._repr_config
+    
+    def change_repr_config(self, key, value):
+        self._repr_config[key] = value
 
     def __repr__(self):
+        config_info = self._repr_config['info']
+        return self.view(custom_infonames=config_info)
+
+    def view(self, custom_infonames=None, return_as_dataframe=False):
+        """
+        view(custom_infonames, return_as_dataframe)
+        Quick view function of the SgtCore object.
+
+        Parameters
+        -----------
+        custom_infonames: list_like or None, default None
+            The names of the INFO to show additionally.
+        return_as_dataframe: bool, default False
+            If true, return as pandas DataFrame.
+        """
         df_svpos = self.get_table('positions')
         ser_id = df_svpos['id']
         ser_pos = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str) + \
@@ -102,11 +130,16 @@ class SgtSimple(object):
         ls_key = ['id', 'pos', 'strand', 'qual', 'svtype']
         dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
         df_out = pd.DataFrame(dict_)
+        if custom_infonames is not None:
+            df_out = self.append_infos(df_out, ls_tablenames=custom_infonames)
         str_df_out = str(df_out)
         str_infokeys = ','.join(list(self._ls_infokeys))
         desc = 'INFO='
         out = desc + str_infokeys + '\n' + str_df_out
+        if return_as_dataframe:
+            return df_out
         return str(out)
+
 
     def get_table(self, table_name: str) -> pd.DataFrame:
         """
@@ -421,9 +454,11 @@ class SgtCore(SgtSimple):
         ls_values = [df_svpos, df_filters] + list(dict_df_info.values()) + [df_formats] + list(dict_df_headers.values())
         # self._dict_alltables is a {tablename: table} dictionary
         self._dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        self._repr_config = {
+            'info': None,
+        }
 
     def __repr__(self):
-        
         return super().__repr__() 
     def __str__(self):
         return super().__repr__() 

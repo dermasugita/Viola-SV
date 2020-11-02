@@ -15,6 +15,7 @@ sgt.core.db.SgtSimple
    
       ~SgtSimple.__init__
       ~SgtSimple.append_infos
+      ~SgtSimple.change_repr_config
       ~SgtSimple.filter
       ~SgtSimple.filter_by_id
       ~SgtSimple.get_detail_svtype
@@ -22,6 +23,7 @@ sgt.core.db.SgtSimple
       ~SgtSimple.get_table
       ~SgtSimple.is_reciprocal
       ~SgtSimple.to_bedpe_like
+      ~SgtSimple.view
    
    
 
@@ -32,6 +34,7 @@ sgt.core.db.SgtSimple
    .. autosummary::
    
       ~SgtSimple.ids
+      ~SgtSimple.repr_config
       ~SgtSimple.sv_count
       ~SgtSimple.table_list
    

@@ -36,7 +36,8 @@ In order to use PySgt's features, you must first run :doc:`read_vcf<reference/ap
 .. ipython:: python
    :okexcept:
 
-   sgt_object = sgt.read_vcf('tutorial.vcf')
+   url = 'https://dermasugita.github.io/PySgtDocs/docs/html/_static/tutorial.vcf'
+   sgt_object = sgt.read_vcf(url) # filepath, url, and file-like object are acceptable.
 
 Now you're ready to perform a number of functions that the PySgt package has.
 

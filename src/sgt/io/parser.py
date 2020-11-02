@@ -2,6 +2,7 @@ import vcf
 import pandas as pd
 import os
 import re
+import urllib.request
 from typing import (
     Union,
     Optional,
@@ -34,7 +35,8 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     """
     # read vcf files using PyVcf package
     if isinstance(filepath_or_buffer, str) and is_url(filepath_or_buffer):
-        vcf_reader = vcf.Reader(filepath_or_buffer)
+        b = StringIO(urllib.request.urlopen(filepath_or_buffer).read().decode('utf-8'))
+        vcf_reader = vcf.Reader(b)
     elif isinstance(filepath_or_buffer, str):
         vcf_reader = vcf.Reader(open(filepath_or_buffer, 'r'))
     elif isinstance(filepath_or_buffer, StringIO):

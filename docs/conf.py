@@ -34,6 +34,7 @@ release = '0.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx_rtd_theme',
     'IPython.sphinxext.ipython_console_highlighting',
@@ -55,7 +56,16 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+
+# sphinx
 html_theme = 'sphinx_rtd_theme'
+html_favicon='_static/favicon.ico'
+
+# sphinx.ext.autodoc
+autodoc_inherit_docstrings = True
+
+# sphinx.ext.napoleon
+napoleon_use_ivar = True
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

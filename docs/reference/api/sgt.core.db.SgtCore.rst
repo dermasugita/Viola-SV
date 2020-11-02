@@ -17,6 +17,7 @@ sgt.core.db.SgtCore
       ~SgtCore.append_filters
       ~SgtCore.append_formats
       ~SgtCore.append_infos
+      ~SgtCore.change_repr_config
       ~SgtCore.create_info_table
       ~SgtCore.filter
       ~SgtCore.filter_by_id
@@ -27,6 +28,7 @@ sgt.core.db.SgtCore
       ~SgtCore.is_reciprocal
       ~SgtCore.to_bedpe_like
       ~SgtCore.to_vcf_like
+      ~SgtCore.view
    
    
 
@@ -37,6 +39,7 @@ sgt.core.db.SgtCore
    .. autosummary::
    
       ~SgtCore.ids
+      ~SgtCore.repr_config
       ~SgtCore.sv_count
       ~SgtCore.table_list
    

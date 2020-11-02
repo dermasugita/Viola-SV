@@ -242,7 +242,12 @@ class SgtSimple(object):
         ---------------
         DataFrame
             A DataFrame which the INFO tables are added.
-
+        
+        Note
+        ----
+        This function seems to have a bug when a value is 
+        passed to the ls_tablenames argument.
+        Can someone please fix it?
         """
         df = base_df.copy()
         for tablename in ls_tablenames:
@@ -356,7 +361,7 @@ class SgtSimple(object):
         ---------------
         SgtSimple
             A SgtSimple object with the SV id specified in the arrlike_id argument.
-            All records associated with SV ids that are not in arrlike_id will be discarded.
+            All records associated with SV ids that are not in the arrlike_id will be discarded.
         
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
@@ -441,6 +446,36 @@ class SgtCore(SgtSimple):
         List of names of all tables included in the object 
     ids
         List of all SV id.
+
+    Parameters
+    ----------
+    df_svpos: DataFrame
+        DataFrame containing information such as position, strand, svtype, etc.
+        Columns should be following:
+        ['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']
+        Main key is 'id'. The 'chrom1' and 'chrom2' are the foreign key from contigs_meta table.
+    df_filter: DataFrame
+        DataFrame containing FILTER information which locate on the 7th column of the vcf file.
+        Columns of the input DataFrame should be following:
+        ['id', 'filter']
+        Main Key is the combination of ('id', 'filter'). Each column is the foreign key from 
+        df_svpos, and filters_meta table, respectively.
+    dict_df_info: dict[str, DataFrame]
+        Dictionary of DataFrames which contain additional information on SV record (equivalent to INFO field of vcf).
+        Each item of the dictionary contains single INFO.
+        The dictionary key is the name of each INFO and should be in lowercase.
+        Columns of the DataFrame should be following:
+        ['id', 'value_idx', 'infoname']
+        The 'value_idx' column contains 0-origin indice of INFO values.
+        This is important when one SV record has multiple values of an INFO (eg. cipos). 
+        Main key is the combination of ('id', 'value_idx'), and 'id' is the foreign key coming from df_svpos table.
+    df_formats: DataFrame
+        DataFrame containing FORMAT information of the vcf file.
+        Columns of the DataFrame should be following:
+        ['id', 'sample', 'format', 'value_idx', 'value']
+        Main key is the combination of ('id', 'sample', 'format').
+        The ('id', 'sample', 'format') are the foreign key coming from 
+        (df_svpos, samples_meta, format_meta) table, respectively.
     """
     def __init__(self, df_svpos, df_filters, dict_df_info, df_formats, dict_df_headers = {}):
         self._df_svpos = df_svpos
@@ -462,7 +497,7 @@ class SgtCore(SgtSimple):
         return super().__repr__() 
     def __str__(self):
         return super().__repr__() 
-
+    
     def create_info_table(self, table_name, table, number, type_, description, source=None, version=None):
         self._ls_infokeys += [table_name]
         self._dict_alltables[table_name] = table
@@ -472,7 +507,11 @@ class SgtCore(SgtSimple):
         self._dict_alltables['infos_meta'] = df_replace # not beautiful code...
 
 
-    def to_vcf_like(self):
+    def to_vcf_like(self) -> pd.DataFrame:
+        """
+        to_vcf_like()
+        Return a vcf-formatted DataFrame. Header information will not be reflected.
+        """
         df_base = self.get_table('positions')[['chrom1', 'pos1', 'id', 'ref', 'alt', 'qual']]
         print(self._ls_infokeys)
         ser_id = df_base['id']
@@ -563,7 +602,33 @@ class SgtCore(SgtSimple):
             df_out.reset_index(inplace=True)
         return df_out
 
-    def append_infos(self, base_df, ls_tablenames, left_on='id', auto_fillna=True):
+    def append_infos(self, base_df,
+        ls_tablenames,
+        left_on: str = 'id',
+        auto_fillna: bool = True) -> pd.DataFrame:
+        """
+        append_infos(base_df, ls_tablenames, left_on='id', auto_fillna=True)
+        Append INFO tables to the right of the base_df, based on the SV id columns.
+        If the name of the SV id column in base_df is not 'id', specify column name into left_on argument. 
+
+        Parameters
+        ---------------
+        base_df: DataFrame
+            The DataFrame to which the INFO tables are appended.
+        ls_tablenames: list-like
+            The list of INFO table names to be appended.
+        left_on: str, default 'id'
+            The name of SV id column of base_df
+        auto_fillna: bool, default True
+            If True, use the header information to handle missing values
+            after merging DataFrames.
+        
+        Returns
+        ---------------
+        DataFrame
+            A DataFrame which the INFO tables are added.
+        
+        """
         df = base_df.copy()
         df_infometa = self.get_table('infos_meta')
         for tablename in ls_tablenames:
@@ -664,6 +729,11 @@ class SgtCore(SgtSimple):
             return set_out
 
     def filter(self, ls_query, query_logic='and'):
+        """
+        filter(ls_query, query_logic)
+        Filter SgtCore object by the list of queries.
+        Return object is also an instance of the SgtCore object
+        """
         ### != operation is dangerous
         if isinstance(ls_query, str):
             ls_query = [ls_query]
@@ -680,6 +750,23 @@ class SgtCore(SgtSimple):
         return df.loc[df['id'].isin(arrlike_id)].reset_index(drop=True)
 
     def filter_by_id(self, arrlike_id):
+        """
+        filter_by_id(arrlike_id)
+        Filter SgtCore object according to the list of SV ids.
+        Return object is also an instance of the SgtCore object
+
+        Parameters
+        ---------------
+        arrlike_id: list-like
+            SV ids which you would like to keep.
+        
+        Returns
+        ---------------
+        SgtCore
+            A SgtCore object with the SV id specified in the arrlike_id argument.
+            All records associated with SV ids that are not in the arrlike_id will be discarded.
+        
+        """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_filters = self._filter_by_id('filters', arrlike_id)
         out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}

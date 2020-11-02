@@ -34,7 +34,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     """
     # read vcf files using PyVcf package
     if isinstance(filepath_or_buffer, str) and is_url(filepath_or_buffer):
-        vcf_reader = vcf.Reader(filepath_ro_buffer)
+        vcf_reader = vcf.Reader(filepath_or_buffer)
     elif isinstance(filepath_or_buffer, str):
         vcf_reader = vcf.Reader(open(filepath_or_buffer, 'r'))
     elif isinstance(filepath_or_buffer, StringIO):

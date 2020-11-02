@@ -7,6 +7,7 @@ from typing import (
     Iterable,
 )
 import sgt
+from sgt.core.indexing import Indexer
 from sgt._typing import (
     IntOrStr,
     StrOrIterableStr,
@@ -15,7 +16,11 @@ from sgt._exceptions import (
     TableNotFoundError,
 )
 
+<<<<<<< 07f71d6a4c3aa4eaac3d4116f9cb8ee5e17b7222
 class Bedpe(object):
+=======
+class SgtSimple(Indexer):
+>>>>>>> add: __getattr__ and __getitem__
     """
     Relational database-like object containing SV position dataframes and INFO dataframes.
     The instances of this class have information equal to the BEDPE files.
@@ -61,6 +66,16 @@ class Bedpe(object):
         Return object is also an instance of the Bedpe object
 
     """
+    _internal_attrs = [
+        "_df_svpos",
+        "_dict_df_info",
+        "_ls_infokeys",
+        "_dict_alltables",
+        "_repr_config",
+        "_sig_criteria"
+    ]
+    _internal_attrs_set = set(_internal_attrs)
+
     def __init__(self, df_svpos: pd.DataFrame, dict_df_info: Dict[str, pd.DataFrame]):
         self._df_svpos = df_svpos
         self._dict_df_info = dict_df_info
@@ -99,6 +114,7 @@ class Bedpe(object):
         Return current configuration of __repr__() function.
         """
         return self._repr_config
+    
     
     def change_repr_config(self, key, value):
         self._repr_config[key] = value
@@ -139,6 +155,16 @@ class Bedpe(object):
         if return_as_dataframe:
             return df_out
         return str(out)
+    
+    def __getattr__(self, value):
+        if value in self._internal_attrs_set:
+            return object.__getattribute__(self, value)
+        else:
+            return self.get_table(value)
+    
+    def __getitem__(self, value):
+        return self.get_table(value)
+
 
 
     def get_table(self, table_name: str) -> pd.DataFrame:
@@ -314,6 +340,7 @@ class Bedpe(object):
                 set_out = self._filter_infos(*sq)
             #print(set_out)
             return set_out
+<<<<<<< 07f71d6a4c3aa4eaac3d4116f9cb8ee5e17b7222
 
 
     def filter(self,
@@ -325,6 +352,10 @@ class Bedpe(object):
         Return object is also an instance of the Bedpe object
         """
         ### != operation is dangerous
+=======
+    
+    def _filter(self, ls_query, query_logic):
+>>>>>>> add: __getattr__ and __getitem__
         if isinstance(ls_query, str):
             ls_query = [ls_query]
         if query_logic == 'and':
@@ -337,6 +368,19 @@ class Bedpe(object):
             for query in ls_query:
                 set_query = self._parse_filter_query(query)
                 set_result = set_result | set_query
+        
+        return set_result
+
+    def filter(self,
+        ls_query: StrOrIterableStr,
+        query_logic: str = 'and'):
+        """
+        filter(ls_query, query_logic)
+        Filter SgtSimple object by the list of queries.
+        Return object is also an instance of the SgtSimple object
+        """
+        ### != operation is dangerous
+        set_result = self._filter(ls_query, query_logic)
         out = self.filter_by_id(set_result)
         return out
 
@@ -390,6 +434,8 @@ class Bedpe(object):
 
     _sig_criteria = [["DEL", "cut", [-np.inf, -5000000, -500000, -50000, 0]],
                      ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
+    def _default_classification_function(self):
+        pass
 
     def get_detail_svtype(self, criteria=_sig_criteria):
         if 'svtype' not in self.table_list:
@@ -398,12 +444,12 @@ class Bedpe(object):
         ### get all svtypes
         df_svtypes = self.get_table('svtype')
         if df_svtypes.shape[0] == 0:
-            df_detail_svtype = pd.DataFrame(columns=('id', 'svtype_detail_0'))
+            df_detail_svtype = pd.DataFrame(columns=('id', 'value_idx', 'svtype_detail'))
             dict_df_info = self._dict_df_info
             dict_df_info['svtype_detail'] = df_detail_svtype
             sgt_out = Bedpe(self._df_svpos, dict_df_info)
             return sgt_out
-        ls_svtypes = df_svtypes['svtype_0'].unique()
+        ls_svtypes = df_svtypes['svtype'].unique()
 
         ls_df_detail_svtype = []
 
@@ -415,7 +461,7 @@ class Bedpe(object):
             sgt_target = self.filter(q)
             if method == 'cut':
                 df_svlen = sgt_target.get_table('svlen')
-                df_range = pd.cut(df_svlen['svlen_0'], values).astype(str)
+                df_range = pd.cut(df_svlen['svlen'], values).astype(str)
                 df_range = svtype + '::' + df_range
                 df_cat = pd.concat([df_svlen['id'], df_range], axis=1).rename(columns={'svlen_0': 'svtype_detail_0'})
                 ls_df_detail_svtype.append(df_cat)

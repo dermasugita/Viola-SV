@@ -1,6 +1,7 @@
 import vcf
 import pandas as pd
 import os
+import re
 from typing import (
     Union,
     Optional,
@@ -32,7 +33,9 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     A SgtCore object
     """
     # read vcf files using PyVcf package
-    if isinstance(filepath_or_buffer, str):
+    if isinstance(filepath_or_buffer, str) and is_url(filepath_or_buffer):
+        vcf_reader = vcf.Reader(filepath_ro_buffer)
+    elif isinstance(filepath_or_buffer, str)
         vcf_reader = vcf.Reader(open(filepath_or_buffer, 'r'))
     elif isinstance(filepath_or_buffer, StringIO):
         vcf_reader = vcf.Reader(filepath_or_buffer)
@@ -198,6 +201,17 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
    
     args = [df_pos, df_filters, dict_df_infos, df_formats, dict_df_headers]
     return SgtCore(*args)
+
+def is_url(x):
+    regex = re.compile(
+            r'^(?:http|ftp)s?://' # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+            r'localhost|' #localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+            r'(?::\d+)?' # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return re.match(regex, x) is not None
+
 
 def _read_bedpe_empty(df_bedpe):
     ls_header = list(df_bedpe.columns)

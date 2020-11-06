@@ -6,7 +6,7 @@ import setuptools
 VERSION = "0.1"
 #PACKAGES = setuptools.find_packages( include = ["sv_parser", "sv_parser.*"] )
 PACKAGES = setuptools.find_packages('src')
-DEPENDENCIES = ["pandas", "PyVCF"]
+DEPENDENCIES = ["pandas", "PyVCF", "intervaltree"]
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()

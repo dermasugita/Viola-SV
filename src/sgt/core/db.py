@@ -447,7 +447,7 @@ class SgtSimple(Indexer):
             set_out = self.get_ids() - set_out
         return set_out
     
-    def annotate_bed(self, bed: Bed, annotation: str, suffix=['LEFT', 'RIGHT']):
+    def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right']):
         df_svpos = self.get_table('positions')
         ls_left = []
         ls_right = []

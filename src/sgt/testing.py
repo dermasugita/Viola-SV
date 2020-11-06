@@ -1,5 +1,5 @@
 import sgt
-from sgt.core.db import SgtSimple, SgtCore
+from sgt.core.db import Bedpe, Vcf
 import pandas as pd
 
 def assert_sgt_equal(left, right):

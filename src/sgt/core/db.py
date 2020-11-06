@@ -8,6 +8,7 @@ from typing import (
 )
 import sgt
 from sgt.core.indexing import Indexer
+from sgt.core.bed import Bed
 from sgt._typing import (
     IntOrStr,
     StrOrIterableStr,
@@ -75,6 +76,15 @@ class SgtSimple(Indexer):
         "_sig_criteria"
     ]
     _internal_attrs_set = set(_internal_attrs)
+    _repr_column_names = [
+        "id",
+        "bp1",
+        "bp2",
+        "strand",
+        "qual",
+        "svtype",
+    ]
+    _repr_column_names_set = set(_repr_column_names)
 
     def __init__(self, df_svpos: pd.DataFrame, dict_df_info: Dict[str, pd.DataFrame]):
         self._df_svpos = df_svpos
@@ -114,7 +124,10 @@ class SgtSimple(Indexer):
         Return current configuration of __repr__() function.
         """
         return self._repr_config
-    
+
+    def create_info_table(self, table_name, table):
+        self._ls_infokeys += [table_name]
+        self._dict_alltables[table_name] = table
     
     def change_repr_config(self, key, value):
         self._repr_config[key] = value
@@ -137,13 +150,13 @@ class SgtSimple(Indexer):
         """
         df_svpos = self.get_table('positions')
         ser_id = df_svpos['id']
-        ser_pos = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str) + \
-                    '-' + df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
+        ser_bp1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
+        ser_bp2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
         ser_strand = df_svpos['strand1'] + df_svpos['strand2']
         ser_qual = df_svpos['qual']
         ser_svtype = df_svpos['svtype']
-        ls_ser = [ser_id, ser_pos, ser_strand, ser_qual, ser_svtype]
-        ls_key = ['id', 'pos', 'strand', 'qual', 'svtype']
+        ls_ser = [ser_id, ser_bp1, ser_bp2, ser_strand, ser_qual, ser_svtype]
+        ls_key = ['id', 'bp1', 'bp2', 'strand', 'qual', 'svtype']
         dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
         df_out = pd.DataFrame(dict_)
         if custom_infonames is not None:
@@ -163,6 +176,8 @@ class SgtSimple(Indexer):
             return self.get_table(value)
     
     def __getitem__(self, value):
+        if value in self._repr_column_names:
+            return self.view(return_as_dataframe=True)[value]
         return self.get_table(value)
 
 
@@ -431,6 +446,35 @@ class SgtSimple(Indexer):
         if exclude:
             set_out = self.get_ids() - set_out
         return set_out
+    
+    def annotate_bed(self, bed: Bed, annotation: str, suffix=['LEFT', 'RIGHT']):
+        df_svpos = self.get_table('positions')
+        ls_left = []
+        ls_right = []
+        for idx, row in df_svpos.iterrows():
+            svid = row['id']
+            chrom1 = row['chrom1']
+            pos1 = row['pos1']
+            chrom2 = row['chrom2']
+            pos2 = row['pos2']
+
+            df_bp1 = bed.query(chrom1, pos1)
+            df_bp2 = bed.query(chrom2, pos2)
+
+            if not df_bp1.empty:
+                ls_left.append([svid, 0, True])
+            if not df_bp2.empty:
+                ls_right.append([svid, 0, True])
+        left_name = annotation + suffix[0]
+        right_name = annotation + suffix[1]
+        df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
+        df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
+        self.create_info_table(left_name, df_left)
+        self.create_info_table(right_name, df_right)
+
+                
+
+
 
     _sig_criteria = [["DEL", "cut", [-np.inf, -5000000, -500000, -50000, 0]],
                      ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
@@ -838,6 +882,31 @@ class Vcf(Bedpe):
         df_target = df.loc[target_q]
         e = "df_target.loc[df_target['value'] {0} threshold]['id']".format(operator)
         return set(eval(e))
+
+    def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right'], description=None):
+        df_svpos = self.get_table('positions')
+        ls_left = []
+        ls_right = []
+        for idx, row in df_svpos.iterrows():
+            svid = row['id']
+            chrom1 = row['chrom1']
+            pos1 = row['pos1']
+            chrom2 = row['chrom2']
+            pos2 = row['pos2']
+
+            df_bp1 = bed.query(chrom1, pos1)
+            df_bp2 = bed.query(chrom2, pos2)
+
+            if not df_bp1.empty:
+                ls_left.append([svid, 0, True])
+            if not df_bp2.empty:
+                ls_right.append([svid, 0, True])
+        left_name = annotation + suffix[0]
+        right_name = annotation + suffix[1]
+        df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
+        df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
+        self.create_info_table(left_name, df_left, 0, type_="Flag", description=description)
+        self.create_info_table(right_name, df_right, 0, type_="Flag", description=description)
     
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """

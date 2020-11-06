@@ -8,7 +8,12 @@ from typing import (
     Optional,
 )
 from io import StringIO
+<<<<<<< b02c5aa02dde7358f5d495f5214bcd7bc255434f
 from sgt.core.db import Vcf, Bedpe
+=======
+from sgt.core.db import SgtCore, SgtSimple
+from sgt.core.bed import Bed
+>>>>>>> add: read_bed
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
@@ -383,3 +388,26 @@ def create_alt_field_from_position(position_table):
     df = position_table.copy()
     df = df.groupby('svtype').apply(_f)
     return df
+
+def read_bed(filepath_or_buffer):
+    with open(filepath_or_buffer, 'r') as f:
+        data = []
+        for line in f:
+            if line.startswith('track'):
+                header = line
+            else:
+                data.append(line)
+    df = pd.read_csv(
+        StringIO(''.join(data)),
+        sep='\t',
+        header=None
+    )
+    df_columns_origin = ['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'thickStart',
+                  'thickEnd', 'itemRgb', 'blockCount', 'blockSize', 'blockStarts']
+    df_columns = df_columns_origin[:df.shape[1]]
+    df.columns = df_columns
+
+    return Bed(df, header)
+
+
+    

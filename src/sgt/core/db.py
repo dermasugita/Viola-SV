@@ -15,7 +15,7 @@ from sgt._exceptions import (
     TableNotFoundError,
 )
 
-class SgtSimple(object):
+class Bedpe(object):
     """
     Relational database-like object containing SV position dataframes and INFO dataframes.
     The instances of this class have information equal to the BEDPE files.
@@ -54,11 +54,11 @@ class SgtSimple(object):
     to_bedpe_like(custom_infonames=[], confidence_intervals=False)
         Return a DataFrame in bedpe-like format.
     filter(ls_query, query_logic="and")
-        Filter SgtSimple object by the list of queries.
-        Return object is also an instance of the SgtSimple object
+        Filter Bedpe object by the list of queries.
+        Return object is also an instance of the Bedpe object
     filter_by_id(arrlike_id)
-        Filter SgtSimple object according to the list of SV ids.
-        Return object is also an instance of the SgtSimple object
+        Filter Bedpe object according to the list of SV ids.
+        Return object is also an instance of the Bedpe object
 
     """
     def __init__(self, df_svpos: pd.DataFrame, dict_df_info: Dict[str, pd.DataFrame]):
@@ -110,7 +110,7 @@ class SgtSimple(object):
     def view(self, custom_infonames=None, return_as_dataframe=False):
         """
         view(custom_infonames, return_as_dataframe)
-        Quick view function of the SgtCore object.
+        Quick view function of the Vcf object.
 
         Parameters
         -----------
@@ -321,8 +321,8 @@ class SgtSimple(object):
         query_logic: str = 'and'):
         """
         filter(ls_query, query_logic)
-        Filter SgtSimple object by the list of queries.
-        Return object is also an instance of the SgtSimple object
+        Filter Bedpe object by the list of queries.
+        Return object is also an instance of the Bedpe object
         """
         ### != operation is dangerous
         if isinstance(ls_query, str):
@@ -349,8 +349,8 @@ class SgtSimple(object):
     def filter_by_id(self, arrlike_id):
         """
         filter_by_id(arrlike_id)
-        Filter SgtSimple object according to the list of SV ids.
-        Return object is also an instance of the SgtSimple object
+        Filter Bedpe object according to the list of SV ids.
+        Return object is also an instance of the Bedpe object
 
         Parameters
         ---------------
@@ -359,14 +359,14 @@ class SgtSimple(object):
         
         Returns
         ---------------
-        SgtSimple
-            A SgtSimple object with the SV id specified in the arrlike_id argument.
+        Bedpe
+            A Bedpe object with the SV id specified in the arrlike_id argument.
             All records associated with SV ids that are not in the arrlike_id will be discarded.
         
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
-        return SgtSimple(out_svpos, out_dict_df_info)
+        return Bedpe(out_svpos, out_dict_df_info)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')
@@ -401,7 +401,7 @@ class SgtSimple(object):
             df_detail_svtype = pd.DataFrame(columns=('id', 'svtype_detail_0'))
             dict_df_info = self._dict_df_info
             dict_df_info['svtype_detail'] = df_detail_svtype
-            sgt_out = SgtSimple(self._df_svpos, dict_df_info)
+            sgt_out = Bedpe(self._df_svpos, dict_df_info)
             return sgt_out
         ls_svtypes = df_svtypes['svtype_0'].unique()
 
@@ -424,7 +424,7 @@ class SgtSimple(object):
         df_detail_svtype = pd.concat(ls_df_detail_svtype)    
         dict_df_info = self._dict_df_info
         dict_df_info['svtype_detail'] = df_detail_svtype
-        sgt_out = SgtSimple(self._df_svpos, dict_df_info)
+        sgt_out = Bedpe(self._df_svpos, dict_df_info)
         return sgt_out
 
     def is_reciprocal(self):
@@ -432,7 +432,7 @@ class SgtSimple(object):
 
 
 
-class SgtCore(SgtSimple):
+class Vcf(Bedpe):
     """
     Relational database-like object containing SV position dataframes,
     FILTER dataframe, INFO dataframes, FORMAT dataframe, and HEADER dataframes.
@@ -687,13 +687,13 @@ class SgtCore(SgtSimple):
                 else:
                     flag = True if sq[-1] == 'True' else False
                 exclude = not flag
-                set_out = self._filter_infos_flag(sq0, exclude=exclude) # defined in SgtSimple
+                set_out = self._filter_infos_flag(sq0, exclude=exclude) # defined in Bedpe
                 return set_out
 
             if len(sq) == 3:
-                set_out = self._filter_infos(sq[0], 0, sq[1], sq[2]) # defined in SgtSimple
+                set_out = self._filter_infos(sq[0], 0, sq[1], sq[2]) # defined in Bedpe
             else:
-                set_out = self._filter_infos(*sq) # defined in SgtSimple
+                set_out = self._filter_infos(*sq) # defined in Bedpe
             #print(set_out)
             return set_out
 
@@ -731,8 +731,8 @@ class SgtCore(SgtSimple):
     def filter(self, ls_query, query_logic='and'):
         """
         filter(ls_query, query_logic)
-        Filter SgtCore object by the list of queries.
-        Return object is also an instance of the SgtCore object
+        Filter Vcf object by the list of queries.
+        Return object is also an instance of the Vcf object
         """
         ### != operation is dangerous
         if isinstance(ls_query, str):
@@ -752,8 +752,8 @@ class SgtCore(SgtSimple):
     def filter_by_id(self, arrlike_id):
         """
         filter_by_id(arrlike_id)
-        Filter SgtCore object according to the list of SV ids.
-        Return object is also an instance of the SgtCore object
+        Filter Vcf object according to the list of SV ids.
+        Return object is also an instance of the Vcf object
 
         Parameters
         ---------------
@@ -762,8 +762,8 @@ class SgtCore(SgtSimple):
         
         Returns
         ---------------
-        SgtCore
-            A SgtCore object with the SV id specified in the arrlike_id argument.
+        Vcf
+            A Vcf object with the SV id specified in the arrlike_id argument.
             All records associated with SV ids that are not in the arrlike_id will be discarded.
         
         """
@@ -772,7 +772,7 @@ class SgtCore(SgtSimple):
         out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
         out_formats = self._filter_by_id('formats', arrlike_id)
         out_dict_df_headers = self._dict_df_headers.copy()
-        return SgtCore(out_svpos, out_filters, out_dict_df_info, out_formats, out_dict_df_headers)
+        return Vcf(out_svpos, out_filters, out_dict_df_info, out_formats, out_dict_df_headers)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')

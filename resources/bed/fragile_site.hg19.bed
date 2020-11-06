@@ -1,4 +1,4 @@
-chrom	start	end	gene
+track name="Common Fragile Site in hg19" description="bed format"
 chr1	71800000	72800000	NEGR1
 chr1	245800000	246800000	SMYD3
 chr2	140900000	143000000	LRP1B

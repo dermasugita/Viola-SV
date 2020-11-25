@@ -17,11 +17,7 @@ from sgt._exceptions import (
     TableNotFoundError,
 )
 
-<<<<<<< 07f71d6a4c3aa4eaac3d4116f9cb8ee5e17b7222
-class Bedpe(object):
-=======
-class SgtSimple(Indexer):
->>>>>>> add: __getattr__ and __getitem__
+class Bedpe(Indexer):
     """
     Relational database-like object containing SV position dataframes and INFO dataframes.
     The instances of this class have information equal to the BEDPE files.
@@ -359,22 +355,8 @@ class SgtSimple(Indexer):
                 set_out = self._filter_infos(*sq)
             #print(set_out)
             return set_out
-<<<<<<< 07f71d6a4c3aa4eaac3d4116f9cb8ee5e17b7222
-
-
-    def filter(self,
-        ls_query: StrOrIterableStr,
-        query_logic: str = 'and'):
-        """
-        filter(ls_query, query_logic)
-        Filter Bedpe object by the list of queries.
-        Return object is also an instance of the Bedpe object
-        """
-        ### != operation is dangerous
-=======
     
     def _filter(self, ls_query, query_logic):
->>>>>>> add: __getattr__ and __getitem__
         if isinstance(ls_query, str):
             ls_query = [ls_query]
         if query_logic == 'and':

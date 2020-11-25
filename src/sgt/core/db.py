@@ -264,7 +264,8 @@ class SgtSimple(Indexer):
     def append_infos(self,
         base_df: pd.DataFrame,
         ls_tablenames: Iterable[str],
-        left_on: str = 'id') -> pd.DataFrame:
+        left_on: str = 'id',
+        auto_fillna: bool = False) -> pd.DataFrame:
         """
         append_infos(base_df, ls_tablenames, left_on='id')
         Append INFO tables to the right of the base_df, based on the SV id columns.
@@ -298,6 +299,9 @@ class SgtSimple(Indexer):
             df = pd.merge(df, df_to_append, how='left', left_on=left_on, right_on='id')
             if left_on != 'id':
                 df.drop('id', axis=1, inplace=True) 
+            if pd.api.types.is_bool_dtype(df_to_append_pre.iloc[:, 2]):
+                column_names = np.unique(df_to_append_pre['new_column_names'])
+                df[column_names] = df[column_names].fillna(False)
         return df
 
     def _parse_filter_query(self, q):

@@ -8,12 +8,8 @@ from typing import (
     Optional,
 )
 from io import StringIO
-<<<<<<< b02c5aa02dde7358f5d495f5214bcd7bc255434f
 from sgt.core.db import Vcf, Bedpe
-=======
-from sgt.core.db import SgtCore, SgtSimple
 from sgt.core.bed import Bed
->>>>>>> add: read_bed
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 

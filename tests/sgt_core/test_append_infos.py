@@ -10,6 +10,6 @@ class TestAppendInfos:
 
     def test_append_svlen(self):
         if 'svlen' in self.reader.table_list:
-            result = sgt.SgtCore.append_infos(self.reader, self.positions, ls_tablenames=['svlen'])
+            result = sgt.Vcf.append_infos(self.reader, self.positions, ls_tablenames=['svlen'])
             assert result.columns[-1] == 'svlen_0'
             assert result['svlen_0'].notnull().any()

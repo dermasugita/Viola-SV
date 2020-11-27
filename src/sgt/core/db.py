@@ -922,3 +922,16 @@ class Vcf(Bedpe):
     def get_unique_events(self):
         set_result_ids = self._get_unique_events_ids()
         return self.filter_by_id(set_result_ids)
+    
+    def _filter_by_positions(self, position_num, chrom):
+        positions_df = self.get_table("positions")
+        if position_num == 0:
+            positions_df = positions_df[positions_df["chrom1"]==chrom]
+            id_list = positions_df["id"].values
+        elif position_num == 1:
+            positions_df == positions_df[positions_df["chrom2"]==chrom]
+            id_list = positions_df["id"].values
+            #valuesじゃない！
+        print(id_list)
+        return self.filter_by_id(id_list)
+            

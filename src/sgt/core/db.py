@@ -923,15 +923,28 @@ class Vcf(Bedpe):
         set_result_ids = self._get_unique_events_ids()
         return self.filter_by_id(set_result_ids)
     
-    def _filter_by_positions(self, position_num, chrom):
+    def _filter_by_positions(self, position_num, chrom, pos_min=None, pos_max=None):
         positions_df = self.get_table("positions")
         if position_num == 0:
             positions_df = positions_df[positions_df["chrom1"]==chrom]
+            if (pos_min is not None) and (pos_max is not None):
+                positions_df = positions_df[pos_min <= positions_df["pos1"] <= pos_max]
+            elif pos_min is not None:
+                positions_df = positions_df[pos_min <= positions_df["pos1"]]
+            elif pos_max is not None:
+                positions_df = positions_df[positions_df["pos1"] <= pos_max]
             id_list = positions_df["id"].values
         elif position_num == 1:
-            positions_df == positions_df[positions_df["chrom2"]==chrom]
+            positions_df = positions_df[positions_df["chrom2"]==chrom]
+            if (pos_min is not None) and (pos_max is not None):
+                positions_df = positions_df[pos_min <= positions_df["pos2"] <= pos_max]
+            elif pos_min is not None:
+                positions_df = positions_df[pos_min <= positions_df["pos2"]]
+            elif pos_max is not None:
+                positions_df = positions_df[positions_df["pos2"] <= pos_max]
             id_list = positions_df["id"].values
-            #valuesじゃない！
-        print(id_list)
         return self.filter_by_id(id_list)
+    
+    #def _filter_by_positions_greater(self, position_num, chrom, ):
+
             

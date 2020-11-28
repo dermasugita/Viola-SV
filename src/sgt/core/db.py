@@ -930,7 +930,6 @@ class Vcf(Bedpe):
         if (pos_min is not None) and (pos_max is not None):
             positions_df = positions_df[(pos_min <= positions_df["pos{}".format(position_num)])
             & (positions_df["pos{}".format(position_num)] <= pos_max)]
-            print("koko")
         elif pos_min is not None:
             positions_df = positions_df[pos_min <= positions_df["pos{}".format(position_num)]]
         elif pos_max is not None:

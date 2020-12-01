@@ -457,51 +457,34 @@ class Bedpe(Indexer):
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
         self.create_info_table(left_name, df_left)
         self.create_info_table(right_name, df_right)
+    
+    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order = None):
+        """
+        classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
+        Classify SV records by user-defined criteria. A new INFO table named
+        'manual_sv_type' will be created.
+        """
+        set_ids_current = set(self.ids)
+        obj = self
+        ls_ids = []
+        ls_result_names = []
+        for func, name in zip(ls_conditions, ls_names):
+            obj = obj.filter_by_id(set_ids_current)
+            set_ids = func(obj)
+            set_ids_intersection = set_ids_current & set_ids
+            ls_ids += list(set_ids_intersection)
+            ls_result_names += [name for i in range(len(set_ids_intersection))]
+            set_ids_current = set_ids_current - set_ids_intersection
+        ls_ids += list(set_ids_current)
+        ls_result_names += ['others' for i in range(len(set_ids_current))]
+        ls_zeros = [0 for i in range(len(self.ids))]
+        df_result = pd.DataFrame({'id': ls_ids, 'value_idx': ls_zeros, 'manual_sv_type': ls_result_names})
+        self.create_info_table('manual_sv_type', df_result)
+        ser_feature_counts = self.get_table('manual_sv_type')['manual_sv_type'].value_counts()
+        pd_ind_reindex = pd.Index(ls_names + ['others'])
+        ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value = 0)
+        return ser_feature_counts
 
-                
-
-
-
-    _sig_criteria = [["DEL", "cut", [-np.inf, -5000000, -500000, -50000, 0]],
-                     ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
-    def _default_classification_function(self):
-        pass
-
-    def get_detail_svtype(self, criteria=_sig_criteria):
-        if 'svtype' not in self.table_list:
-            print("Can't find svtype table")
-            return
-        ### get all svtypes
-        df_svtypes = self.get_table('svtype')
-        if df_svtypes.shape[0] == 0:
-            df_detail_svtype = pd.DataFrame(columns=('id', 'value_idx', 'svtype_detail'))
-            dict_df_info = self._dict_df_info
-            dict_df_info['svtype_detail'] = df_detail_svtype
-            sgt_out = Bedpe(self._df_svpos, dict_df_info)
-            return sgt_out
-        ls_svtypes = df_svtypes['svtype'].unique()
-
-        ls_df_detail_svtype = []
-
-        for criterion in criteria:
-            svtype, method, values = criterion
-            if svtype not in ls_svtypes:
-                continue
-            q = "svtype == {}".format(svtype)
-            sgt_target = self.filter(q)
-            if method == 'cut':
-                df_svlen = sgt_target.get_table('svlen')
-                df_range = pd.cut(df_svlen['svlen'], values).astype(str)
-                df_range = svtype + '::' + df_range
-                df_cat = pd.concat([df_svlen['id'], df_range], axis=1).rename(columns={'svlen_0': 'svtype_detail_0'})
-                ls_df_detail_svtype.append(df_cat)
-            else:
-                raise KeyError(method)
-        df_detail_svtype = pd.concat(ls_df_detail_svtype)    
-        dict_df_info = self._dict_df_info
-        dict_df_info['svtype_detail'] = df_detail_svtype
-        sgt_out = Bedpe(self._df_svpos, dict_df_info)
-        return sgt_out
 
     def is_reciprocal(self):
         pass

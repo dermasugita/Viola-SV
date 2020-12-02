@@ -9,6 +9,7 @@ from typing import (
 )
 from io import StringIO
 from sgt.core.db import Vcf, Bedpe
+from sgt.core.bed import Bed
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
@@ -262,6 +263,8 @@ def read_bedpe(filepath,
     df_bedpe.columns = ls_new_header
     df_bedpe['pos1'] = (df_bedpe['start1'] + df_bedpe['end1']) // 2
     df_bedpe['pos2'] = (df_bedpe['start2'] + df_bedpe['end2']) // 2
+    df_bedpe['chrom1'] = prepend_chr(df_bedpe['chrom1'])
+    df_bedpe['chrom2'] = prepend_chr(df_bedpe['chrom2'])
 
     if svtype_col_name is None:
         df_bedpe = infer_svtype_from_position(df_bedpe)
@@ -332,6 +335,10 @@ def read_bedpe(filepath,
     args = [df_svpos, dict_df_infos]
     return Bedpe(*args)
 
+def prepend_chr(ser):
+    dict_regex = {"^([0-9]+|[XY]|MT)":r"chr\1", r"^(M)":r"chrMT"}
+    return ser.astype(str).replace(regex=dict_regex)
+
 def infer_svtype_from_position(position_table):
     df = position_table.copy()
     df['svtype'] = '.'
@@ -383,3 +390,26 @@ def create_alt_field_from_position(position_table):
     df = position_table.copy()
     df = df.groupby('svtype').apply(_f)
     return df
+
+def read_bed(filepath_or_buffer):
+    with open(filepath_or_buffer, 'r') as f:
+        data = []
+        for line in f:
+            if line.startswith('track'):
+                header = line
+            else:
+                data.append(line)
+    df = pd.read_csv(
+        StringIO(''.join(data)),
+        sep='\t',
+        header=None
+    )
+    df_columns_origin = ['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'thickStart',
+                  'thickEnd', 'itemRgb', 'blockCount', 'blockSize', 'blockStarts']
+    df_columns = df_columns_origin[:df.shape[1]]
+    df.columns = df_columns
+
+    return Bed(df, header)
+
+
+    

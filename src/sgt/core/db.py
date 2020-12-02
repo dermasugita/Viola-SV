@@ -7,6 +7,8 @@ from typing import (
     Iterable,
 )
 import sgt
+from sgt.core.indexing import Indexer
+from sgt.core.bed import Bed
 from sgt._typing import (
     IntOrStr,
     StrOrIterableStr,
@@ -15,7 +17,7 @@ from sgt._exceptions import (
     TableNotFoundError,
 )
 
-class Bedpe(object):
+class Bedpe(Indexer):
     """
     Relational database-like object containing SV position dataframes and INFO dataframes.
     The instances of this class have information equal to the BEDPE files.
@@ -61,6 +63,25 @@ class Bedpe(object):
         Return object is also an instance of the Bedpe object
 
     """
+    _internal_attrs = [
+        "_df_svpos",
+        "_dict_df_info",
+        "_ls_infokeys",
+        "_dict_alltables",
+        "_repr_config",
+        "_sig_criteria"
+    ]
+    _internal_attrs_set = set(_internal_attrs)
+    _repr_column_names = [
+        "id",
+        "bp1",
+        "bp2",
+        "strand",
+        "qual",
+        "svtype",
+    ]
+    _repr_column_names_set = set(_repr_column_names)
+
     def __init__(self, df_svpos: pd.DataFrame, dict_df_info: Dict[str, pd.DataFrame]):
         self._df_svpos = df_svpos
         self._dict_df_info = dict_df_info
@@ -99,6 +120,10 @@ class Bedpe(object):
         Return current configuration of __repr__() function.
         """
         return self._repr_config
+
+    def create_info_table(self, table_name, table):
+        self._ls_infokeys += [table_name]
+        self._dict_alltables[table_name] = table
     
     def change_repr_config(self, key, value):
         self._repr_config[key] = value
@@ -121,13 +146,13 @@ class Bedpe(object):
         """
         df_svpos = self.get_table('positions')
         ser_id = df_svpos['id']
-        ser_pos = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str) + \
-                    '-' + df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
+        ser_bp1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
+        ser_bp2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
         ser_strand = df_svpos['strand1'] + df_svpos['strand2']
         ser_qual = df_svpos['qual']
         ser_svtype = df_svpos['svtype']
-        ls_ser = [ser_id, ser_pos, ser_strand, ser_qual, ser_svtype]
-        ls_key = ['id', 'pos', 'strand', 'qual', 'svtype']
+        ls_ser = [ser_id, ser_bp1, ser_bp2, ser_strand, ser_qual, ser_svtype]
+        ls_key = ['id', 'bp1', 'bp2', 'strand', 'qual', 'svtype']
         dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
         df_out = pd.DataFrame(dict_)
         if custom_infonames is not None:
@@ -139,6 +164,18 @@ class Bedpe(object):
         if return_as_dataframe:
             return df_out
         return str(out)
+    
+    def __getattr__(self, value):
+        if value in self._internal_attrs_set:
+            return object.__getattribute__(self, value)
+        else:
+            return self.get_table(value)
+    
+    def __getitem__(self, value):
+        if value in self._repr_column_names:
+            return self.view(return_as_dataframe=True)[value]
+        return self.get_table(value)
+
 
 
     def get_table(self, table_name: str) -> pd.DataFrame:
@@ -223,7 +260,8 @@ class Bedpe(object):
     def append_infos(self,
         base_df: pd.DataFrame,
         ls_tablenames: Iterable[str],
-        left_on: str = 'id') -> pd.DataFrame:
+        left_on: str = 'id',
+        auto_fillna: bool = False) -> pd.DataFrame:
         """
         append_infos(base_df, ls_tablenames, left_on='id')
         Append INFO tables to the right of the base_df, based on the SV id columns.
@@ -257,6 +295,9 @@ class Bedpe(object):
             df = pd.merge(df, df_to_append, how='left', left_on=left_on, right_on='id')
             if left_on != 'id':
                 df.drop('id', axis=1, inplace=True) 
+            if pd.api.types.is_bool_dtype(df_to_append_pre.iloc[:, 2]):
+                column_names = np.unique(df_to_append_pre['new_column_names'])
+                df[column_names] = df[column_names].fillna(False)
         return df
 
     def _parse_filter_query(self, q):
@@ -314,17 +355,8 @@ class Bedpe(object):
                 set_out = self._filter_infos(*sq)
             #print(set_out)
             return set_out
-
-
-    def filter(self,
-        ls_query: StrOrIterableStr,
-        query_logic: str = 'and'):
-        """
-        filter(ls_query, query_logic)
-        Filter Bedpe object by the list of queries.
-        Return object is also an instance of the Bedpe object
-        """
-        ### != operation is dangerous
+    
+    def _filter(self, ls_query, query_logic):
         if isinstance(ls_query, str):
             ls_query = [ls_query]
         if query_logic == 'and':
@@ -337,6 +369,19 @@ class Bedpe(object):
             for query in ls_query:
                 set_query = self._parse_filter_query(query)
                 set_result = set_result | set_query
+        
+        return set_result
+
+    def filter(self,
+        ls_query: StrOrIterableStr,
+        query_logic: str = 'and'):
+        """
+        filter(ls_query, query_logic)
+        Filter SgtSimple object by the list of queries.
+        Return object is also an instance of the SgtSimple object
+        """
+        ### != operation is dangerous
+        set_result = self._filter(ls_query, query_logic)
         out = self.filter_by_id(set_result)
         return out
 
@@ -387,45 +432,70 @@ class Bedpe(object):
         if exclude:
             set_out = self.get_ids() - set_out
         return set_out
+    
+    def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right']):
+        df_svpos = self.get_table('positions')
+        ls_left = []
+        ls_right = []
+        for idx, row in df_svpos.iterrows():
+            svid = row['id']
+            chrom1 = row['chrom1']
+            pos1 = row['pos1']
+            chrom2 = row['chrom2']
+            pos2 = row['pos2']
 
-    _sig_criteria = [["DEL", "cut", [-np.inf, -5000000, -500000, -50000, 0]],
-                     ["DUP", "cut", [0, 50000, 500000, 5000000, np.inf]]]
+            df_bp1 = bed.query(chrom1, pos1)
+            df_bp2 = bed.query(chrom2, pos2)
 
-    def get_detail_svtype(self, criteria=_sig_criteria):
-        if 'svtype' not in self.table_list:
-            print("Can't find svtype table")
-            return
-        ### get all svtypes
-        df_svtypes = self.get_table('svtype')
-        if df_svtypes.shape[0] == 0:
-            df_detail_svtype = pd.DataFrame(columns=('id', 'svtype_detail_0'))
-            dict_df_info = self._dict_df_info
-            dict_df_info['svtype_detail'] = df_detail_svtype
-            sgt_out = Bedpe(self._df_svpos, dict_df_info)
-            return sgt_out
-        ls_svtypes = df_svtypes['svtype_0'].unique()
+            if not df_bp1.empty:
+                ls_left.append([svid, 0, True])
+            if not df_bp2.empty:
+                ls_right.append([svid, 0, True])
+        left_name = annotation + suffix[0]
+        right_name = annotation + suffix[1]
+        df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
+        df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
+        self.create_info_table(left_name, df_left)
+        self.create_info_table(right_name, df_right)
 
-        ls_df_detail_svtype = []
-
-        for criterion in criteria:
-            svtype, method, values = criterion
-            if svtype not in ls_svtypes:
-                continue
-            q = "svtype == {}".format(svtype)
-            sgt_target = self.filter(q)
-            if method == 'cut':
-                df_svlen = sgt_target.get_table('svlen')
-                df_range = pd.cut(df_svlen['svlen_0'], values).astype(str)
-                df_range = svtype + '::' + df_range
-                df_cat = pd.concat([df_svlen['id'], df_range], axis=1).rename(columns={'svlen_0': 'svtype_detail_0'})
-                ls_df_detail_svtype.append(df_cat)
+    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
+        """
+        classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
+        Classify SV records by user-defined criteria. A new INFO table named
+        'manual_sv_type' will be created.
+        """
+        set_ids_current = set(self.ids)
+        obj = self
+        ls_ids = []
+        ls_result_names = []
+        for func, name in zip(ls_conditions, ls_names):
+            obj = obj.filter_by_id(set_ids_current)
+            set_ids = func(obj)
+            set_ids_intersection = set_ids_current & set_ids
+            ls_ids += list(set_ids_intersection)
+            ls_result_names += [name for i in range(len(set_ids_intersection))]
+            set_ids_current = set_ids_current - set_ids_intersection
+        ls_ids += list(set_ids_current)
+        ls_result_names += ['others' for i in range(len(set_ids_current))]
+        ls_zeros = [0 for i in range(len(self.ids))]
+        df_result = pd.DataFrame({'id': ls_ids, 'value_idx': ls_zeros, 'manual_sv_type': ls_result_names})
+        self.create_info_table('manual_sv_type', df_result)
+        if return_series:
+            if ls_order is None:
+                pd_ind_reindex = pd.Index(ls_names + ['others'])
             else:
-                raise KeyError(method)
-        df_detail_svtype = pd.concat(ls_df_detail_svtype)    
-        dict_df_info = self._dict_df_info
-        dict_df_info['svtype_detail'] = df_detail_svtype
-        sgt_out = Bedpe(self._df_svpos, dict_df_info)
-        return sgt_out
+                pd_ind_reindex = pd.Index(ls_order)
+            ser_feature_counts = self.get_feature_count_as_series(ls_order=pd_ind_reindex)
+            return ser_feature_counts
+    
+    def get_feature_count_as_series(self, feature='manual_sv_type', ls_order=None):
+        ser_feature_counts = self.get_table(feature)[feature].value_counts()
+        if ls_order is not None:
+            pd_ind_reindex = pd.Index(ls_order)
+            ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value=0)
+        return ser_feature_counts
+
+
 
     def is_reciprocal(self):
         pass
@@ -792,6 +862,31 @@ class Vcf(Bedpe):
         df_target = df.loc[target_q]
         e = "df_target.loc[df_target['value'] {0} threshold]['id']".format(operator)
         return set(eval(e))
+
+    def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right'], description=None):
+        df_svpos = self.get_table('positions')
+        ls_left = []
+        ls_right = []
+        for idx, row in df_svpos.iterrows():
+            svid = row['id']
+            chrom1 = row['chrom1']
+            pos1 = row['pos1']
+            chrom2 = row['chrom2']
+            pos2 = row['pos2']
+
+            df_bp1 = bed.query(chrom1, pos1)
+            df_bp2 = bed.query(chrom2, pos2)
+
+            if not df_bp1.empty:
+                ls_left.append([svid, 0, True])
+            if not df_bp2.empty:
+                ls_right.append([svid, 0, True])
+        left_name = annotation + suffix[0]
+        right_name = annotation + suffix[1]
+        df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
+        df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
+        self.create_info_table(left_name, df_left, 0, type_="Flag", description=description)
+        self.create_info_table(right_name, df_right, 0, type_="Flag", description=description)
     
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """

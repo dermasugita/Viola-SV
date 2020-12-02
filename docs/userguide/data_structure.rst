@@ -7,7 +7,7 @@ PySgt's Data Structure
 PySgt employs relational database like structure to enable flexible data proccessing.
 
 -------------------------------
-Tables composing SgtCore object
+Tables composing Vcf object
 -------------------------------
 
 ~~~~~~~~~~~~~~~

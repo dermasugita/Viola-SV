@@ -457,8 +457,8 @@ class Bedpe(Indexer):
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
         self.create_info_table(left_name, df_left)
         self.create_info_table(right_name, df_right)
-    
-    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order = None):
+
+    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
@@ -480,10 +480,21 @@ class Bedpe(Indexer):
         ls_zeros = [0 for i in range(len(self.ids))]
         df_result = pd.DataFrame({'id': ls_ids, 'value_idx': ls_zeros, 'manual_sv_type': ls_result_names})
         self.create_info_table('manual_sv_type', df_result)
-        ser_feature_counts = self.get_table('manual_sv_type')['manual_sv_type'].value_counts()
-        pd_ind_reindex = pd.Index(ls_names + ['others'])
-        ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value = 0)
+        if return_series:
+            if ls_order is None:
+                pd_ind_reindex = pd.Index(ls_names + ['others'])
+            else:
+                pd_ind_reindex = pd.Index(ls_order)
+            ser_feature_counts = self.get_feature_count_as_series(ls_order=pd_ind_reindex)
+            return ser_feature_counts
+    
+    def get_feature_count_as_series(self, feature='manual_sv_type', ls_order=None):
+        ser_feature_counts = self.get_table(feature)[feature].value_counts()
+        if ls_order is not None:
+            pd_ind_reindex = pd.Index(ls_order)
+            ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value=0)
         return ser_feature_counts
+
 
 
     def is_reciprocal(self):

@@ -13,5 +13,5 @@ API Reference
    :maxdepth: 2
 
    io
-   sgt_simple
-   sgt_core
+   bedpe
+   vcf

@@ -9,7 +9,7 @@
 ===========
 Quick Start
 ===========
-This is a short examples how to analyse vcf files.
+This is a short example how to analyse vcf files.
 
 After you have read this page, you can
 
@@ -31,7 +31,7 @@ How to import PySgt package is as follow:
 -----------------
 Read the vcf file
 -----------------
-In order to use PySgt's features, you must first run :doc:`read_vcf<reference/api/sgt.io.parser.read_vcf>` to create an :ref:`SgtCore<core>` object.
+In order to use PySgt's features, you must first run :doc:`read_vcf<reference/api/sgt.io.parser.read_vcf>` to create an :ref:`Vcf<core>` object.
 
 .. ipython:: python
    :okexcept:
@@ -42,9 +42,9 @@ In order to use PySgt's features, you must first run :doc:`read_vcf<reference/ap
 Now you're ready to perform a number of functions that the PySgt package has.
 
 --------------------------------------
-Viewing the contents of SgtCore object
+Viewing the contents of Vcf object
 --------------------------------------
-You may want to view the content of SgtCore objects after creating them.
+You may want to view the content of Vcf objects after creating them.
 To do so, you have three options.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,14 +68,14 @@ To do so, you have three options.
 The way to add INFO, FILTER, and FORMAT to this bedpe-like DataFrame is explained :ref:`here<bedpe_generation>` (no link for now).
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3) Use the :doc:`get_table()<reference/api/sgt.core.db.SgtCore.get_table>` method to get individual tables composing the SgtCore object.
+3) Use the :doc:`get_table()<reference/api/sgt.core.db.Vcf.get_table>` method to get individual tables composing the Vcf object.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    
 .. ipython:: python
 
    sgt_object.get_table('positions')
 
-The names of all the tables in ``sgt_object`` are stored in the :doc:`table_list<reference/api/sgt.core.db.SgtCore.table_list>` attribute:
+The names of all the tables in ``sgt_object`` are stored in the :doc:`table_list<reference/api/sgt.core.db.Vcf.table_list>` attribute:
 
 .. ipython:: python
    
@@ -94,11 +94,11 @@ Export as VCF/BEDPE file
 Under Programming
 
 ---------------------
-Filter SgtCore object
+Filter Vcf object
 ---------------------
 
 Filtering vcf file is an essential step of bioinformatics study.
-SgtCore object provides an intuitive way to filter SV in almost any item.
+Vcf object provides an intuitive way to filter SV in almost any item.
 
 You have two options for filtering. 
 

@@ -1,7 +1,7 @@
-.. _simple:
+.. _core:
 
-SgtSimple
-=========
+Vcf
+=======
 
 .. currentmodule:: sgt.core.db
 
@@ -10,8 +10,7 @@ Constructor
 .. autosummary::
    :toctree: api/
    
-   SgtSimple
-
+   Vcf
 
 Attributes
 ----------
@@ -19,9 +18,9 @@ Attributes
 .. autosummary::
    :toctree: api/
 
-   SgtSimple.sv_count
-   SgtSimple.table_list
-   SgtSimple.ids
+   Vcf.sv_count
+   Vcf.table_list
+   Vcf.ids
 
 Accessing the Tables
 --------------------
@@ -29,8 +28,9 @@ Accessing the Tables
 .. autosummary::
    :toctree: api/
 
-   SgtSimple.get_table
-   SgtSimple.to_bedpe_like
+   Vcf.get_table
+   Vcf.to_bedpe_like
+   Vcf.to_vcf_like
 
 Filtering
 ---------
@@ -38,5 +38,5 @@ Filtering
 .. autosummary::
    :toctree: api/
 
-   SgtSimple.filter
-   SgtSimple.filter_by_id
+   Vcf.filter
+   Vcf.filter_by_id

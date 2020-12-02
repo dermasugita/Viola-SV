@@ -14,7 +14,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../src'))
 import sphinx_rtd_theme
-from sgt.core.db import SgtCore, SgtSimple
+from sgt.core.db import Vcf, Bedpe 
 
 
 # -- Project information -----------------------------------------------------

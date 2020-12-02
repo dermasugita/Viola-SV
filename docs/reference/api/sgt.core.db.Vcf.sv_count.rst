@@ -1,6 +1,6 @@
-sgt.core.db.SgtSimple.ids
+sgt.core.db.Vcf.sv\_count
 =========================
 
 .. currentmodule:: sgt.core.db
 
-.. autoproperty:: SgtSimple.ids
+.. autoproperty:: Vcf.sv_count

@@ -1,6 +1,6 @@
-sgt.core.db.SgtSimple.filter
+sgt.core.db.Bedpe.get\_table
 ============================
 
 .. currentmodule:: sgt.core.db
 
-.. automethod:: SgtSimple.filter
+.. automethod:: Bedpe.get_table

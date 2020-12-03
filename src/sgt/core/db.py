@@ -562,6 +562,8 @@ class Bedpe(Indexer):
 
         Returns
         ---------------
+        set
+            set of ids except which satisfies the argument
         """
         positions_df = self.get_table("positions")
         whole_id = positions_df["id"].values

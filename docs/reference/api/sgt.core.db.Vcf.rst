@@ -14,14 +14,16 @@ sgt.core.db.Vcf
    .. autosummary::
    
       ~Vcf.__init__
+      ~Vcf.annotate_bed
       ~Vcf.append_filters
       ~Vcf.append_formats
       ~Vcf.append_infos
       ~Vcf.change_repr_config
+      ~Vcf.classify_manual_svtype
       ~Vcf.create_info_table
       ~Vcf.filter
       ~Vcf.filter_by_id
-      ~Vcf.get_detail_svtype
+      ~Vcf.get_feature_count_as_series
       ~Vcf.get_ids
       ~Vcf.get_table
       ~Vcf.get_unique_events
@@ -39,6 +41,7 @@ sgt.core.db.Vcf
    .. autosummary::
    
       ~Vcf.ids
+      ~Vcf.idx
       ~Vcf.repr_config
       ~Vcf.sv_count
       ~Vcf.table_list

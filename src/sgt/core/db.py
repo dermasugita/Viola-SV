@@ -121,9 +121,24 @@ class Bedpe(Indexer):
         """
         return self._repr_config
 
-    def create_info_table(self, table_name, table):
+    def add_info_table(self, table_name: str, df: pd.DataFrame):
+        """
+        add_info_table(table_name, df)
+        Add a new INFO table to self.
+
+        Parameters
+        ------------
+        table_name: str
+            The name of the table to be added.
+        df: DataFrame
+            The table (pandas DataFrame) to be added.
+            The column names should be following:
+            1st column: "id"
+            2nd column: "value_idx"
+            3rd column: table_name (equivalent to the first argument of this function)
+        """
         self._ls_infokeys += [table_name]
-        self._dict_alltables[table_name] = table
+        self._dict_alltables[table_name] = df
     
     def change_repr_config(self, key, value):
         self._repr_config[key] = value

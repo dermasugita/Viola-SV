@@ -1,7 +1,7 @@
-.. _core:
+.. _simple:
 
-SgtCore
-=======
+Bedpe
+=========
 
 .. currentmodule:: sgt.core.db
 
@@ -10,7 +10,8 @@ Constructor
 .. autosummary::
    :toctree: api/
    
-   SgtCore
+   Bedpe
+
 
 Attributes
 ----------
@@ -18,9 +19,9 @@ Attributes
 .. autosummary::
    :toctree: api/
 
-   SgtCore.sv_count
-   SgtCore.table_list
-   SgtCore.ids
+   Bedpe.sv_count
+   Bedpe.table_list
+   Bedpe.ids
 
 Accessing the Tables
 --------------------
@@ -28,9 +29,8 @@ Accessing the Tables
 .. autosummary::
    :toctree: api/
 
-   SgtCore.get_table
-   SgtCore.to_bedpe_like
-   SgtCore.to_vcf_like
+   Bedpe.get_table
+   Bedpe.to_bedpe_like
 
 Filtering
 ---------
@@ -38,5 +38,5 @@ Filtering
 .. autosummary::
    :toctree: api/
 
-   SgtCore.filter
-   SgtCore.filter_by_id
+   Bedpe.filter
+   Bedpe.filter_by_id

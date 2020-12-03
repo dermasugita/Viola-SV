@@ -1,6 +1,6 @@
-sgt.core.db.SgtCore.filter
+sgt.core.db.Vcf.get\_table
 ==========================
 
 .. currentmodule:: sgt.core.db
 
-.. automethod:: SgtCore.filter
+.. automethod:: Vcf.get_table

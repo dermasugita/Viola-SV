@@ -14,6 +14,7 @@ sgt.core.db.Vcf
    .. autosummary::
    
       ~Vcf.__init__
+      ~Vcf.add_info_table
       ~Vcf.annotate_bed
       ~Vcf.append_filters
       ~Vcf.append_formats

@@ -515,6 +515,72 @@ class Bedpe(Indexer):
     def is_reciprocal(self):
         pass
 
+    def _filter_by_positions(self, position_num, chrom, pos_min=None, pos_sup=None):
+        """
+        _filter_by_positions(position_num:int, chrom:str, pos_min:int, pos_sup:int)
+        Return ids specified in the argument as a set
+        ---------------
+        positions_num:int
+            1 for the first breakend and 2 for the other 
+        chrom:str
+            "chr1","chr2",...,"chrX","chrY" <- Vcf
+            1,2,... <- Bedpe
+        pos_min:int
+        pos_sup:int
+
+        Returns
+        ---------------
+        set
+            set of ids which satisfies the argument
+        """
+        positions_df = self.get_table("positions")
+        positions_df = positions_df[positions_df["chrom{}".format(position_num)]==chrom]
+        pos1or2 = "pos{}".format(position_num)
+        if (pos_min is not None) and (pos_sup is not None):
+            positions_df = positions_df[(pos_min <= positions_df[pos1or2])
+            & (positions_df[pos1or2] < pos_sup)]
+        elif pos_min is not None:
+            positions_df = positions_df[pos_min <= positions_df[pos1or2]]
+        elif pos_sup is not None:
+            positions_df = positions_df[positions_df[pos1or2] < pos_sup]
+        id_list = positions_df["id"].values
+        id_set = set(id_list)
+        return id_set
+    
+    def _filter_by_positions_exclude(self, ex_position_num, ex_chrom, ex_pos_min=None, ex_pos_max=None):
+        """
+        _filter_by_positions_exclude(position_num, chrom_exclude, ex_pos_min, ex_pos_max)
+        Return set of ids except which are specified by the argument
+        ---------------
+        ex_positions_num:int
+            1 or 2
+        ex_chrom:str
+            "chr1","chr2",...,<- Vcf
+            1,2,... <- Bedpe
+        ex_pos_min:int
+        ex_pos_max:int
+
+        Returns
+        ---------------
+        set
+            set of ids except which satisfies the argument
+        """
+        positions_df = self.get_table("positions")
+        whole_id = positions_df["id"].values
+        whole_id_set = set(whole_id)
+        ex_positions_df = positions_df[positions_df["chrom{}".format(ex_position_num)]==ex_chrom]
+        pos1or2 = "pos{}".format(ex_position_num)
+        if (ex_pos_min is not None) and (ex_pos_max is not None):
+            ex_positions_df = ex_positions_df[(ex_pos_min <= ex_positions_df[pos1or2])
+            & (ex_positions_df[pos1or2] <= ex_pos_max)]
+        elif ex_pos_min is not None:
+            ex_positions_df = ex_positions_df[ex_pos_min <= ex_positions_df[pos1or2]]
+        elif ex_pos_max is not None:
+            ex_positions_df = ex_positions_df[ex_positions_df[pos1or2] <= ex_pos_max]
+        ex_id = ex_positions_df["id"].values
+        ex_id_set = set(ex_id)
+        id_set = whole_id_set - ex_id_set
+        return id_set
 
 
 class Vcf(Bedpe):
@@ -922,3 +988,7 @@ class Vcf(Bedpe):
     def get_unique_events(self):
         set_result_ids = self._get_unique_events_ids()
         return self.filter_by_id(set_result_ids)
+    
+            
+
+         

@@ -470,8 +470,8 @@ class Bedpe(Indexer):
         right_name = annotation + suffix[1]
         df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
-        self.create_info_table(left_name, df_left)
-        self.create_info_table(right_name, df_right)
+        self.add_info_table(left_name, df_left)
+        self.add_info_table(right_name, df_right)
 
     def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
         """
@@ -494,7 +494,7 @@ class Bedpe(Indexer):
         ls_result_names += ['others' for i in range(len(set_ids_current))]
         ls_zeros = [0 for i in range(len(self.ids))]
         df_result = pd.DataFrame({'id': ls_ids, 'value_idx': ls_zeros, 'manual_sv_type': ls_result_names})
-        self.create_info_table('manual_sv_type', df_result)
+        self.add_info_table('manual_sv_type', df_result)
         if return_series:
             if ls_order is None:
                 pd_ind_reindex = pd.Index(ls_names + ['others'])

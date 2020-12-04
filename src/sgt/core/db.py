@@ -673,12 +673,13 @@ class Bedpe(Indexer):
         """
         _filter_by_positions(position_num:int, chrom:str, pos_min:int, pos_sup:int)
         Return ids specified in the argument as a set
+
+        Parameters
         ---------------
         positions_num:int
             1 for the first breakend and 2 for the other 
         chrom:str
-            "chr1","chr2",...,"chrX","chrY" <- Vcf
-            1,2,... <- Bedpe
+            "chr1","chr2",...,"chrX","chrY"
         pos_min:int
         pos_sup:int
 
@@ -704,20 +705,21 @@ class Bedpe(Indexer):
     def _filter_by_positions_exclude(self, ex_position_num, ex_chrom, ex_pos_min=None, ex_pos_max=None):
         """
         _filter_by_positions_exclude(position_num, chrom_exclude, ex_pos_min, ex_pos_max)
-        Return set of ids except which are specified by the argument
+        Return a set of ids except which are specified by the argument
+        
+        Parameters
         ---------------
         ex_positions_num:int
-            1 or 2
+            1 for the first breakend and 2 for the other
         ex_chrom:str
-            "chr1","chr2",...,<- Vcf
-            1,2,... <- Bedpe
+            "chr1","chr2",...,"chrX","chrY"
         ex_pos_min:int
         ex_pos_max:int
 
         Returns
         ---------------
         set
-            set of ids except which satisfies the argument
+            a set of ids except which satisfies the argument
         """
         positions_df = self.get_table("positions")
         whole_id = positions_df["id"].values

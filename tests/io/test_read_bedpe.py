@@ -20,8 +20,8 @@ chr3\t100\t130\tchr3\t210\t230\ttest2\t30\t-\t+
     
     def test_svpos(self):
         expected_data = """id\tchrom1\tpos1\tchrom2\tpos2\tstrand1\tstrand2\tqual\tsvtype\tref\talt
-test1\tchr1\t11\tchr2\t25\t+\t+\t10\tBND\tN\tN]chr2:25]
-test2\tchr3\t115\tchr3\t220\t-\t+\t30\tDUP\tN\t<DUP>
+test1\tchr1\t12\tchr2\t26\t+\t+\t10\tBND\tN\tN]chr2:26]
+test2\tchr3\t116\tchr3\t221\t-\t+\t30\tDUP\tN\t<DUP>
         """
         df_svpos = self.obj.get_table('positions') 
         df_expected = pd.read_csv(StringIO(expected_data), sep="\t")

@@ -255,16 +255,16 @@ class Bedpe(Indexer):
         if confidence_intervals:
             if 'cipos' in self.table_list and 'ciend' in self.table_list:
                 df_svpos = self.append_infos(df_svpos, ['cipos', 'ciend'])
-                df_svpos['start1'] = df_svpos['pos1'] - df_svpos['cipos_0']
-                df_svpos['end1'] = df_svpos['pos1'] + df_svpos['cipos_1'] + 1
-                df_svpos['start2'] = df_svpos['pos2'] - df_svpos['ciend_0']
-                df_svpos['end2'] = df_svpos['pos2'] + df_svpos['ciend_1'] + 1
+                df_svpos['start1'] = df_svpos['pos1'] - df_svpos['cipos_0'] - 1
+                df_svpos['end1'] = df_svpos['pos1'] + df_svpos['cipos_1']
+                df_svpos['start2'] = df_svpos['pos2'] - df_svpos['ciend_0'] - 1
+                df_svpos['end2'] = df_svpos['pos2'] + df_svpos['ciend_1']
             else:
                 pass # raise some exception
         else:
-            df_svpos.rename(columns={'pos1': 'start1', 'pos2': 'start2'}, inplace=True)
-            df_svpos['end1'] = df_svpos['start1'] + 1
-            df_svpos['end2'] = df_svpos['start2'] + 1
+            df_svpos.rename(columns={'pos1': 'end1', 'pos2': 'end2'}, inplace=True)
+            df_svpos['start1'] = df_svpos['end1'] - 1
+            df_svpos['start2'] = df_svpos['end2'] - 1
         
         df_out = df_svpos[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
         if len(custom_infonames) != 0:
@@ -470,8 +470,8 @@ class Bedpe(Indexer):
         right_name = annotation + suffix[1]
         df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
-        self.create_info_table(left_name, df_left)
-        self.create_info_table(right_name, df_right)
+        self.add_info_table(left_name, df_left)
+        self.add_info_table(right_name, df_right)
 
     def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
         """
@@ -494,7 +494,7 @@ class Bedpe(Indexer):
         ls_result_names += ['others' for i in range(len(set_ids_current))]
         ls_zeros = [0 for i in range(len(self.ids))]
         df_result = pd.DataFrame({'id': ls_ids, 'value_idx': ls_zeros, 'manual_sv_type': ls_result_names})
-        self.create_info_table('manual_sv_type', df_result)
+        self.add_info_table('manual_sv_type', df_result)
         if return_series:
             if ls_order is None:
                 pd_ind_reindex = pd.Index(ls_names + ['others'])

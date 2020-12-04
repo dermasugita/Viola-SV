@@ -255,16 +255,16 @@ class Bedpe(Indexer):
         if confidence_intervals:
             if 'cipos' in self.table_list and 'ciend' in self.table_list:
                 df_svpos = self.append_infos(df_svpos, ['cipos', 'ciend'])
-                df_svpos['start1'] = df_svpos['pos1'] - df_svpos['cipos_0']
-                df_svpos['end1'] = df_svpos['pos1'] + df_svpos['cipos_1'] + 1
-                df_svpos['start2'] = df_svpos['pos2'] - df_svpos['ciend_0']
-                df_svpos['end2'] = df_svpos['pos2'] + df_svpos['ciend_1'] + 1
+                df_svpos['start1'] = df_svpos['pos1'] - df_svpos['cipos_0'] - 1
+                df_svpos['end1'] = df_svpos['pos1'] + df_svpos['cipos_1']
+                df_svpos['start2'] = df_svpos['pos2'] - df_svpos['ciend_0'] - 1
+                df_svpos['end2'] = df_svpos['pos2'] + df_svpos['ciend_1']
             else:
                 pass # raise some exception
         else:
-            df_svpos.rename(columns={'pos1': 'start1', 'pos2': 'start2'}, inplace=True)
-            df_svpos['end1'] = df_svpos['start1'] + 1
-            df_svpos['end2'] = df_svpos['start2'] + 1
+            df_svpos.rename(columns={'pos1': 'end1', 'pos2': 'end2'}, inplace=True)
+            df_svpos['start1'] = df_svpos['end1'] - 1
+            df_svpos['start2'] = df_svpos['end2'] - 1
         
         df_out = df_svpos[['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'id', 'qual', 'strand1', 'strand2']].copy()
         if len(custom_infonames) != 0:

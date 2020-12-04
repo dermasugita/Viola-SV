@@ -261,8 +261,8 @@ def read_bedpe(filepath,
     ls_header_option = ls_header[10:]
     ls_new_header = ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2'] + ls_header_option
     df_bedpe.columns = ls_new_header
-    df_bedpe['pos1'] = (df_bedpe['start1'] + df_bedpe['end1']) // 2
-    df_bedpe['pos2'] = (df_bedpe['start2'] + df_bedpe['end2']) // 2
+    df_bedpe['pos1'] = (df_bedpe['start1'] + df_bedpe['end1']) // 2 + 1
+    df_bedpe['pos2'] = (df_bedpe['start2'] + df_bedpe['end2']) // 2 + 1
     df_bedpe['chrom1'] = prepend_chr(df_bedpe['chrom1'])
     df_bedpe['chrom2'] = prepend_chr(df_bedpe['chrom2'])
 

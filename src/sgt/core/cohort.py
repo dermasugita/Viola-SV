@@ -1,4 +1,5 @@
 import pandas as pd
+from collections import OrderedDict
 from sgt.core.db import Vcf, Bedpe
 from typing import (
     List,
@@ -15,9 +16,9 @@ class MultiBedpe(Bedpe):
     _internal_attrs = [
         "_df_id",
         "_df_svpos",
-        "_dict_df_info",
+        "_odict_df_info",
         "_ls_infokeys",
-        "_dict_alltables",
+        "_odict_alltables",
         "_repr_config",
         "_sig_criteria"
     ]
@@ -38,8 +39,8 @@ class MultiBedpe(Bedpe):
         direct_tables: Optional[List[pd.DataFrame]] = None
         ):
         if direct_tables is None:
-            df_id, df_svpos, dict_df_info = self.__init__from_ls_bedpe(ls_bedpe, ls_patient_names)
-            self.__init__common(df_id, df_svpos, dict_df_info)
+            df_id, df_svpos, odict_df_info = self.__init__from_ls_bedpe(ls_bedpe, ls_patient_names)
+            self.__init__common(df_id, df_svpos, odict_df_info)
         else:
             self.__init__common(*direct_tables)
     
@@ -58,7 +59,7 @@ class MultiBedpe(Bedpe):
             df_svpos['id'] = str(patient_name) + '_' + df_svpos['id'].astype(str)
             ls_df_svpos.append(df_svpos)
 
-            for key, value in bedpe._dict_df_info.items():
+            for key, value in bedpe._odict_df_info.items():
                 value = value.copy()
                 value['id'] = str(patient_name) + '_' + value.astype(str)
                 if dict_ls_df_info.get(key) is None:
@@ -67,20 +68,20 @@ class MultiBedpe(Bedpe):
                     dict_ls_df_info[key].append(value)
         df_concat_id = pd.concat(ls_df_id, ignore_index=True)
         df_concat_svpos = pd.concat(ls_df_svpos, ignore_index=True)
-        dict_df_info = dict()
+        odict_df_info = OrderedDict()
         for key, value in dict_ls_df_info.items():
-            dict_df_info[key] = pd.concat(value)
+            odict_df_info[key] = pd.concat(value)
         
-        return (df_concat_id, df_concat_svpos, dict_df_info)
+        return (df_concat_id, df_concat_svpos, odict_df_info)
     
-    def __init__common(self, df_id, df_svpos, dict_df_info):
+    def __init__common(self, df_id, df_svpos, odict_df_info):
         self._df_id = df_id
         self._df_svpos = df_svpos 
-        self._dict_df_info = dict_df_info
-        self._ls_infokeys = [x.lower() for x in dict_df_info.keys()]
+        self._odict_df_info = odict_df_info
+        self._ls_infokeys = [x.lower() for x in odict_df_info.keys()]
         ls_keys = ['global_id', 'positions'] + self._ls_infokeys
-        ls_values = [df_id, df_svpos] + list(dict_df_info.values())
-        self._dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        ls_values = [df_id, df_svpos] + list(odict_df_info.values())
+        self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,
         }
@@ -107,8 +108,8 @@ class MultiBedpe(Bedpe):
         df_global_id = self.get_table('global_id')
         out_global_id = df_global_id.loc[df_global_id['global_id'].isin(arrlike_id)].reset_index(drop=True)
         out_svpos = self._filter_by_id('positions', arrlike_id)
-        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
-        return MultiBedpe(direct_tables=[out_global_id, out_svpos, out_dict_df_info])
+        out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
+        return MultiBedpe(direct_tables=[out_global_id, out_svpos, out_odict_df_info])
     
 
     def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_data_frame=True):

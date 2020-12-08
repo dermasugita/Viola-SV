@@ -90,7 +90,7 @@ class Bedpe(Indexer):
         self._ls_infokeys = [x.lower() for x in odict_df_info.keys()]
         ls_keys = ['positions'] + self._ls_infokeys
         ls_values = [df_svpos] + list(odict_df_info.values())
-        self._odict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,
         }
@@ -427,8 +427,8 @@ class Bedpe(Indexer):
         
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
-        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
-        return Bedpe(out_svpos, out_dict_df_info)
+        out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
+        return Bedpe(out_svpos, out_odict_df_info)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')
@@ -645,7 +645,7 @@ class Vcf(Bedpe):
         list(odict_df_headers.keys())
         ls_values = [df_svpos, df_filters] + list(odict_df_info.values()) + [df_formats] + list(odict_df_headers.values())
         # self._odict_alltables is a {tablename: table} dictionary
-        self._odict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,
         }

@@ -135,7 +135,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
             row_STRAND1, row_STRAND2 = row_STRANDs, row_STRANDs
         elif row_INFO['SVTYPE'] == 'DEL':
             row_CHROM2 = row_CHROM1
-            row_POS2 = row_INFO['END']
+            row_POS2 = row_INFO['END'] + 1
             row_STRAND1 = '+'
             row_STRAND2 = '-'
         elif row_INFO['SVTYPE'] == 'DUP':

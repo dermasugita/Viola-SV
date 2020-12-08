@@ -54,7 +54,7 @@ chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE
     def test_to_bedpe_like(self):
         expected_data = """chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tscore\tstrand1\tstrand2
 chr1\t82550461\t82550462\tchr1\t82554225\t82554226\ttest1\t\t+\t-
-chr1\t22814216\t22814217\tchr1\t92581131\t92581131\ttest2\t\t+\t+
+chr1\t22814216\t22814217\tchr1\t92581131\t92581131\ttest2\t\t-\t-
 chr1\t60567906\t60567907\tchr1\t60675940\t60675941\ttest3\t\t+\t-
 chr1\t69583190\t69583191\tchr1\t69590947\t69590948\ttest4\t\t+\t-
 """
@@ -66,7 +66,7 @@ chr1\t69583190\t69583191\tchr1\t69590947\t69590948\ttest4\t\t+\t-
     def test_to_bedpe_like_with_info(self):
         expected_data = """chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tscore\tstrand1\tstrand2\tsvlen_0
 chr1\t82550461\t82550462\tchr1\t82554225\t82554226\ttest1\t\t+\t-\t-3764
-chr1\t22814216\t22814217\tchr1\t92581131\t92581131\ttest2\t\t+\t+\t69766915
+chr1\t22814216\t22814217\tchr1\t92581131\t92581131\ttest2\t\t-\t-\t69766915
 chr1\t60567906\t60567907\tchr1\t60675940\t60675941\ttest3\t\t+\t-\t-108034
 chr1\t69583190\t69583191\tchr1\t69590947\t69590948\ttest4\t\t+\t-\t-7757
 """

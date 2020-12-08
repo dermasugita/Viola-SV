@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import re
 import urllib.request
+from collections import OrderedDict
 from typing import (
     Union,
     Optional,
@@ -69,7 +70,13 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     ls_samples = vcf_reader.samples
     df_samples = pd.DataFrame(ls_samples, columns=['id'])
 
-    dict_df_headers = {'contigs_meta': df_contigs_meta, 'alts_meta': df_alts_meta, 'infos_meta': df_infos_meta, 'formats_meta': df_formats_meta, 'filters_meta': df_filters_meta, 'samples_meta': df_samples}
+    odict_df_headers = OrderedDict(
+        contigs_meta = df_contigs_meta,
+        alts_meta = df_alts_meta, 
+        infos_meta = df_infos_meta, 
+        formats_meta = df_formats_meta, 
+        filters_meta = df_filters_meta, 
+        samples_meta = df_samples)
 
     
     ls_pos = []
@@ -124,7 +131,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         elif row_INFO['SVTYPE'] == 'INV': # manta-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
-            row_STRANDs = '-' if row_INFO.get('INV3', False) else '+'
+            row_STRANDs = '+' if row_INFO.get('INV3', False) else '-'
             row_STRAND1, row_STRAND2 = row_STRANDs, row_STRANDs
         elif row_INFO['SVTYPE'] == 'DEL':
             row_CHROM2 = row_CHROM1
@@ -188,7 +195,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         else:
             df_a_info = pd.DataFrame(dict_infos[info])
         ls_df_infos.append(df_a_info)
-    dict_df_infos = {k: v for k, v in zip(df_infos_meta.id, ls_df_infos)}
+    odict_df_infos = OrderedDict([(k, v) for k, v in zip(df_infos_meta.id, ls_df_infos)])
     ###/INFO
 
     ###POS
@@ -202,7 +209,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, dict_df_infos, df_formats, dict_df_headers]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers]
     return Vcf(*args)
 
 def is_url(x):
@@ -330,9 +337,9 @@ def read_bedpe(filepath,
         ls_df_infos.append(df_info)
     ls_df_infos = [df_svlen, df_svtype, df_cipos, df_ciend] + ls_df_infos   
     ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend'] + ls_header_option
-    dict_df_infos = {k: v for k, v in zip(ls_infokeys, ls_df_infos)}
+    odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
 
-    args = [df_svpos, dict_df_infos]
+    args = [df_svpos, odict_df_infos]
     return Bedpe(*args)
 
 def prepend_chr(ser):

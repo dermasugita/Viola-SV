@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 from typing import (
     List,
-    Dict,
     Set,
     Iterable,
 )
+from collections import OrderedDict
 import sgt
 from sgt.core.indexing import Indexer
 from sgt.core.bed import Bed
@@ -39,8 +39,8 @@ class Bedpe(Indexer):
         Columns should be following:
         ['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']
         Main key is 'id'.
-    dict_df_info: dict[str, DataFrame]
-        Dictionary of DataFrames which contain additional information on SV record (equivalent to INFO field of vcf).
+    odict_df_info: dict[str, DataFrame]
+        OrderedDict of DataFrames which contain additional information on SV record (equivalent to INFO field of vcf).
         Each item of the dictionary contains single INFO.
         The dictionary key is the name of each INFO and should be in lowercase.
         Columns of the DataFrame should be following:
@@ -65,9 +65,9 @@ class Bedpe(Indexer):
     """
     _internal_attrs = [
         "_df_svpos",
-        "_dict_df_info",
+        "_odict_df_info",
         "_ls_infokeys",
-        "_dict_alltables",
+        "_odict_alltables",
         "_repr_config",
         "_sig_criteria"
     ]
@@ -82,13 +82,15 @@ class Bedpe(Indexer):
     ]
     _repr_column_names_set = set(_repr_column_names)
 
-    def __init__(self, df_svpos: pd.DataFrame, dict_df_info: Dict[str, pd.DataFrame]):
+    def __init__(self, df_svpos: pd.DataFrame, odict_df_info: 'OrderedDict[str, pd.DataFrame]'):
+        if not isinstance(odict_df_info, OrderedDict):
+            raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
         self._df_svpos = df_svpos
-        self._dict_df_info = dict_df_info
-        self._ls_infokeys = [x.lower() for x in dict_df_info.keys()]
+        self._odict_df_info = odict_df_info
+        self._ls_infokeys = [x.lower() for x in odict_df_info.keys()]
         ls_keys = ['positions'] + self._ls_infokeys
-        ls_values = [df_svpos] + list(dict_df_info.values())
-        self._dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        ls_values = [df_svpos] + list(odict_df_info.values())
+        self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,
         }
@@ -105,7 +107,7 @@ class Bedpe(Indexer):
         """
         Return a list of names of all tables in the object. 
         """
-        return list(self._dict_alltables.keys())
+        return list(self._odict_alltables.keys())
     
     @property
     def ids(self):
@@ -138,7 +140,7 @@ class Bedpe(Indexer):
             3rd column: table_name (equivalent to the first argument of this function)
         """
         self._ls_infokeys += [table_name]
-        self._dict_alltables[table_name] = df
+        self._odict_alltables[table_name] = df
     
     def change_repr_config(self, key, value):
         self._repr_config[key] = value
@@ -215,7 +217,7 @@ class Bedpe(Indexer):
         """
         if table_name not in self.table_list:
             raise TableNotFoundError(table_name)
-        table = self._dict_alltables[table_name]
+        table = self._odict_alltables[table_name]
         return table.copy()
 
     def get_ids(self) -> Set[IntOrStr]:
@@ -425,8 +427,8 @@ class Bedpe(Indexer):
         
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
-        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
-        return Bedpe(out_svpos, out_dict_df_info)
+        out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
+        return Bedpe(out_svpos, out_odict_df_info)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')
@@ -611,8 +613,8 @@ class Vcf(Bedpe):
         ['id', 'filter']
         Main Key is the combination of ('id', 'filter'). Each column is the foreign key from 
         df_svpos, and filters_meta table, respectively.
-    dict_df_info: dict[str, DataFrame]
-        Dictionary of DataFrames which contain additional information on SV record (equivalent to INFO field of vcf).
+    odict_df_info: dict[str, DataFrame]
+        OrderedDict of DataFrames which contain additional information on SV record (equivalent to INFO field of vcf).
         Each item of the dictionary contains single INFO.
         The dictionary key is the name of each INFO and should be in lowercase.
         Columns of the DataFrame should be following:
@@ -628,18 +630,22 @@ class Vcf(Bedpe):
         The ('id', 'sample', 'format') are the foreign key coming from 
         (df_svpos, samples_meta, format_meta) table, respectively.
     """
-    def __init__(self, df_svpos, df_filters, dict_df_info, df_formats, dict_df_headers = {}):
+    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
+        if not isinstance(odict_df_info, OrderedDict):
+            raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
+        if not isinstance(odict_df_headers, OrderedDict):
+            raise TypeError('the type of the argument "odict_df_headers" should be collections.OrderedDict')
         self._df_svpos = df_svpos
         self._df_filters = df_filters
-        self._dict_df_info = dict_df_info
+        self._odict_df_info = odict_df_info
         self._df_formats = df_formats
-        self._dict_df_headers = dict_df_headers
-        self._ls_infokeys = [ x.lower() for x in dict_df_headers['infos_meta']['id'].tolist()]
+        self._odict_df_headers = odict_df_headers
+        self._ls_infokeys = [ x.lower() for x in odict_df_headers['infos_meta']['id'].tolist()]
         ls_keys = ['positions', 'filters'] + self._ls_infokeys + ['formats'] + \
-        list(dict_df_headers.keys())
-        ls_values = [df_svpos, df_filters] + list(dict_df_info.values()) + [df_formats] + list(dict_df_headers.values())
-        # self._dict_alltables is a {tablename: table} dictionary
-        self._dict_alltables = {k: v for k, v in zip(ls_keys, ls_values)}
+        list(odict_df_headers.keys())
+        ls_values = [df_svpos, df_filters] + list(odict_df_info.values()) + [df_formats] + list(odict_df_headers.values())
+        # self._odict_alltables is a {tablename: table} dictionary
+        self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,
         }
@@ -651,11 +657,11 @@ class Vcf(Bedpe):
     
     def create_info_table(self, table_name, table, number, type_, description, source=None, version=None):
         self._ls_infokeys += [table_name]
-        self._dict_alltables[table_name] = table
+        self._odict_alltables[table_name] = table
         df_meta = self.get_table('infos_meta')
         df_replace = df_meta.append({'id': table_name.upper(), 'number': number, 'type': type_, 'description': description, 'source': source, 'version': version},
                                     ignore_index=True)
-        self._dict_alltables['infos_meta'] = df_replace # not beautiful code...
+        self._odict_alltables['infos_meta'] = df_replace # not beautiful code...
 
 
     def to_vcf_like(self) -> pd.DataFrame:
@@ -920,10 +926,10 @@ class Vcf(Bedpe):
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_filters = self._filter_by_id('filters', arrlike_id)
-        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
+        out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
         out_formats = self._filter_by_id('formats', arrlike_id)
-        out_dict_df_headers = self._dict_df_headers.copy()
-        return Vcf(out_svpos, out_filters, out_dict_df_info, out_formats, out_dict_df_headers)
+        out_odict_df_headers = self._odict_df_headers.copy()
+        return Vcf(out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')

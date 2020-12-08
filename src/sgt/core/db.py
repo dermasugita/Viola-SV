@@ -926,10 +926,10 @@ class Vcf(Bedpe):
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_filters = self._filter_by_id('filters', arrlike_id)
-        out_dict_df_info = {k: self._filter_by_id(k, arrlike_id) for k in self._ls_infokeys}
+        out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
         out_formats = self._filter_by_id('formats', arrlike_id)
-        out_dict_df_headers = self._dict_df_headers.copy()
-        return Vcf(out_svpos, out_filters, out_dict_df_info, out_formats, out_dict_df_headers)
+        out_odict_df_headers = self._odict_df_headers.copy()
+        return Vcf(out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')

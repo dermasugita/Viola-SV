@@ -630,7 +630,7 @@ class Vcf(Bedpe):
         The ('id', 'sample', 'format') are the foreign key coming from 
         (df_svpos, samples_meta, format_meta) table, respectively.
     """
-    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, dict_df_headers = {}):
+    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
         if not isinstance(odict_df_headers, OrderedDict):

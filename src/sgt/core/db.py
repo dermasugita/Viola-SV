@@ -686,7 +686,7 @@ class Bedpe(Indexer):
         Returns
         ---------------
         set
-            set of ids which satisfies the arguments
+            A set of ids which satisfies the argument
         """
         positions_df = self.get_table("positions")
         positions_df = positions_df[positions_df["chrom{}".format(position_num)]==chrom]
@@ -719,7 +719,7 @@ class Bedpe(Indexer):
         Returns
         ---------------
         set
-            a set of ids except which satisfies the argument
+            A set of ids except which satisfies the argument
         """
         positions_df = self.get_table("positions")
         whole_id = positions_df["id"].values

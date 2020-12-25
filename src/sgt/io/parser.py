@@ -131,7 +131,12 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         elif row_INFO['SVTYPE'] == 'INV': # manta-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
-            row_STRANDs = '+' if row_INFO.get('INV3', False) else '-'
+            if row_INFO.get('INV3', False):
+                row_STRANDs = '+'
+            else:
+                row_POS1 += 1
+                row_POS2 += 1
+                row_STRANDs = '-'
             row_STRAND1, row_STRAND2 = row_STRANDs, row_STRANDs
         elif row_INFO['SVTYPE'] == 'DEL':
             row_CHROM2 = row_CHROM1
@@ -141,6 +146,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         elif row_INFO['SVTYPE'] == 'DUP':
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
+            row_POS1 += 1
             row_STRAND1 = '-'
             row_STRAND2 = '+'
         else:
@@ -236,8 +242,8 @@ def _read_bedpe_empty(df_bedpe):
         ls_df_infos.append(df_info)
     ls_df_infos = [df_svlen, df_svtype] + ls_df_infos   
     ls_infokeys = ['svlen', 'svtype'] + ls_header_option
-    dict_df_infos = {k: v for k, v in zip(ls_infokeys, ls_df_infos)}
-    args = [df_svpos, dict_df_infos]
+    odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
+    args = [df_svpos, odict_df_infos]
     return Bedpe(*args)
     
 

@@ -9,6 +9,7 @@ from collections import OrderedDict
 import sgt
 from sgt.core.indexing import Indexer
 from sgt.core.bed import Bed
+from sgt.utils.microhomology import get_microhomology_from_positions
 from sgt._typing import (
     IntOrStr,
     StrOrIterableStr,
@@ -219,6 +220,23 @@ class Bedpe(Indexer):
             raise TableNotFoundError(table_name)
         table = self._odict_alltables[table_name]
         return table.copy()
+    
+    def replace_table(self, table_name: str, table: pd.DataFrame):
+        """
+        replace_table(table_name, table)
+        Replace existing table into new table.
+        
+        Parameters
+        ------------
+        table_name: str
+            The name of the table to be replaced
+        table: DataFrame
+            A new table to be set
+        """
+        if table_name not in self.table_list:
+            raise TableNotFoundError(table_name)
+        self._odict_alltables[table_name] = table
+
 
     def get_ids(self) -> Set[IntOrStr]:
         """
@@ -474,6 +492,33 @@ class Bedpe(Indexer):
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
         self.add_info_table(left_name, df_left)
         self.add_info_table(right_name, df_right)
+
+    def get_microhomology(self, fasta, max_homlen=200):
+        df_svpos = self.get_table('positions')
+        ls_homlen = []
+        ls_homseq = []
+        for idx, row in df_svpos.iterrows():
+            svid = row['id']
+            args = [
+                row['chrom1'],
+                row['pos1'],
+                row['chrom2'],
+                row['pos2'],
+                row['strand1'],
+                row['strand2'],
+                fasta,
+                max_homlen
+            ]
+            homlen, homseq = get_microhomology_from_positions(*args)
+            ls_homlen.append([svid, 0, homlen])
+            ls_homseq.append([svid, 0, homseq.upper()])
+        df_homlen = pd.DataFrame(ls_homlen, columns=('id', 'value_idx', 'homlen'))
+        df_homseq = pd.DataFrame(ls_homseq, columns=('id', 'value_idx', 'homseq'))
+        self.add_info_table('homlen', df_homlen)
+        self.add_info_table('homseq', df_homseq)
+
+
+
 
     def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
         """

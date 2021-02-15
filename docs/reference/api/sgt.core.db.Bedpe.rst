@@ -14,11 +14,11 @@ sgt.core.db.Bedpe
    .. autosummary::
    
       ~Bedpe.__init__
+      ~Bedpe.add_info_table
       ~Bedpe.annotate_bed
       ~Bedpe.append_infos
       ~Bedpe.change_repr_config
       ~Bedpe.classify_manual_svtype
-      ~Bedpe.create_info_table
       ~Bedpe.filter
       ~Bedpe.filter_by_id
       ~Bedpe.get_feature_count_as_series

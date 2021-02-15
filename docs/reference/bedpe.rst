@@ -40,3 +40,11 @@ Filtering
 
    Bedpe.filter
    Bedpe.filter_by_id
+
+Adding Informations
+--------------------
+
+.. autosummary::
+   :toctree: api/
+
+   Bedpe.add_info_table

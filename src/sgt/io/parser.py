@@ -131,16 +131,22 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         elif row_INFO['SVTYPE'] == 'INV': # manta-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
-            row_STRANDs = '+' if row_INFO.get('INV3', False) else '-'
+            if row_INFO.get('INV3', False):
+                row_STRANDs = '+'
+            else:
+                row_POS1 += 1
+                row_POS2 += 1
+                row_STRANDs = '-'
             row_STRAND1, row_STRAND2 = row_STRANDs, row_STRANDs
         elif row_INFO['SVTYPE'] == 'DEL':
             row_CHROM2 = row_CHROM1
-            row_POS2 = row_INFO['END']
+            row_POS2 = row_INFO['END'] + 1
             row_STRAND1 = '+'
             row_STRAND2 = '-'
         elif row_INFO['SVTYPE'] == 'DUP':
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
+            row_POS1 += 1
             row_STRAND1 = '-'
             row_STRAND2 = '+'
         else:
@@ -236,8 +242,8 @@ def _read_bedpe_empty(df_bedpe):
         ls_df_infos.append(df_info)
     ls_df_infos = [df_svlen, df_svtype] + ls_df_infos   
     ls_infokeys = ['svlen', 'svtype'] + ls_header_option
-    dict_df_infos = {k: v for k, v in zip(ls_infokeys, ls_df_infos)}
-    args = [df_svpos, dict_df_infos]
+    odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
+    args = [df_svpos, odict_df_infos]
     return Bedpe(*args)
     
 
@@ -343,6 +349,21 @@ def read_bedpe(filepath,
     return Bedpe(*args)
 
 def prepend_chr(ser):
+    """
+    prepend_chr(ser)
+    Add "chr" to the beginning of every element in the Series.
+    If the "chr" prefix has already exist, nothing will be appended but
+    the type of Series elements will be changed into str.
+
+    Parameters
+    ----------
+    ser: pd.Series
+        A Series of the chromosome number.
+    
+    Returns
+    -------
+    A Series of chromosome numbers in "chr" notation.
+    """
     dict_regex = {"^([0-9]+|[XY]|MT)":r"chr\1", r"^(M)":r"chrMT"}
     return ser.astype(str).replace(regex=dict_regex)
 
@@ -399,6 +420,12 @@ def create_alt_field_from_position(position_table):
     return df
 
 def read_bed(filepath_or_buffer):
+    """
+    read_bed(filepath_or_buffer)
+    Read a BED file into Bed class.
+    The input file should conform to the BED format defined by UCSC.
+    https://genome.ucsc.edu/FAQ/FAQformat.html#format1
+    """
     with open(filepath_or_buffer, 'r') as f:
         data = []
         for line in f:

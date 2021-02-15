@@ -9,6 +9,8 @@ from collections import OrderedDict
 import sgt
 from sgt.core.indexing import Indexer
 from sgt.core.bed import Bed
+from sgt.core.fasta import Fasta
+from sgt.utils.microhomology import get_microhomology_from_positions
 from sgt._typing import (
     IntOrStr,
     StrOrIterableStr,
@@ -219,6 +221,23 @@ class Bedpe(Indexer):
             raise TableNotFoundError(table_name)
         table = self._odict_alltables[table_name]
         return table.copy()
+    
+    def replace_table(self, table_name: str, table: pd.DataFrame):
+        """
+        replace_table(table_name, table)
+        Replace existing table into new table.
+        
+        Parameters
+        ------------
+        table_name: str
+            The name of the table to be replaced
+        table: DataFrame
+            A new table to be set
+        """
+        if table_name not in self.table_list:
+            raise TableNotFoundError(table_name)
+        self._odict_alltables[table_name] = table
+
 
     def get_ids(self) -> Set[IntOrStr]:
         """
@@ -394,8 +413,22 @@ class Bedpe(Indexer):
         query_logic: str = 'and'):
         """
         filter(ls_query, query_logic)
-        Filter SgtSimple object by the list of queries.
-        Return object is also an instance of the SgtSimple object
+        Filter Bedpe object by the list of queries.
+        Return object is also an instance of the Bedpe object
+
+        Parameters
+        ----------
+        ls_query: str or List[str]
+            A query or a list of query.
+        query_logic: str, default 'and'
+            Two options are allowed; ('and', 'or').
+            If 'and' is specified, SV records that meet all the queries will be returned.
+            If 'or' is specified, SV records that meet at lease one query will be returned.
+        
+        Returnes
+        ----------
+        Bedpe
+            A Bedpe object that includes SV records filtered by queries.
         """
         ### != operation is dangerous
         set_result = self._filter(ls_query, query_logic)
@@ -404,6 +437,22 @@ class Bedpe(Indexer):
 
 
     def _filter_by_id(self, tablename, arrlike_id):
+        """
+        _filter_by_id(tablename, arrlike_id)
+        Filter pandas DataFrame by SV ids.
+        Input DataFrame should have a columns named 'id'.
+
+        Parameters
+        ----------
+        tablename: str
+            The name of the table to be filtered.
+        arrlike_id: list-like
+            SV ids which you want to keep.
+        
+        Returns
+        --------
+        A filtered DataFrame.
+        """
         df = self.get_table(tablename)
         return df.loc[df['id'].isin(arrlike_id)].reset_index(drop=True)
 
@@ -417,14 +466,13 @@ class Bedpe(Indexer):
         Parameters
         ---------------
         arrlike_id: list-like
-            SV ids which you would like to keep.
+            SV ids which you want to keep.
         
         Returns
         ---------------
         Bedpe
             A Bedpe object with the SV id specified in the arrlike_id argument.
             All records associated with SV ids that are not in the arrlike_id will be discarded.
-        
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
@@ -451,6 +499,22 @@ class Bedpe(Indexer):
         return set_out
     
     def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right']):
+        """
+        annotate_bed(bed, annotation, suffix=['left', 'right'])
+        Annotate SV breakpoints using Bed class object.
+        Annotation is stored as INFO table.
+        For each SV record, two annotations will be made.
+        
+        Parameters
+        -----------
+        bed: Bed
+            A Bed class object for annotation.
+        annotation: str
+            The label of annotation.
+            The suffixes will be attached then added as INFO table.
+        suffix: List[str], default ['left', 'right']
+            The suffix that attached after annotation label specified above.
+        """
         df_svpos = self.get_table('positions')
         ls_left = []
         ls_right = []
@@ -474,6 +538,45 @@ class Bedpe(Indexer):
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
         self.add_info_table(left_name, df_left)
         self.add_info_table(right_name, df_right)
+
+    def get_microhomology(self, fasta, max_homlen=200):
+        """
+        get_microhomology(fasta, max_homlen=200)
+        Infer microhomology length and sequence in each breakpoint.
+        The results will be appended as 'HOMLEN' and "HOMSEQ' INFO, respectively.
+
+        Parameters
+        ----------
+        fasta: Fasta
+            A Fasta object.
+        max_homlen: int
+            Maximum length of microhomology to be considered.
+        """
+        df_svpos = self.get_table('positions')
+        ls_homlen = []
+        ls_homseq = []
+        for idx, row in df_svpos.iterrows():
+            svid = row['id']
+            args = [
+                row['chrom1'],
+                row['pos1'],
+                row['chrom2'],
+                row['pos2'],
+                row['strand1'],
+                row['strand2'],
+                fasta,
+                max_homlen
+            ]
+            homlen, homseq = get_microhomology_from_positions(*args)
+            ls_homlen.append([svid, 0, homlen])
+            ls_homseq.append([svid, 0, homseq.upper()])
+        df_homlen = pd.DataFrame(ls_homlen, columns=('id', 'value_idx', 'homlen'))
+        df_homseq = pd.DataFrame(ls_homseq, columns=('id', 'value_idx', 'homseq'))
+        self.add_info_table('homlen', df_homlen)
+        self.add_info_table('homseq', df_homseq)
+
+
+
 
     def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
         """

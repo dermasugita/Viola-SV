@@ -1,7 +1,15 @@
 from intervaltree import Interval, IntervalTree
 import pandas as pd
 class Bed(object):
-    
+    """
+    A class for optimizing the processing of BED files.
+    Interval tree algorithm is employed for storing region information.
+    This allows for fast retrieval of matching BED rows for queries in the form of genomic coordinates.
+
+    See Also
+    ---------
+    read_bed: Read a BED file into Bed class.
+    """
     def __init__(self, df, header):
         self._df = df
         self._header = header

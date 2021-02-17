@@ -252,7 +252,7 @@ def read_bedpe(filepath,
     svtype_col_name: Optional[str] = None):
     """
     read_bedpe(filepath, header_info_path, svtype_col_name)
-    Read bedpe file of SV and return Bedpe object.
+    Read a BEDPE file of SV and return Bedpe object.
 
     Parameters
     ---------------

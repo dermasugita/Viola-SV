@@ -23,8 +23,10 @@ sgt.core.db.Bedpe
       ~Bedpe.filter_by_id
       ~Bedpe.get_feature_count_as_series
       ~Bedpe.get_ids
+      ~Bedpe.get_microhomology
       ~Bedpe.get_table
       ~Bedpe.is_reciprocal
+      ~Bedpe.replace_table
       ~Bedpe.to_bedpe_like
       ~Bedpe.view
    

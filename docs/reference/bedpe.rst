@@ -1,4 +1,4 @@
-.. _simple:
+.. _bedpe:
 
 Bedpe
 =========

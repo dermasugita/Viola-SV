@@ -4,7 +4,7 @@
 Input/Output
 ============
 
-.. currentmodule:: sgt.io.parser
+.. currentmodule:: sgt.io.api
 
 --------
 VCF file
@@ -21,5 +21,6 @@ BEDPE file
    :toctree: api/
 
    read_bedpe
+   read_bedpe_multi
 
 

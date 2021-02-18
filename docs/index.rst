@@ -12,6 +12,7 @@
 
    install
    quickstart
+   signature_analysis
    reference/index
    userguide/index
 

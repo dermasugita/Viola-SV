@@ -11,6 +11,7 @@ from typing import (
 from io import StringIO
 from sgt.core.db import Vcf, Bedpe
 from sgt.core.bed import Bed
+from sgt.utils.utils import is_url
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
@@ -217,16 +218,6 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
    
     args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers]
     return Vcf(*args)
-
-def is_url(x):
-    regex = re.compile(
-            r'^(?:http|ftp)s?://' # http:// or https://
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-            r'localhost|' #localhost...
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-            r'(?::\d+)?' # optional port
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-    return re.match(regex, x) is not None
 
 
 def _read_bedpe_empty(df_bedpe):

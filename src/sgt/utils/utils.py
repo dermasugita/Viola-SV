@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import re
 from sgt.core.db import Bedpe, Vcf
 from typing import (
     Set,
@@ -8,6 +9,16 @@ from typing import (
 from sgt._typing import (
     IntOrStr,
 )
+
+def is_url(x):
+    regex = re.compile(
+            r'^(?:http|ftp)s?://' # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+            r'localhost|' #localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+            r'(?::\d+)?' # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return re.match(regex, x) is not None
 
 def get_id_by_slicing_info(
     bedpe_or_vcf: Union[Bedpe, Vcf],

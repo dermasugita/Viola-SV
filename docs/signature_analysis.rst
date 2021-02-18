@@ -36,6 +36,43 @@ Generate Matrix
 ----------------
 A matrix generation step.
 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Read all BEDPE files into MultiBedpe class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First, read all BEDPE files in the 'pcawg' directory into MultiBedpe class (See :ref:`MultiBedpe<multi_bedpe>`).
+
+.. ipython:: python
+   :okexcept:
+
+   import sgt
+
+.. ipython:: python
+   :okexcept:
+
+   # bedpe_all = sgt.read_bedpe_multi('./resources/pcawg', svtype_col_name='svclass')
+   # bedpe_all
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2. Define your own SV type classification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is one of the most unique feature of PySgt.
+
+In this tutorial, we are going to classify SV by:
+
+* Common fragile site
+* Classify the SVs into DEL, DUP, INV, and TRA, and then subclassify them according to the size of their microhomology.
+
+.. ipython:: python
+   :okexcept:
+
+   # fasta = sgt.read_fasta("http://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/hg19.fa.gz")
+   pass
+
+
+
 ---------------------
 Matrix Factorization
 ---------------------

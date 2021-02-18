@@ -26,9 +26,11 @@ sgt.core.db.Vcf
       ~Vcf.filter_by_id
       ~Vcf.get_feature_count_as_series
       ~Vcf.get_ids
+      ~Vcf.get_microhomology
       ~Vcf.get_table
       ~Vcf.get_unique_events
       ~Vcf.is_reciprocal
+      ~Vcf.replace_table
       ~Vcf.to_bedpe_like
       ~Vcf.to_vcf_like
       ~Vcf.view

@@ -543,7 +543,7 @@ class Bedpe(Indexer):
         """
         get_microhomology(fasta, max_homlen=200)
         Infer microhomology length and sequence in each breakpoint.
-        The results will be appended as 'HOMLEN' and "HOMSEQ' INFO, respectively.
+        The results will be appended as 'HOMLEN' and 'HOMSEQ' INFO, respectively.
 
         Parameters
         ----------

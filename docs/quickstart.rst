@@ -33,7 +33,7 @@ How to import PySgt package is as follow:
 -----------------
 Read the vcf file
 -----------------
-In order to use PySgt's features, you must first run :doc:`read_vcf<reference/api/sgt.io.parser.read_vcf>` to create an :ref:`Vcf<core>` object.
+In order to use PySgt's features, you must first run :doc:`read_vcf<reference/api/sgt.io.parser.read_vcf>` to create an :ref:`Vcf<vcf>` object.
 
 .. ipython:: python
    :okexcept:

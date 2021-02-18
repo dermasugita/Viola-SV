@@ -12,7 +12,7 @@ class TestWriteVcf:
     def test_write_vcf(self):
         # self.df.to_csv('path/to/csv')
         self.df.to_vcf('output/write_vcf.vcf')
-        assert filecmp('output/write_vcf.vcf', 'data/manta1.inv.vcf')
+        assert filecmp.cmp('output/write_vcf.vcf', 'data/manta1.inv.vcf')
 
 
 

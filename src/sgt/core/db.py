@@ -456,6 +456,32 @@ class Bedpe(Indexer):
                 set_result = set_result | set_query
         
         return set_result
+    
+    def get_info(self, info_name: str) -> pd.DataFrame:
+        """
+        get_info(info_name: str)
+        Return a info specified in the argument as pandas DataFrame object.
+
+        Parameters
+        ----------
+        info_name: str
+            The name of the info to return.
+
+        Returns
+        ----------
+        DataFrame
+            A info specified in the info_name argument.
+        
+        Raises
+        ----------
+        InfoNotFoundError
+            If the info_name doesn't exist in the object.
+        """
+
+        if table_name not in self._ls_infokeys:
+            raise InfoNotFoundError(table_name)
+        return self.get_table(str)
+        
 
     def filter(self,
         ls_query: StrOrIterableStr,

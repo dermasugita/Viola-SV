@@ -1,16 +1,19 @@
-.. _bedpe:
+.. _multi_bedpe:
 
-Bedpe
-=========
 
-.. currentmodule:: sgt.core.db
+===========
+MultiBedpe
+===========
+
+
+.. currentmodule:: sgt.core.cohort
 
 Constructor
 -----------
 .. autosummary::
    :toctree: api/
    
-   Bedpe
+   MultiBedpe
 
 
 Attributes
@@ -19,9 +22,9 @@ Attributes
 .. autosummary::
    :toctree: api/
 
-   Bedpe.sv_count
-   Bedpe.table_list
-   Bedpe.ids
+   MultiBedpe.sv_count
+   MultiBedpe.table_list
+   MultiBedpe.ids
 
 Accessing the Tables
 --------------------
@@ -29,8 +32,8 @@ Accessing the Tables
 .. autosummary::
    :toctree: api/
 
-   Bedpe.get_table
-   Bedpe.to_bedpe_like
+   MultiBedpe.get_table
+   MultiBedpe.to_bedpe_like
 
 Filtering
 ---------
@@ -38,8 +41,8 @@ Filtering
 .. autosummary::
    :toctree: api/
 
-   Bedpe.filter
-   Bedpe.filter_by_id
+   MultiBedpe.filter
+   MultiBedpe.filter_by_id
 
 Adding Informations
 --------------------
@@ -47,4 +50,4 @@ Adding Informations
 .. autosummary::
    :toctree: api/
 
-   Bedpe.add_info_table
+   MultiBedpe.add_info_table

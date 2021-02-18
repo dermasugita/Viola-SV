@@ -48,3 +48,12 @@ Adding Informations
    :toctree: api/
 
    Bedpe.add_info_table
+
+Annotation
+--------------------
+
+.. autosummary::
+   :toctree: api/
+
+   Bedpe.annotate_bed
+   Bedpe.get_microhomology

@@ -10,7 +10,11 @@ from sgt.io.api import (
 from sgt.core.db import Vcf, Bedpe
 from sgt.core.fasta import Fasta
 from sgt.core.cohort import MultiBedpe
-from sgt.utils.utils import get_id_by_boolean_info, get_id_by_slicing_info 
+from sgt.utils.utils import (
+    is_url,
+    get_id_by_boolean_info,
+    get_id_by_slicing_info,
+)
 from sgt.utils.microhomology import get_microhomology_from_positions
 import sgt.testing
 import sgt._typing

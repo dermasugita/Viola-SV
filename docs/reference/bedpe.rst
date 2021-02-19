@@ -48,3 +48,21 @@ Adding Informations
    :toctree: api/
 
    Bedpe.add_info_table
+
+Annotation
+--------------------
+
+.. autosummary::
+   :toctree: api/
+
+   Bedpe.annotate_bed
+   Bedpe.get_microhomology
+
+Signature_analysis
+--------------------
+
+.. autosummary::
+   :toctree: api/
+
+   Bedpe.classify_manual_svtype
+   Bedpe.get_feature_count_as_data_frame

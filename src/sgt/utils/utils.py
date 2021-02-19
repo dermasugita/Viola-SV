@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import re
 from sgt.core.db import Bedpe, Vcf
+from sgt.core.cohort import MultiBedpe
 from typing import (
     Set,
     Union,
@@ -51,10 +52,14 @@ def get_id_by_slicing_info(
     return set(df_info['id'].tolist())
 
 def get_id_by_boolean_info(
-    bedpe_or_vcf: Union[Bedpe, Vcf],
+    bedpe_or_vcf: Union[Bedpe, MultiBedpe, Vcf],
     info: str,
     true_or_false: bool = True,
     svtype: str = 'any') -> Set[str]:
+    """
+    get_id_by_boolean_info(bedpe_or_vcf, info, true_or_false, svtype)
+    Return SV id that specified
+    """
     if svtype != 'any':
         bedpe_or_vcf = bedpe_or_vcf.filter('svtype == {}'.format(svtype))
     df_info = bedpe_or_vcf.get_table(info)

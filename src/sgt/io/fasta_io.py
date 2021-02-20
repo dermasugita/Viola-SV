@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import urllib
-import requests
+# import requests ミスった!! 保留。
 import gzip
 from io import StringIO, BytesIO
 from Bio import SeqIO
@@ -14,7 +14,8 @@ def read_fasta(path_or_url):
             bytes_response = response.read()
             text = gzip.open(BytesIO(bytes_response), 'rt')
         else:
-            text = StringIO(requests.get(path_or_url).text)
+            pass
+            #text = StringIO(requests.get(path_or_url).text)
     else:
         text = path_or_url
     fasta_import = SeqIO.parse(text, "fasta")

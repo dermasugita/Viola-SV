@@ -132,12 +132,24 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         elif row_INFO['SVTYPE'] == 'INV': # manta-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
-            if row_INFO.get('INV3', False):
-                row_STRANDs = '+'
-            else:
-                row_POS1 += 1
-                row_POS2 += 1
-                row_STRANDs = '-'
+            # manta
+            if variant_caller == "manta":
+                if row_INFO.get('INV3', False):
+                    row_STRANDs = '+'
+                else:
+                    row_POS1 += 1
+                    row_POS2 += 1
+                    row_STRANDs = '-'
+            # /manta
+            # delly
+            elif variant_caller == "delly":
+                if row_INFO['CT'] == '3to3':
+                    row_STRANDs = '+'
+                else:
+                    row_POS1 += 1
+                    row_POS2 += 1
+                    row_STRANDs = '-'
+            # /delly
             row_STRAND1, row_STRAND2 = row_STRANDs, row_STRANDs
         elif row_INFO['SVTYPE'] == 'DEL':
             row_CHROM2 = row_CHROM1

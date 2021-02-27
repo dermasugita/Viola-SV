@@ -39,6 +39,7 @@ sgt.core.cohort.MultiBedpe
 
    .. autosummary::
    
+      ~MultiBedpe.contigs
       ~MultiBedpe.ids
       ~MultiBedpe.idx
       ~MultiBedpe.repr_config

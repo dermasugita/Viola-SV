@@ -119,6 +119,17 @@ class Bedpe(Indexer):
         return list(self.get_ids())
     
     @property
+    def contigs(self) -> List[str]:
+        """
+        Return a list of contigs(chromosomes) included in the object.
+        """
+        df_svpos = self.get_table('positions')
+        arr_chrom1 = df_svpos['chrom1'].unique()
+        arr_chrom2 = df_svpos['chrom2'].unique()
+        arr_chrom = np.unique(np.concatenate((arr_chrom1, arr_chrom2)))
+        return list(arr_chrom)
+    
+    @property
     def repr_config(self):
         """
         Return current configuration of __repr__() function.
@@ -337,6 +348,7 @@ class Bedpe(Indexer):
         return df
 
     def _parse_filter_query(self, q):
+        # sq: split query
         sq = q.split(' ')
 
         # for flag informations and filters
@@ -389,8 +401,44 @@ class Bedpe(Indexer):
                 set_out = self._filter_infos(sq[0], 0, sq[1], sq[2])
             else:
                 set_out = self._filter_infos(*sq)
+
             #print(set_out)
             return set_out
+        
+        # is_locus?
+        if sq0.split(':')[0] in self.contigs:
+            split_locus = sq0.split(':')
+            if len(split_locus) == 1:
+                chrom = split_locus[0]
+                st = None
+                en = None
+            elif len(split_locus) == 2:
+                chrom = split_locus[0]
+                split_locus_coord = split_locus[1].split('-')
+                if len(split_locus_coord) == 1:
+                    st = int(split_locus_coord[0])
+                    en = int(split_locus_coord[0]) + 1
+                elif len(split_locus_coord) == 2:
+                    st = split_locus_coord[0]
+                    en = split_locus_coord[1]
+                    if st == '':
+                        st = None
+                    else:
+                        st = int(st)
+                    if en == '':
+                        en = None
+                    else:
+                        en = int(en)
+            
+            if len(sq) == 1:
+                pos_num = 1
+            else:
+                pos_num = int(sq[1])
+            
+            return self._filter_by_positions(pos_num, chrom, st, en)
+            
+            
+
     
     def _filter(self, ls_query, query_logic):
         if isinstance(ls_query, str):
@@ -636,7 +684,7 @@ class Bedpe(Indexer):
         Returns
         ---------------
         set
-            set of ids which satisfies the argument
+            set of ids which satisfies the arguments
         """
         positions_df = self.get_table("positions")
         positions_df = positions_df[positions_df["chrom{}".format(position_num)]==chrom]
@@ -752,6 +800,15 @@ class Vcf(Bedpe):
         self._repr_config = {
             'info': None,
         }
+    
+    @property
+    def contigs(self) -> List[str]:
+        """
+        Return a list of contigs (chromosomes) listed in the header of the VCF file.
+        """
+        df_contigs_meta = self.get_table('contigs_meta')
+        arr_contigs = df_contigs_meta['id'].unique()
+        return list(arr_contigs)
 
     def __repr__(self):
         return super().__repr__() 
@@ -987,6 +1044,38 @@ class Vcf(Bedpe):
                 sq[2] = int(sq[2])
                 set_out = self._filter_formats(*sq)
             return set_out
+
+        # is_locus?
+        if sq0.split(':')[0] in self.contigs:
+            split_locus = sq0.split(':')
+            if len(split_locus) == 1:
+                chrom = split_locus[0]
+                st = None
+                en = None
+            elif len(split_locus) == 2:
+                chrom = split_locus[0]
+                split_locus_coord = split_locus[1].split('-')
+                if len(split_locus_coord) == 1:
+                    st = int(split_locus_coord[0])
+                    en = int(split_locus_coord[0]) + 1
+                elif len(split_locus_coord) == 2:
+                    st = split_locus_coord[0]
+                    en = split_locus_coord[1]
+                    if st == '':
+                        st = None
+                    else:
+                        st = int(st)
+                    if en == '':
+                        en = None
+                    else:
+                        en = int(en)
+
+            if len(sq) == 1:
+                pos_num = 1
+            else:
+                pos_num = int(sq[1])
+            
+            return self._filter_by_positions(pos_num, chrom, st, en)
 
     def filter(self, ls_query, query_logic='and'):
         """

@@ -107,7 +107,7 @@ You have two options for filtering.
 ~~~~~~~~~~~~~~~~~~~~~~
 1) Filter with queries
 ~~~~~~~~~~~~~~~~~~~~~~
-The query system is somewhat specific to this package, but still easy to understand since they are very simple.
+PySgt has a query system that is easy to understand.
 
 First, let's look at a couple of examples.
 

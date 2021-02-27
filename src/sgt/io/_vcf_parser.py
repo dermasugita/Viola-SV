@@ -265,7 +265,7 @@ def read_vcf_delly(vcf_reader):
         row_INFO = record.INFO
         row_SVTYPE = row_INFO['SVTYPE']
 
-        ##### get svlen
+        ##### delly: get svlen
         if row_SVTYPE == 'BND':
             svlen = 0
         elif row_SVTYPE == 'TRA':
@@ -278,7 +278,7 @@ def read_vcf_delly(vcf_reader):
             svlen = row_INFO['END'] - row_POS1
         else:
             svlen = 0
-        ##### /get svlen
+        ##### /delly: get svlen
 
         for info in df_infos_meta.id:
             if info == 'SVLENORG':
@@ -305,7 +305,7 @@ def read_vcf_delly(vcf_reader):
             row_POS2 = row_ALT.pos
             row_STRAND1 = '-' if row_ALT.orientation else '+'
             row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
-        elif row_SVTYPE == 'INV': # manta-specific operation
+        elif row_SVTYPE == 'INV': # delly-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
             # delly

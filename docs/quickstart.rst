@@ -113,7 +113,7 @@ First, let's look at a couple of examples.
 
 .. ipython:: python
    
-   query1 = 'svtype == DEL'
+   query1_1 = 'svtype == DEL'
    sgt_object_deletion = sgt_object.filter(query1)
    df_out = sgt_object_deletion.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
    print(df_out)

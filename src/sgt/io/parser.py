@@ -12,6 +12,10 @@ from io import StringIO
 from sgt.core.db import Vcf, Bedpe
 from sgt.core.bed import Bed
 from sgt.utils.utils import is_url
+from sgt.io._vcf_parser import (
+    read_vcf_manta,
+    read_vcf_delly,
+)
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
@@ -46,6 +50,11 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         vcf_reader = vcf.Reader(filepath_or_buffer)
     else:
         raise TypeError("should be file or buffer")
+
+    if variant_caller == 'manta':
+        return read_vcf_manta(vcf_reader)
+    elif variant_caller == 'delly':
+        return read_vcf_delly(vcf_reader)
 
     # obtain header informations
     odict_contigs = vcf_reader.contigs
@@ -237,11 +246,11 @@ def _read_bedpe_empty(df_bedpe):
     ls_header_required = ls_header[:10]
     ls_header_option = ls_header[10:]
     df_svpos = pd.DataFrame(columns=('id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype'))
-    df_svlen = pd.DataFrame(columns=('id', 'svlen_0'))
-    df_svtype = pd.DataFrame(columns=('id', 'svtype_0'))
+    df_svlen = pd.DataFrame(columns=('id', 'value_idx', 'svlen'))
+    df_svtype = pd.DataFrame(columns=('id', 'value_idx', 'svtype'))
     ls_df_infos = []
     for info in ls_header_option:
-        df_info = pd.DataFrame(columns=('id', info + '_0'))
+        df_info = pd.DataFrame(columns=('id', 'value_idx', info))
         ls_df_infos.append(df_info)
     ls_df_infos = [df_svlen, df_svtype] + ls_df_infos   
     ls_infokeys = ['svlen', 'svtype'] + ls_header_option
@@ -316,7 +325,7 @@ def read_bedpe(filepath,
         else:
             x['svlen'] = 0
             return x
-    df_svlen = df_svpos.groupby('svtype').apply(_add_svlen)
+    df_svlen = df_svpos.groupby('svtype').apply(_add_svlen)[['id', 'value_idx', 'svlen']]
 
     ### svtype table
     df_svtype = df_svpos[['id', 'svtype']].copy()

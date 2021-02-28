@@ -56,6 +56,7 @@ To do so, you have three options.
 .. ipython:: python
    :okexcept:
 
+   # The column name 'be' stands for 'breakend'.
    print(sgt_object)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,19 +105,45 @@ Vcf object provides an intuitive way to filter SV in almost any item.
 
 You have two options for filtering. 
 
-~~~~~~~~~~~~~~~~~~~~~~
-1) Filter with queries
-~~~~~~~~~~~~~~~~~~~~~~
-The query system is somewhat specific to this package, but still easy to understand since they are very simple.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1) Filter with queries using filter method 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PySgt has a query system that is easy to understand.
 
 First, let's look at a couple of examples.
 
 .. ipython:: python
    
-   query1 = 'svtype == DEL'
-   sgt_object_deletion = sgt_object.filter(query1)
-   df_out = sgt_object_deletion.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
-   print(df_out)
+   # filter with svtype.
+   query1_1 = 'svtype == DEL'
+   sgt_object1_1 = sgt_object.filter(query1_1)
+   result1_1 = sgt_object1_1.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
+   print(result1_1)
+
+.. ipython:: python
+   :okexcept:
+
+   # filter with genomic coordinates.
+   query1_2 = 'be1 chr11'
+   query1_3 = 'be2 chr1:69583189-'
+   sgt_object1_2 = sgt_object.filter(query1_2)
+   result1_2 = sgt_object1_2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
+   sgt_object1_3 = sgt_object.filter(query1_3)
+   result1_3 = sgt_object1_3.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
+   print(result1_2)
+   print(result1_3)
+
+.. ipython:: python
+   :okexcept:
+
+   # filter with FORMAT table
+   # query format: "<sample name> <FORMAT name> [<FORMAT indexer>] <operator> <value>"
+   # FORMAT indexer is optional. It is not required when the FORMAT isn't separated by commas.
+   # FORMAT indexer is 0-origin. Default value is 0.
+   query1_4 = 'sample1_T PR 1 > 5'
+   sgt_object1_4 = sgt_object.filter(query1_4)
+   result1_4 = sgt_object1_4.to_bedpe_like(add_formats=True)
+   print(result1_4)
 
 Query can be a list.
 
@@ -124,6 +151,6 @@ Query can be a list.
    
    query2_1 = 'svlen < -4000'
    query2_2 = 'svlen > -10000'
-   sgt_object_filter_len = sgt_object.filter([query2_1, query2_2], query_logic='and')
-   df_out = sgt_object_filter_len.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
-   print(df_out)
+   sgt_object2 = sgt_object.filter([query2_1, query2_2], query_logic='and')
+   result2 = sgt_object2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
+   print(result2)

@@ -43,6 +43,7 @@ sgt.core.db.Vcf
 
    .. autosummary::
    
+      ~Vcf.contigs
       ~Vcf.ids
       ~Vcf.idx
       ~Vcf.repr_config

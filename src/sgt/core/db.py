@@ -176,13 +176,13 @@ class Bedpe(Indexer):
         """
         df_svpos = self.get_table('positions')
         ser_id = df_svpos['id']
-        ser_bp1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
-        ser_bp2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
+        ser_be1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
+        ser_be2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
         ser_strand = df_svpos['strand1'] + df_svpos['strand2']
         ser_qual = df_svpos['qual']
         ser_svtype = df_svpos['svtype']
-        ls_ser = [ser_id, ser_bp1, ser_bp2, ser_strand, ser_qual, ser_svtype]
-        ls_key = ['id', 'bp1', 'bp2', 'strand', 'qual', 'svtype']
+        ls_ser = [ser_id, ser_be1, ser_be2, ser_strand, ser_qual, ser_svtype]
+        ls_key = ['id', 'be1', 'be2', 'strand', 'qual', 'svtype']
         dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
         df_out = pd.DataFrame(dict_)
         if custom_infonames is not None:
@@ -406,8 +406,9 @@ class Bedpe(Indexer):
             return set_out
         
         # is_locus?
-        if sq0.split(':')[0] in self.contigs:
-            split_locus = sq0.split(':')
+        if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
+            print(sq0)
+            split_locus = sq[1].split(':')
             if len(split_locus) == 1:
                 chrom = split_locus[0]
                 st = None
@@ -430,10 +431,10 @@ class Bedpe(Indexer):
                     else:
                         en = int(en)
             
-            if len(sq) == 1:
+            if sq0 in ['be1', 'pos1']:
                 pos_num = 1
-            else:
-                pos_num = int(sq[1])
+            elif sq0 in ['be2', 'pos2']:
+                pos_num = 2
             
             return self._filter_by_positions(pos_num, chrom, st, en)
             
@@ -1046,8 +1047,8 @@ class Vcf(Bedpe):
             return set_out
 
         # is_locus?
-        if sq0.split(':')[0] in self.contigs:
-            split_locus = sq0.split(':')
+        if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
+            split_locus = sq[1].split(':')
             if len(split_locus) == 1:
                 chrom = split_locus[0]
                 st = None
@@ -1069,11 +1070,12 @@ class Vcf(Bedpe):
                         en = None
                     else:
                         en = int(en)
-
-            if len(sq) == 1:
+            
+            if sq0 in ['be1', 'pos1']:
                 pos_num = 1
-            else:
-                pos_num = int(sq[1])
+            elif sq0 in ['be2', 'pos2']:
+                pos_num = 2
+
             
             return self._filter_by_positions(pos_num, chrom, st, en)
 

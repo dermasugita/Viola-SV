@@ -51,7 +51,7 @@ First, read all BEDPE files in the 'pcawg' directory into MultiBedpe class (See 
 .. ipython:: python
    :okexcept:
 
-   bedpe_all = sgt.read_bedpe_multi('./resources/pcawg', svtype_col_name='svclass')
+   #bedpe_all = sgt.read_bedpe_multi('./resources/pcawg', svtype_col_name='svclass')
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2. Define your own SV type classification
@@ -69,7 +69,7 @@ First, let's load the BED file of the fragile sites.
 .. ipython:: python
    :okexcept:
 
-   fragile_bed = sgt.read_bed('fragile_site.hg19.bed')
+   #fragile_bed = sgt.read_bed('fragile_site.hg19.bed')
 
 Bed class object has been created with this code.
 
@@ -78,8 +78,8 @@ Then, you can make fragile site annotation on the MultiBedpe class.
 .. ipython:: python
    :okexcept:
 
-   bedpe_all.annotate_bed(fragile_bed, 'fragile')
-   print(bedpe_all.table_list)
+   #bedpe_all.annotate_bed(fragile_bed, 'fragile')
+   #print(bedpe_all.table_list)
 
 As you see, the new table named 'fragile_left' and 'fragile_right' have been added.
 
@@ -90,15 +90,15 @@ This process requires hg19 fasta file. To read it, run code shown below to get F
 .. ipython:: python
    :okexcept:
 
-   fasta = sgt.read_fasta("http://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/hg19.fa.gz")
+   #fasta = sgt.read_fasta("http://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/hg19.fa.gz")
 
 :doc:`get_microhomology<reference/api/sgt.core.db.Bedpe.get_microhomology>` method of Bedpe class is quite useful to append INFO table of microhomology.
 
 .. ipython:: python
    :okexcept:
 
-   bedpe_all.get_microhomology(fasta)
-   print(bedpe_all.table_list)
+   #bedpe_all.get_microhomology(fasta)
+   #print(bedpe_all.table_list)
 
 The 'HOMLEN' and 'HOMSEQ' tables have been successfully added!
 
@@ -178,10 +178,10 @@ Finally, we can obtain a matrix with custom SV classes as columns and the counts
 .. ipython:: python
    :okexcept:
 
-   ls_conditions = [fragile_del, fragile_dup, del_micro1, del_micro2, dup_micro1, dup_micro2, inv_micro1, inv_micro2, tra_micro1, tra_micro2]
-   ls_names = ['fragile_del', 'fragile_dup', 'del_micor<=1', 'del_micro>1', 'dup_micor<=1', 'dup_micro>1', 'inv_micor<=1', 'inv_micro>1', 'tra_micor<=1', 'tra_micro>1']
-   df = bedpe_all.classify_manual_svtype(ls_conditions, ls_names)
-   print(df)
+   #ls_conditions = [fragile_del, fragile_dup, del_micro1, del_micro2, dup_micro1, dup_micro2, inv_micro1, inv_micro2, tra_micro1, tra_micro2]
+   #ls_names = ['fragile_del', 'fragile_dup', 'del_micor<=1', 'del_micro>1', 'dup_micor<=1', 'dup_micro>1', 'inv_micor<=1', 'inv_micro>1', 'tra_micor<=1', 'tra_micro>1']
+   #df = bedpe_all.classify_manual_svtype(ls_conditions, ls_names)
+   #print(df)
 
 
 ---------------------

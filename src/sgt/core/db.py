@@ -1,3 +1,4 @@
+import os,sys
 import numpy as np
 import pandas as pd
 from typing import (
@@ -898,7 +899,7 @@ class Vcf(Bedpe):
         df_out = pd.merge(df_out, df_formatfield)
         return df_out
 
-    def to_vcf(self, path_or_buf = None) -> str:
+    def to_vcf(self, path_or_buf = None, onlyinfo=False) -> str:
         """
         to_vcf()
         Return a vcf-formatted String. Header information will not be reflected.
@@ -908,23 +909,53 @@ class Vcf(Bedpe):
         ----------
         path_or_buf: str, optional
             File path to save the VCF file.
+        onlyinfo: bool
+            if you only want "info", set this option to True
         
         Returns
         -------
         str
             return vcf file as a string.
         """
-        str_info = "not yet"
+
+        str_file_header = "##fileformat=VCFv4.1\n##fileDate=20200417\n##source=GenerateSVCandidates 1.6.0\n##reference=file:///data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa\n"
+        def get_contig():
+            return "contig\n"
+        def get_info():
+            str_info = ""
+            for row in self.get_table("infos_meta").itertuples():
+                if (row.number == None):
+                    str_num = "."
+                elif (row.number == -1):
+                    str_num = "A"
+                else:
+                    str_num = str(row.number)
+                str_info += "##INFO=<ID={},Number={},Type={},Description=\"{}\">".format(row.id, str_num, row.type,row.description)
+                str_info += "\n"
+            return str_info
+        str_contig = get_contig()
+        str_info = get_info()
         df_vcflike = self.to_vcf_like()
         str_table = df_vcflike.to_csv(sep='\t', header=False, index=False)
+        str_table += "\n"
         ls_header = df_vcflike.columns.tolist()
         ls_header[0:8] = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'INFO', 'FORMAT']
         str_header = "\t".join(ls_header)
-        ret = str_info + "\n" + str_header + "\n" + str_table
+        str_header += "\n"
+        str_format_filter_alt_others = "formatfilteraltothers\n"
+        ls_vcf_data = [str_file_header, str_contig, str_info, str_header, str_format_filter_alt_others, str_table]
+
+        print(os.getcwd())
+
+        if (onlyinfo):
+            ret = str_info
+        else:
+            ret = "".join(ls_vcf_data)
 
         if (path_or_buf is not None):
-            with open(path_or_buf, mode='w') as f:
-                f.write(ret)
+            f = open(path_or_buf, 'w')
+            f.write(ret)
+            f.close()
 
         return ret
 

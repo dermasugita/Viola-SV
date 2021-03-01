@@ -165,3 +165,7 @@ First, let's look at a couple of examples.
    sgt_object2 = sgt_object.filter([query2_1, query2_2], query_logic='and')
    result2 = sgt_object2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
    print(result2)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2) Filter with SV ID using filter_by_id method 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

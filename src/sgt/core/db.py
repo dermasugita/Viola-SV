@@ -898,6 +898,36 @@ class Vcf(Bedpe):
         df_out = pd.merge(df_out, df_formatfield)
         return df_out
 
+    def to_vcf(self, path_or_buf = None) -> str:
+        """
+        to_vcf()
+        Return a vcf-formatted String. Header information will not be reflected.
+        return csv file as str class.
+
+        Parameters
+        ----------
+        path_or_buf: str, optional
+            File path to save the VCF file.
+        
+        Returns
+        -------
+        str
+            return vcf file as a string.
+        """
+        str_info = "not yet"
+        df_vcflike = self.to_vcf_like()
+        str_table = df_vcflike.to_csv(sep='\t', header=False, index=False)
+        ls_header = df_vcflike.columns.tolist()
+        ls_header[0:8] = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'INFO', 'FORMAT']
+        str_header = "\t".join(ls_header)
+        ret = str_info + "\n" + str_header + "\n" + str_table
+
+        if (path_or_buf is not None):
+            with open(path_or_buf, mode='w') as f:
+                f.write(ret)
+
+        return ret
+
     def to_bedpe_like(
         self,
         custom_infonames: Iterable[str] = [],
@@ -1218,5 +1248,3 @@ class Vcf(Bedpe):
         return self.filter_by_id(set_result_ids)
     
             
-
-         

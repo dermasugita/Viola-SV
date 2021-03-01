@@ -77,8 +77,8 @@ class Bedpe(Indexer):
     _internal_attrs_set = set(_internal_attrs)
     _repr_column_names = [
         "id",
-        "bp1",
-        "bp2",
+        "be1",
+        "be2",
         "strand",
         "qual",
         "svtype",
@@ -797,6 +797,27 @@ class Vcf(Bedpe):
         The ('id', 'sample', 'format') are the foreign key coming from 
         (df_svpos, samples_meta, format_meta) table, respectively.
     """
+    _internal_attrs = [
+        "_df_svpos",
+        "_df_filters",
+        "_odict_df_info",
+        "_df_formats",
+        "_ls_infokeys",
+        "_odict_df_headers",
+        "_odict_alltables",
+        "_repr_config",
+        "_sig_criteria"
+    ]
+    _internal_attrs_set = set(_internal_attrs)
+    _repr_column_names = [
+        "id",
+        "be1",
+        "be2",
+        "strand",
+        "qual",
+        "svtype",
+    ]
+    _repr_column_names_set = set(_repr_column_names)
     def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')

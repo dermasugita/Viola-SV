@@ -17,6 +17,7 @@ from sgt._typing import (
 )
 from sgt._exceptions import (
     TableNotFoundError,
+    ContigNotFoundError,
 )
 
 class Bedpe(Indexer):
@@ -407,14 +408,21 @@ class Bedpe(Indexer):
         
         # is_locus?
         if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
-            print(sq0)
             split_locus = sq[1].split(':')
+            chrom = split_locus[0]
+            if chrom.startswith('!'):
+                exclude_flag = True
+                chrom = chrom[1:]
+            else:
+                exclude_flag = False
+            
+            if chrom not in self.contigs:
+                raise ContigNotFoundError(chrom)
+
             if len(split_locus) == 1:
-                chrom = split_locus[0]
                 st = None
                 en = None
             elif len(split_locus) == 2:
-                chrom = split_locus[0]
                 split_locus_coord = split_locus[1].split('-')
                 if len(split_locus_coord) == 1:
                     st = int(split_locus_coord[0])
@@ -436,7 +444,12 @@ class Bedpe(Indexer):
             elif sq0 in ['be2', 'pos2']:
                 pos_num = 2
             
-            return self._filter_by_positions(pos_num, chrom, st, en)
+            args = [pos_num, chrom, st, en]
+
+            if exclude_flag:
+                return self._filter_by_positions_exclude(*args)
+            
+            return self._filter_by_positions(*args)
             
             
 
@@ -1051,12 +1064,18 @@ class Vcf(Bedpe):
         # is_locus?
         if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
             split_locus = sq[1].split(':')
+            chrom = split_locus[0]
+            if chrom.startswith('!'):
+                exclude_flag = True
+                chrom = chrom[1:]
+            else:
+                exclude_flag = False
+            if chrom not in self.contigs:
+                raise ContigNotFoundError(chrom)
             if len(split_locus) == 1:
-                chrom = split_locus[0]
                 st = None
                 en = None
             elif len(split_locus) == 2:
-                chrom = split_locus[0]
                 split_locus_coord = split_locus[1].split('-')
                 if len(split_locus_coord) == 1:
                     st = int(split_locus_coord[0])
@@ -1078,8 +1097,11 @@ class Vcf(Bedpe):
             elif sq0 in ['be2', 'pos2']:
                 pos_num = 2
 
+            args = [pos_num, chrom, st, en]
             
-            return self._filter_by_positions(pos_num, chrom, st, en)
+            if exclude_flag:
+                return self._filter_by_positions_exclude(*args)
+            return self._filter_by_positions(*args)
 
     def filter(self, ls_query, query_logic='and'):
         """
@@ -1145,6 +1167,9 @@ class Vcf(Bedpe):
         df_target = df.loc[target_q]
         e = "df_target.loc[df_target['value'] {0} threshold]['id']".format(operator)
         return set(eval(e))
+    
+    def _filter_header(self, tablename):
+        pass
 
     def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right'], description=None):
         df_svpos = self.get_table('positions')

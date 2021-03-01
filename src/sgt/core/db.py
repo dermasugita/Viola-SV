@@ -478,9 +478,9 @@ class Bedpe(Indexer):
             If the info_name doesn't exist in the object.
         """
 
-        if table_name not in self._ls_infokeys:
-            raise InfoNotFoundError(table_name)
-        return self.get_table(str)
+        if info_name not in self._ls_infokeys:
+            raise InfoNotFoundError(info_name)
+        return self.get_table(info_name)
         
 
     def filter(self,

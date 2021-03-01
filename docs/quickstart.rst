@@ -137,10 +137,9 @@ First, let's look at a couple of examples.
    :okexcept:
 
    # filter with genomic coordinates.
-   query1_2 = 'be1 chr11'
-   query1_3 = 'be2 chr1:69583189-'
-   sgt_object.filter(query1_2)
-   sgt_object.filter(query1_3)
+   sgt_object.filter('be1 chr11')
+   sgt_object.filter('be1 !chr1')
+   sgt_object.filter('be2 chr1:69583189-')
 
 **c. Filter with FORMAT table**
 ``syntax: "<sample name> <FORMAT name> [<FORMAT indexer>] <operator> <value>``
@@ -151,10 +150,7 @@ First, let's look at a couple of examples.
 .. ipython:: python
    :okexcept:
 
-   query1_4 = 'sample1_T PR 1 > 5'
-   sgt_object1_4 = sgt_object.filter(query1_4)
-   result1_4 = sgt_object1_4.to_bedpe_like(add_formats=True)
-   print(result1_4)
+   sgt_object.filter('sample1_T PR 1 > 5').to_bedpe_like(add_formats=True)
 
 **d. Query can be a list**
 

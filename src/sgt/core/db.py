@@ -22,6 +22,9 @@ from sgt._exceptions import (
     ContigNotFoundError,
 )
 
+import sklearn
+#from sklearn.cluster import AgglomerativeClustering
+
 class Bedpe(Indexer):
     """
     Relational database-like object containing SV position dataframes and INFO dataframes.
@@ -794,6 +797,13 @@ class Bedpe(Indexer):
         ex_id_set = set(ex_id)
         id_set = whole_id_set - ex_id_set
         return id_set
+    
+    def merge(self, bedpe_list, threshold, linkage_criterion):
+        """
+        bedpe_list:a list of bedpes to be merged
+        threshold:threshold for being determined to be the identical SV
+        """
+        1+1
 
 
 class Vcf(Bedpe):
@@ -977,7 +987,7 @@ class Vcf(Bedpe):
             Otherwise, breakpoints are represented by a single-nucleotide resolution.
         unique_events: bool, default False
         
-        Returns
+        Returns 
         ---------------
         DataFrame
             A Dataframe in bedpe-like format.

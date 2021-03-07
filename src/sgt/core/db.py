@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import re
+from functools import reduce
 from typing import (
     List,
     Set,
@@ -384,6 +386,8 @@ class Bedpe(Indexer):
 
             if sq_dtype == 'Integer':
                 sq[-1] = int(sq[-1])
+            elif sq_dtype == 'Float':
+                sq[-1] = float(sq[-1])
             elif sq_dtype == 'String':
                 sq[-1] = str(sq[-1])
             elif sq_dtype =='Flag':
@@ -560,7 +564,11 @@ class Bedpe(Indexer):
             set_out = self.get_ids() - set_out
         return set_out
     
-    def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right']):
+    def annotate_bed(self,
+        bed: Bed,
+        annotation: str,
+        how: str = 'flag',
+        suffix=['left', 'right']):
         """
         annotate_bed(bed, annotation, suffix=['left', 'right'])
         Annotate SV breakpoints using Bed class object.
@@ -574,6 +582,9 @@ class Bedpe(Indexer):
         annotation: str
             The label of annotation.
             The suffixes will be attached then added as INFO table.
+        how: str ['flag', 'value'], default 'flag'
+            If 'flag', Annotate True when a breakend is in Bed, otherwise False.
+            If 'value', Annotate values in the Bed.
         suffix: List[str], default ['left', 'right']
             The suffix that attached after annotation label specified above.
         """
@@ -590,10 +601,22 @@ class Bedpe(Indexer):
             df_bp1 = bed.query(chrom1, pos1)
             df_bp2 = bed.query(chrom2, pos2)
 
-            if not df_bp1.empty:
-                ls_left.append([svid, 0, True])
-            if not df_bp2.empty:
-                ls_right.append([svid, 0, True])
+            if how == 'flag':
+                if not df_bp1.empty:
+                    ls_left.append([svid, 0, True])
+                if not df_bp2.empty:
+                    ls_right.append([svid, 0, True])
+            elif how == 'value':
+                if not df_bp1.empty:
+                    j = 0
+                    for idx_inner, query_result in df_bp1.iterrows():
+                        ls_left.append([svid, j, query_result['name']])
+                        j += 1
+                if not df_bp2.empty:
+                    j = 0
+                    for idx_inner, query_result in df_bp2.iterrows():
+                        ls_right.append([svid, j, query_result['name']])
+                        j += 1
         left_name = annotation + suffix[0]
         right_name = annotation + suffix[1]
         df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
@@ -636,7 +659,28 @@ class Bedpe(Indexer):
         df_homseq = pd.DataFrame(ls_homseq, columns=('id', 'value_idx', 'homseq'))
         self.add_info_table('homlen', df_homlen)
         self.add_info_table('homseq', df_homseq)
-
+    
+    def calculate_info(self, operation, name):
+        """
+        calculate_info(operation, name)
+        Calculate values of INFO tables according to the 'operation' argument and add a new INFO table as the result.
+        """
+        ls_matched = re.findall(r'\${[^}]*}', operation)
+        ls_infonames = [s[2:-1] for s in ls_matched]
+        ls_df_info = []
+        operation_replaced = operation
+        for idx, infoname in enumerate(ls_infonames):
+            # check the info names are valid
+            if infoname not in self.table_list:
+                raise TableNotFoundError(infoname)
+            ls_df_info.append(self.get_table(infoname))
+            operation_replaced = operation_replaced.replace(ls_matched[idx], 'df_merged["'+infoname+'"]')
+        df_merged = reduce(lambda left, right: pd.merge(left, right, on=['id', 'value_idx']), ls_df_info)
+        ser_result = eval(operation_replaced)
+        df_merged[name] = ser_result
+        df_to_add = df_merged[['id', 'value_idx', name]]
+        self.add_info_table(name, df_to_add)
+        
 
 
 
@@ -1233,9 +1277,10 @@ class Vcf(Bedpe):
         set_result_ids = set_all_ids - set_to_subtract
         return set_result_ids
 
-    def get_unique_events(self):
-        set_result_ids = self._get_unique_events_ids()
-        return self.filter_by_id(set_result_ids)
+    def remove_duplicated_records(self):
+        if 'event' not in self._ls_infokeys:
+            return
+        print(self.get_table('event'))
     
             
 

@@ -323,7 +323,7 @@ def read_bedpe(filepath,
             x['svlen'] = x['pos2'] - x['pos1']
             return x
         else:
-            x['svlen'] = 0
+            x['svlen'] = abs(x['pos2'] - x['pos1'])
             return x
     df_svlen = df_svpos.groupby('svtype').apply(_add_svlen)[['id', 'value_idx', 'svlen']]
 
@@ -438,6 +438,7 @@ def read_bed(filepath_or_buffer):
     The input file should conform to the BED format defined by UCSC.
     https://genome.ucsc.edu/FAQ/FAQformat.html#format1
     """
+    header=None
     with open(filepath_or_buffer, 'r') as f:
         data = []
         for line in f:

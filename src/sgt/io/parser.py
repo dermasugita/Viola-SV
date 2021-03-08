@@ -15,6 +15,8 @@ from sgt.utils.utils import is_url
 from sgt.io._vcf_parser import (
     read_vcf_manta,
     read_vcf_delly,
+    read_vcf_lumpy,
+    read_vcf_gridss,
 )
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
@@ -55,6 +57,10 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         return read_vcf_manta(vcf_reader)
     elif variant_caller == 'delly':
         return read_vcf_delly(vcf_reader)
+    elif variant_caller == 'lumpy':
+        return read_vcf_lumpy(vcf_reader)
+    elif variant_caller == 'gridss':
+        return read_vcf_gridss(vcf_reader)
 
     # obtain header informations
     odict_contigs = vcf_reader.contigs

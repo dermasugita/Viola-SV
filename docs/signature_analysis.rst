@@ -115,7 +115,7 @@ The following is the specification of the function that is the element of the ar
 
 For each custom SV class:
 
-* Takes Bedpe, MultiBedpe, and Vcf objects as arguments
+* Takes Bedpe, MultiBedpe, and Vcf objects as an argument
 * Returns SV id that satisfies the requirements of the respective custom SV class.
 
 Here are the examples.

@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import re
+from functools import reduce
 from typing import (
     List,
     Set,
@@ -17,6 +19,7 @@ from sgt._typing import (
 )
 from sgt._exceptions import (
     TableNotFoundError,
+    ContigNotFoundError,
 )
 
 class Bedpe(Indexer):
@@ -76,8 +79,8 @@ class Bedpe(Indexer):
     _internal_attrs_set = set(_internal_attrs)
     _repr_column_names = [
         "id",
-        "bp1",
-        "bp2",
+        "be1",
+        "be2",
         "strand",
         "qual",
         "svtype",
@@ -383,6 +386,8 @@ class Bedpe(Indexer):
 
             if sq_dtype == 'Integer':
                 sq[-1] = int(sq[-1])
+            elif sq_dtype == 'Float':
+                sq[-1] = float(sq[-1])
             elif sq_dtype == 'String':
                 sq[-1] = str(sq[-1])
             elif sq_dtype =='Flag':
@@ -407,14 +412,21 @@ class Bedpe(Indexer):
         
         # is_locus?
         if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
-            print(sq0)
             split_locus = sq[1].split(':')
+            chrom = split_locus[0]
+            if chrom.startswith('!'):
+                exclude_flag = True
+                chrom = chrom[1:]
+            else:
+                exclude_flag = False
+            
+            if chrom not in self.contigs:
+                raise ContigNotFoundError(chrom)
+
             if len(split_locus) == 1:
-                chrom = split_locus[0]
                 st = None
                 en = None
             elif len(split_locus) == 2:
-                chrom = split_locus[0]
                 split_locus_coord = split_locus[1].split('-')
                 if len(split_locus_coord) == 1:
                     st = int(split_locus_coord[0])
@@ -436,7 +448,12 @@ class Bedpe(Indexer):
             elif sq0 in ['be2', 'pos2']:
                 pos_num = 2
             
-            return self._filter_by_positions(pos_num, chrom, st, en)
+            args = [pos_num, chrom, st, en]
+
+            if exclude_flag:
+                return self._filter_by_positions_exclude(*args)
+            
+            return self._filter_by_positions(*args)
             
             
 
@@ -547,7 +564,11 @@ class Bedpe(Indexer):
             set_out = self.get_ids() - set_out
         return set_out
     
-    def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right']):
+    def annotate_bed(self,
+        bed: Bed,
+        annotation: str,
+        how: str = 'flag',
+        suffix=['left', 'right']):
         """
         annotate_bed(bed, annotation, suffix=['left', 'right'])
         Annotate SV breakpoints using Bed class object.
@@ -561,6 +582,9 @@ class Bedpe(Indexer):
         annotation: str
             The label of annotation.
             The suffixes will be attached then added as INFO table.
+        how: str ['flag', 'value'], default 'flag'
+            If 'flag', Annotate True when a breakend is in Bed, otherwise False.
+            If 'value', Annotate values in the Bed.
         suffix: List[str], default ['left', 'right']
             The suffix that attached after annotation label specified above.
         """
@@ -577,10 +601,22 @@ class Bedpe(Indexer):
             df_bp1 = bed.query(chrom1, pos1)
             df_bp2 = bed.query(chrom2, pos2)
 
-            if not df_bp1.empty:
-                ls_left.append([svid, 0, True])
-            if not df_bp2.empty:
-                ls_right.append([svid, 0, True])
+            if how == 'flag':
+                if not df_bp1.empty:
+                    ls_left.append([svid, 0, True])
+                if not df_bp2.empty:
+                    ls_right.append([svid, 0, True])
+            elif how == 'value':
+                if not df_bp1.empty:
+                    j = 0
+                    for idx_inner, query_result in df_bp1.iterrows():
+                        ls_left.append([svid, j, query_result['name']])
+                        j += 1
+                if not df_bp2.empty:
+                    j = 0
+                    for idx_inner, query_result in df_bp2.iterrows():
+                        ls_right.append([svid, j, query_result['name']])
+                        j += 1
         left_name = annotation + suffix[0]
         right_name = annotation + suffix[1]
         df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
@@ -623,7 +659,28 @@ class Bedpe(Indexer):
         df_homseq = pd.DataFrame(ls_homseq, columns=('id', 'value_idx', 'homseq'))
         self.add_info_table('homlen', df_homlen)
         self.add_info_table('homseq', df_homseq)
-
+    
+    def calculate_info(self, operation, name):
+        """
+        calculate_info(operation, name)
+        Calculate values of INFO tables according to the 'operation' argument and add a new INFO table as the result.
+        """
+        ls_matched = re.findall(r'\${[^}]*}', operation)
+        ls_infonames = [s[2:-1] for s in ls_matched]
+        ls_df_info = []
+        operation_replaced = operation
+        for idx, infoname in enumerate(ls_infonames):
+            # check the info names are valid
+            if infoname not in self.table_list:
+                raise TableNotFoundError(infoname)
+            ls_df_info.append(self.get_table(infoname))
+            operation_replaced = operation_replaced.replace(ls_matched[idx], 'df_merged["'+infoname+'"]')
+        df_merged = reduce(lambda left, right: pd.merge(left, right, on=['id', 'value_idx']), ls_df_info)
+        ser_result = eval(operation_replaced)
+        df_merged[name] = ser_result
+        df_to_add = df_merged[['id', 'value_idx', name]]
+        self.add_info_table(name, df_to_add)
+        
 
 
 
@@ -784,6 +841,27 @@ class Vcf(Bedpe):
         The ('id', 'sample', 'format') are the foreign key coming from 
         (df_svpos, samples_meta, format_meta) table, respectively.
     """
+    _internal_attrs = [
+        "_df_svpos",
+        "_df_filters",
+        "_odict_df_info",
+        "_df_formats",
+        "_ls_infokeys",
+        "_odict_df_headers",
+        "_odict_alltables",
+        "_repr_config",
+        "_sig_criteria"
+    ]
+    _internal_attrs_set = set(_internal_attrs)
+    _repr_column_names = [
+        "id",
+        "be1",
+        "be2",
+        "strand",
+        "qual",
+        "svtype",
+    ]
+    _repr_column_names_set = set(_repr_column_names)
     def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
@@ -1051,12 +1129,18 @@ class Vcf(Bedpe):
         # is_locus?
         if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
             split_locus = sq[1].split(':')
+            chrom = split_locus[0]
+            if chrom.startswith('!'):
+                exclude_flag = True
+                chrom = chrom[1:]
+            else:
+                exclude_flag = False
+            if chrom not in self.contigs:
+                raise ContigNotFoundError(chrom)
             if len(split_locus) == 1:
-                chrom = split_locus[0]
                 st = None
                 en = None
             elif len(split_locus) == 2:
-                chrom = split_locus[0]
                 split_locus_coord = split_locus[1].split('-')
                 if len(split_locus_coord) == 1:
                     st = int(split_locus_coord[0])
@@ -1078,8 +1162,11 @@ class Vcf(Bedpe):
             elif sq0 in ['be2', 'pos2']:
                 pos_num = 2
 
+            args = [pos_num, chrom, st, en]
             
-            return self._filter_by_positions(pos_num, chrom, st, en)
+            if exclude_flag:
+                return self._filter_by_positions_exclude(*args)
+            return self._filter_by_positions(*args)
 
     def filter(self, ls_query, query_logic='and'):
         """
@@ -1145,6 +1232,9 @@ class Vcf(Bedpe):
         df_target = df.loc[target_q]
         e = "df_target.loc[df_target['value'] {0} threshold]['id']".format(operator)
         return set(eval(e))
+    
+    def _filter_header(self, tablename):
+        pass
 
     def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right'], description=None):
         df_svpos = self.get_table('positions')
@@ -1187,9 +1277,10 @@ class Vcf(Bedpe):
         set_result_ids = set_all_ids - set_to_subtract
         return set_result_ids
 
-    def get_unique_events(self):
-        set_result_ids = self._get_unique_events_ids()
-        return self.filter_by_id(set_result_ids)
+    def remove_duplicated_records(self):
+        if 'event' not in self._ls_infokeys:
+            return
+        print(self.get_table('event'))
     
             
 

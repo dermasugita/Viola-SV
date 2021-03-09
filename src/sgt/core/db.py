@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import re
 from functools import reduce
+import time
 from typing import (
     List,
     Set,
@@ -22,8 +23,7 @@ from sgt._exceptions import (
     ContigNotFoundError,
 )
 
-import sklearn
-#from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import AgglomerativeClustering
 
 class Bedpe(Indexer):
     """
@@ -797,14 +797,84 @@ class Bedpe(Indexer):
         ex_id_set = set(ex_id)
         id_set = whole_id_set - ex_id_set
         return id_set
-    
-    def merge(self, bedpe_list, threshold, linkage_criterion):
+
+
+    #def _overlap(pos11, pos21, pos12, pos22):
+    def _necessary_condition4merge(chr1, chr2, pos1, pos2, str1, str2):
+        proposition_chr = (chr1[0] == chr1[1]) and (chr2[0] == chr2[1])
+        proposition_pos = (pos1[0] == pos1[1]) and (pos2[0]==pos2[1])
+        proposition_str = ((str1[0] == str1[1]) or (str1[0])==".") or (str1[1]=="."))
+        
+
+    def _merge(self, ls_caller_names, ls_bedpe=[], threshold = None, linkage = "single"):
         """
         bedpe_list:a list of bedpes to be merged
         threshold:threshold for being determined to be the identical SV
         """
-        1+1
 
+        if self in ls_bedpe:#ls_bedpeにはself入っていなくても良い
+            pass
+        else:
+            ls_bedpe = [self] + ls_bedpe
+        multibedpe = sgt.MultiBedpe(ls_bedpe, ls_caller_names)
+        positions_table = multibedpe.get_table("positions")
+        N = len(positions_table)#the number of samples
+        penalty_length = 3e9#whole genome length
+        distance_matrix = np.full((N,N), penalty_length)
+        columns = ["chrom1", "chrom2", "pos1", "pos2", "strand1", "strand2"]
+        for h in range(N):
+            for w in range(N):
+                param = {}
+                for col in columns:
+                    key_h = col[:3] + col[-1] + "h"
+                    value_h = positions_table.at[positions_table.index[h], col]
+                    key_w = col[:3] + col[-1] + "w"
+                    value_w = positions_table.at[positions_table.index[w], col]
+                    param[key_h] = value_h
+                    param[key_w] = value_w
+
+                # chrom1h = positions_table.at[positions_table.index[h], "chrom1"]
+                # chrom2h = positions_table.at[positions_table.index[h], "chrom2"]
+                # strand1h = positions_table.at[positions_table.index[h], "strand1"]
+                # strand2h = positions_table.at[positions_table.index[h], "strand2"]
+                # pos1h = positions_table.at[positions_table.index[h], "pos1"]
+                # pos2h = positions_table.at[positions_table.index[h], "pos2"]
+                # chrom1w = positions_table.at[positions_table.index[w], "chrom1"]
+                # chrom2w = positions_table.at[positions_table.index[w], "chrom2"]
+                # strand1w = positions_table.at[positions_table.index[w], "strand1"]
+                # strand2w = positions_table.at[positions_table.index[w], "strand2"]
+                # pos1w = positions_table.at[positions_table.index[w], "pos1"]
+                # pos2w = positions_table.at[positions_table.index[w], "pos2"]
+
+                # proposition1_1 = chrom1h == chrom1w
+                # proposition2_1 = chrom2h == chrom2w
+                # proposition3_1 = strand1h == strand1w
+                # proposition4_1 = strand2h == strand2w
+                # proposition5_1 = (strand1h == ".") or (strand1w == ".") 
+                # proposition6_1 = (strand2h == ".") or (strand2w == ".")
+                # proposition1_2 = chrom1h == chrom2w
+                # proposition2_2 = chrom2h == chrom1w
+                # proposition3_2 = strand1h == strand2w
+                # proposition4_2 = strand2h == strand1w
+                # proposition5_2 = (strand1h == ".") or (strand2w == ".")
+                # proposition6_2 =  (strand2h == ".") or (strand1w == ".")
+
+                #if ((chrom1h==chrom1w) and (chrom2h==chrom2w)) and (((strand1h==strand1w) or (strand1h==".") or (strand1w==".")) and ((strand2h==strand2w) or (strand2h==".") or (strand2w=="."))):
+                if (proposition1_1 and proposition2_1) and ((proposition3_1 or proposition5_1) and (proposition4_1 or proposition6_1)):
+                    if (chrom1h == chrom2h) and ((max(pos1h, pos2h) < min(pos1w, pos2w)) or (max(pos1w, pos2w) < min(pos1h, pos2h))):#overlapがない場合
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        distance_matrix[h, w] = max(np.abs(pos1h - pos1w), np.abs(pos2h - pos2w))
+                
+                elif (proposition1_2 and proposition2_2) and ((proposition3_2 or proposition5_2) and (proposition4_2 or proposition6_2)):
+                    if (chrom1h == chrom2h) and ((max(pos1h, pos2h) < min(pos1w, pos2w)) or (max(pos1w, pos2w) < min(pos1h, pos2h))):#overlapがない場合
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        distance_matrix[h, w] = max(np.abs(pos1h - pos2w), np.abs(pos2h - pos1w))
+        # connectivity = np.where(distance_matrix >= penalty_length, 0.0, 1.0)
+        hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
+        cluster_id = hcl_clustering_model.fit_predict(X = distance_matrix)
+        return cluster_id, distance_matrix
 
 class Vcf(Bedpe):
     """

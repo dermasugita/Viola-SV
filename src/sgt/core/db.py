@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import re
 from functools import reduce
-import time
 from typing import (
     List,
     Set,
@@ -799,12 +798,23 @@ class Bedpe(Indexer):
         return id_set
 
 
-    #def _overlap(pos11, pos21, pos12, pos22):
-    def _necessary_condition4merge(chr1, chr2, pos1, pos2, str1, str2):
+    def _nonoverlap(chr, pos1, pos2):
+        proposition_chr = chr[0] == chr[1]
+        proposition_pos = (max(pos1[0], pos2[0]) < min(pos1[1], pos2[1])) or (max(pos1[1], pos2[1]) < min(pos1[0], pos2[0]))
+        proposition = proposition_chr and proposition_pos
+        return proposition
+
+    def _necessary_condition4merge(chr1, chr2, pos1, pos2, str1, str2, str_missing=True):
         proposition_chr = (chr1[0] == chr1[1]) and (chr2[0] == chr2[1])
-        proposition_pos = (pos1[0] == pos1[1]) and (pos2[0]==pos2[1])
-        proposition_str = ((str1[0] == str1[1]) or (str1[0])==".") or (str1[1]=="."))
-        
+        proposition_pos = (pos1[0] == pos1[1]) and (pos2[0] == pos2[1])
+        if str_missing:
+            proposition_str = ((str1[0] == str1[1]) or (str1[0]==".") or (str1[1]==".")) and ((str2[0] == str2[1]) or (str2[0]==".") or (str2[1]=="."))
+        else:
+            proposition_str = (str1[0] == str1[1]) and (str2[0] == str2[1])
+
+        proposition = proposition_chr and proposition_pos and proposition_str
+        return proposition
+
 
     def _merge(self, ls_caller_names, ls_bedpe=[], threshold = None, linkage = "single"):
         """
@@ -833,45 +843,31 @@ class Bedpe(Indexer):
                     param[key_h] = value_h
                     param[key_w] = value_w
 
-                # chrom1h = positions_table.at[positions_table.index[h], "chrom1"]
-                # chrom2h = positions_table.at[positions_table.index[h], "chrom2"]
-                # strand1h = positions_table.at[positions_table.index[h], "strand1"]
-                # strand2h = positions_table.at[positions_table.index[h], "strand2"]
-                # pos1h = positions_table.at[positions_table.index[h], "pos1"]
-                # pos2h = positions_table.at[positions_table.index[h], "pos2"]
-                # chrom1w = positions_table.at[positions_table.index[w], "chrom1"]
-                # chrom2w = positions_table.at[positions_table.index[w], "chrom2"]
-                # strand1w = positions_table.at[positions_table.index[w], "strand1"]
-                # strand2w = positions_table.at[positions_table.index[w], "strand2"]
-                # pos1w = positions_table.at[positions_table.index[w], "pos1"]
-                # pos2w = positions_table.at[positions_table.index[w], "pos2"]
-
-                # proposition1_1 = chrom1h == chrom1w
-                # proposition2_1 = chrom2h == chrom2w
-                # proposition3_1 = strand1h == strand1w
-                # proposition4_1 = strand2h == strand2w
-                # proposition5_1 = (strand1h == ".") or (strand1w == ".") 
-                # proposition6_1 = (strand2h == ".") or (strand2w == ".")
-                # proposition1_2 = chrom1h == chrom2w
-                # proposition2_2 = chrom2h == chrom1w
-                # proposition3_2 = strand1h == strand2w
-                # proposition4_2 = strand2h == strand1w
-                # proposition5_2 = (strand1h == ".") or (strand2w == ".")
-                # proposition6_2 =  (strand2h == ".") or (strand1w == ".")
-
-                #if ((chrom1h==chrom1w) and (chrom2h==chrom2w)) and (((strand1h==strand1w) or (strand1h==".") or (strand1w==".")) and ((strand2h==strand2w) or (strand2h==".") or (strand2w=="."))):
-                if (proposition1_1 and proposition2_1) and ((proposition3_1 or proposition5_1) and (proposition4_1 or proposition6_1)):
+                #if (proposition1_1 and proposition2_1) and ((proposition3_1 or proposition5_1) and (proposition4_1 or proposition6_1)):
                     if (chrom1h == chrom2h) and ((max(pos1h, pos2h) < min(pos1w, pos2w)) or (max(pos1w, pos2w) < min(pos1h, pos2h))):#overlapがない場合
                         distance_matrix[h, w] = penalty_length
                     else:
                         distance_matrix[h, w] = max(np.abs(pos1h - pos1w), np.abs(pos2h - pos2w))
-                
-                elif (proposition1_2 and proposition2_2) and ((proposition3_2 or proposition5_2) and (proposition4_2 or proposition6_2)):
-                    if (chrom1h == chrom2h) and ((max(pos1h, pos2h) < min(pos1w, pos2w)) or (max(pos1w, pos2w) < min(pos1h, pos2h))):#overlapがない場合
+                if _necessary_condition4merge(chr1=[param["chr1h"], param["chr1w"]], chr2=[param["chr2h"], param["chr2w"]], 
+                                              pos1=[param["pos1h"], param["pos1w"]], pos2=[param["pos2h"], param["pos2w"]], 
+                                              str1=[param["str1h"], param["str1w"]], str2=[param["str2h"], param["str2w"]], str_missing=True):
+                    if _nonoverlap(chr=[param["chr1h"], param["chr2h"]], pos1=[param["pos1h"], param["pos1w"]], pos2=[param["pos2h"], param["pos2w"]]):
                         distance_matrix[h, w] = penalty_length
                     else:
-                        distance_matrix[h, w] = max(np.abs(pos1h - pos2w), np.abs(pos2h - pos1w))
+                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos1w"]), np.abs(param["pos2h"] - param["pos2w"]))                          
+
+                # elif (proposition1_2 and proposition2_2) and ((proposition3_2 or proposition5_2) and (proposition4_2 or proposition6_2)):
+                elif _necessary_condition4merge(chr1=[param["chr1h"], param["chr2w"]], chr2=[param["chr2h"], param["chr1w"]], 
+                                              pos1=[param["pos1h"], param["pos2w"]], pos2=[param["pos2h"], param["pos1w"]], 
+                                              str1=[param["str1h"], param["str2w"]], str2=[param["str2h"], param["str1w"]], str_missing=True):
+                    # if (chrom1h == chrom2h) and ((max(pos1h, pos2h) < min(pos1w, pos2w)) or (max(pos1w, pos2w) < min(pos1h, pos2h))):#overlapがない場合
+                    if _nonoverlap(chr=[param["chr1h"], param["chr2h"]], pos1=[param["pos1h"], param["pos1w"]], pos2=[param["pos2h"], param["pos2w"]]):
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        # distance_matrix[h, w] = max(np.abs(pos1h - pos2w), np.abs(pos2h - pos1w))
+                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos2w"]), np.abs(param["pos2h"] - param["pos1w"]))
         # connectivity = np.where(distance_matrix >= penalty_length, 0.0, 1.0)
+        print(param)#あとで消す
         hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
         cluster_id = hcl_clustering_model.fit_predict(X = distance_matrix)
         return cluster_id, distance_matrix

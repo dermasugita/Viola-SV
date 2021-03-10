@@ -822,10 +822,10 @@ class Bedpe(Indexer):
         threshold:threshold for being determined to be the identical SV
         """
 
-        if self in ls_bedpe:#ls_bedpeにはself入っていなくても良い
+        if self in ls_bedpe:
             pass
         else:
-            ls_bedpe = [self] + ls_bedpe
+            ls_bedpe = [self] + ls_bedpe#ls_bedpeにはself入っていなくても良い
         multibedpe = sgt.MultiBedpe(ls_bedpe, ls_caller_names)
         positions_table = multibedpe.get_table("positions")
         N = len(positions_table)#the number of samples
@@ -835,7 +835,7 @@ class Bedpe(Indexer):
         for h in range(N):
             for w in range(N):
                 param = {}
-                for col in columns:
+                for col in columns:#I want to create these variables dynamically
                     key_h = col[:3] + col[-1] + "h"
                     value_h = positions_table.at[positions_table.index[h], col]
                     key_w = col[:3] + col[-1] + "w"

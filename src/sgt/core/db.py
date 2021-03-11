@@ -921,7 +921,31 @@ class Vcf(Bedpe):
 
         str_file_header = "##fileformat=VCFv4.1\n##fileDate=20200417\n##source=GenerateSVCandidates 1.6.0\n##reference=file:///data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa\n"
         def get_contig():
-            return "contig\n"
+            return """\
+##contig=<ID=chr10,length=130694993>
+##contig=<ID=chr11,length=122082543>
+##contig=<ID=chr12,length=120129022>
+##contig=<ID=chr13,length=120421639>
+##contig=<ID=chr14,length=124902244>
+##contig=<ID=chr15,length=104043685>
+##contig=<ID=chr16,length=98207768>
+##contig=<ID=chr17,length=94987271>
+##contig=<ID=chr18,length=90702639>
+##contig=<ID=chr19,length=61431566>
+##contig=<ID=chr1,length=195471971>
+##contig=<ID=chr2,length=182113224>
+##contig=<ID=chr3,length=160039680>
+##contig=<ID=chr4,length=156508116>
+##contig=<ID=chr5,length=151834684>
+##contig=<ID=chr6,length=149736546>
+##contig=<ID=chr7,length=145441459>
+##contig=<ID=chr8,length=129401213>
+##contig=<ID=chr9,length=124595110>
+##contig=<ID=chrM,length=16299>
+##contig=<ID=chrX,length=171031299>
+##contig=<ID=chrY,length=91744698>
+"""
+
         def get_info():
             str_info = ""
             for row in self.get_table("infos_meta").itertuples():
@@ -943,8 +967,18 @@ class Vcf(Bedpe):
         ls_header[0:8] = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'INFO', 'FORMAT']
         str_header = "\t".join(ls_header)
         str_header += "\n"
-        str_format_filter_alt_others = "formatfilteraltothers\n"
-        ls_vcf_data = [str_file_header, str_contig, str_info, str_header, str_format_filter_alt_others, str_table]
+        str_format_filter_alt_others = """##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
+##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
+##FILTER=<ID=MaxDepth,Description="Normal sample site depth is greater than 3x the median chromosome depth near one or both variant breakends">
+##FILTER=<ID=MinSomaticScore,Description="Somatic score is less than 30">
+##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases) in the normal sample, the fraction of reads with MAPQ0 around either breakend exceeds 0.4">
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##cmdline=/home/sugita/miniconda3/envs/manta/bin/configManta.py --normalBam /nvme/sugita/bam/1N_marked_BQSR.bam.bam --tumorBam /nvme/sugita/bam/1T_marked_BQSR.bam.bam --referenceFasta /data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa --runDir /nvme/sugita/manta/mouse1 --generateEvidenceBam --outputContig"""
+
+        ls_vcf_data = [str_file_header, str_contig, str_info,  str_format_filter_alt_others, str_header, str_table]
 
         print(os.getcwd())
 

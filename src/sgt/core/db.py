@@ -840,20 +840,20 @@ class Bedpe(Indexer):
         Return a merged bedpe object from several caller's bedpe objects
 
         Parameters
-        -------------
+        ----------
         ls_caller_names:list
             a list of names of bedpe objects to be merged, which should have self's name as the first element
         threshold:float
             Two SVs whose diference of positions is under this threshold are cosidered to be the same.
         ls_bedpe:list
             a list of bedpe objects to be merged
-        linkage:"ward", ""
+        linkage:{‘ward’, ‘complete’, ‘average’, ‘single’}, default=’complete’
             the linkage of hierachial clustering
-        str_missing:boolean
+        str_missing:boolean, default="True"
             If True, all the missing strands are considered to be identical to the others. 
 
         Returns
-        -------------
+        ----------
         A Bedpe object
             A set of ids except which satisfies the argument
         """
@@ -923,6 +923,7 @@ class Bedpe(Indexer):
         odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
         args = [positions_table, odict_df_infos]
         merged_bedpe = sgt.Bedpe(*args)
+        
         return merged_bedpe
 
 class Vcf(Bedpe):

@@ -18,6 +18,7 @@ from sgt._typing import (
 )
 from sgt._exceptions import (
     TableNotFoundError,
+    InfoNotFoundError,
 )
 
 class Bedpe(Indexer):

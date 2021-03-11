@@ -2,7 +2,28 @@
 ##fileDate=20200417
 ##source=GenerateSVCandidates 1.6.0
 ##reference=file:///data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa
-contig
+##contig=<ID=chr10,length=130694993>
+##contig=<ID=chr11,length=122082543>
+##contig=<ID=chr12,length=120129022>
+##contig=<ID=chr13,length=120421639>
+##contig=<ID=chr14,length=124902244>
+##contig=<ID=chr15,length=104043685>
+##contig=<ID=chr16,length=98207768>
+##contig=<ID=chr17,length=94987271>
+##contig=<ID=chr18,length=90702639>
+##contig=<ID=chr19,length=61431566>
+##contig=<ID=chr1,length=195471971>
+##contig=<ID=chr2,length=182113224>
+##contig=<ID=chr3,length=160039680>
+##contig=<ID=chr4,length=156508116>
+##contig=<ID=chr5,length=151834684>
+##contig=<ID=chr6,length=149736546>
+##contig=<ID=chr7,length=145441459>
+##contig=<ID=chr8,length=129401213>
+##contig=<ID=chr9,length=124595110>
+##contig=<ID=chrM,length=16299>
+##contig=<ID=chrX,length=171031299>
+##contig=<ID=chrY,length=91744698>
 ##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
 ##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
@@ -26,8 +47,16 @@ contig
 ##INFO=<ID=JUNCTION_SOMATICSCORE,Number=1,Type=Integer,Description="If the SV junctino is part of an EVENT (ie. a multi-adjacency variant), this field provides the SOMATICSCORE value for the adjacency in question only">
 ##INFO=<ID=INV3,Number=0,Type=Flag,Description="Inversion breakends open 3' of reported location">
 ##INFO=<ID=INV5,Number=0,Type=Flag,Description="Inversion breakends open 5' of reported location">
-#CHROM	POS	ID	REF	ALT	QUAL	INFO	FORMAT	mouse1_N	mouse1_T
-formatfilteraltothers
+##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
+##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
+##FILTER=<ID=MaxDepth,Description="Normal sample site depth is greater than 3x the median chromosome depth near one or both variant breakends">
+##FILTER=<ID=MinSomaticScore,Description="Somatic score is less than 30">
+##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases) in the normal sample, the fraction of reads with MAPQ0 around either breakend exceeds 0.4">
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##cmdline=/home/sugita/miniconda3/envs/manta/bin/configManta.py --normalBam /nvme/sugita/bam/1N_marked_BQSR.bam.bam --tumorBam /nvme/sugita/bam/1T_marked_BQSR.bam.bam --referenceFasta /data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa --runDir /nvme/sugita/manta/mouse1 --generateEvidenceBam --outputContig#CHROM	POS	ID	REF	ALT	QUAL	INFO	FORMAT	mouse1_N	mouse1_T
 chr10	22814217	MantaINV:1038:0:1:0:0:0	T	<INV>		IMPRECISE;SVTYPE=INV;SVLEN=69766915;END=92581131,51,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
 chr10	23740686	MantaBND:8:178:221:0:0:0:0	G	[chr12:105259494[G		IMPRECISE;SVTYPE=BND,79;MATEID=MantaBND:8:178:221:0:0:0:1;BND_DEPTH=22;MATE_BND_DEPTH=42;SOMATIC;SOMATICSCORE=18	PR	8,0	39,5
 chr10	34864101	MantaBND:8:87226:87227:0:0:0:0	A	]chr8:118855779]CA		SVTYPE=BND;MATEID=MantaBND:8:87226:87227:0:0:0:1;SVINSLEN=1;SVINSSEQ=C;CONTIG=AGAGAGGGAGGGAGGGAGAGAGAAAGGAGGGAGGGAGGAGGGAAAAAAGAGAAGGGAGGAAGGAAGAGAGAAGGAAACAGTGTTGCCAACTTCCTCAAGGACCAGTCAATACTAAAGAGTGAATTTCCAGAACTGCAGTGTGTTCAACATTGGAAAACTGTTGCTAGATGAACTGTTGCCTTCTGACACTGACAGTGACATCAGGGTGAGTTGCCACTC;BND_DEPTH=35;MATE_BND_DEPTH=35;SOMATIC;SOMATICSCORE=28	PR:SR	19,0:51,0	46,2:140,3

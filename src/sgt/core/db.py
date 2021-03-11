@@ -798,16 +798,34 @@ class Bedpe(Indexer):
         return id_set
 
 
-    def _nonoverlap(self, chr, pos1, pos2):
+    def _nonoverlap(self, param):
+        chr = [param["chr1h"], param["chr2h"]]
+        pos1 = [param["pos1h"], param["pos1w"]]
+        pos2 = [param["pos2h"], param["pos2w"]]
         proposition_chr = chr[0] == chr[1]
         proposition_pos = (max(pos1[0], pos2[0]) < min(pos1[1], pos2[1])) or (max(pos1[1], pos2[1]) < min(pos1[0], pos2[0]))
         proposition = proposition_chr and proposition_pos
         return proposition
 
-    def _necessary_condition4merge(self, chr1, chr2, pos1, pos2, str1, str2, str_missing=True):
+    def _necessary_condition4merge(self, param, mode, str_missing=True):
+        if mode == "normal":
+            chr1 = [param["chr1h"], param["chr1w"]]
+            chr2 = [param["chr2h"], param["chr2w"]]
+            pos1 = [param["pos1h"], param["pos1w"]]
+            pos2 = [param["pos2h"], param["pos2w"]]
+            str1 = [param["str1h"], param["str1w"]]
+            str2 = [param["str2h"], param["str2w"]]
+        elif mode == "reverse":
+            chr1 = [param["chr1h"], param["chr2w"]]
+            chr2 = [param["chr2h"], param["chr1w"]]
+            pos1 = [param["pos1h"], param["pos2w"]]
+            pos2 = [param["pos2h"], param["pos1w"]]
+            str1 = [param["str1h"], param["str2w"]]
+            str2 = [param["str2h"], param["str1w"]]
+
         proposition_chr = (chr1[0] == chr1[1]) and (chr2[0] == chr2[1])
         proposition_pos = (pos1[0] == pos1[1]) and (pos2[0] == pos2[1])
-        if str_missing:
+        if str_missing: 
             proposition_str = ((str1[0] == str1[1]) or (str1[0]==".") or (str1[1]==".")) and ((str2[0] == str2[1]) or (str2[0]==".") or (str2[1]=="."))
         else:
             proposition_str = (str1[0] == str1[1]) and (str2[0] == str2[1])
@@ -816,10 +834,28 @@ class Bedpe(Indexer):
         return proposition
 
 
-    def _merge(self, ls_caller_names, threshold, ls_bedpe=[], linkage = "complete", str_missing=True):
+    def merge(self, ls_caller_names, threshold, ls_bedpe=[], linkage = "complete", str_missing=True):
         """
-        bedpe_list:a list of bedpes to be merged
-        threshold:threshold for being determined to be the identical SV
+        merge(ls_caller_names:list, threshold:float, ls_bedpe=[], linkage = "complete", str_missing=True)
+        Return a merged bedpe object from several caller's bedpe objects
+
+        Parameters
+        -------------
+        ls_caller_names:list
+            a list of names of bedpe objects to be merged, which should have self's name as the first element
+        threshold:float
+            Two SVs whose diference of positions is under this threshold are cosidered to be the same.
+        ls_bedpe:list
+            a list of bedpe objects to be merged
+        linkage:"ward", ""
+            the linkage of hierachial clustering
+        str_missing:boolean
+            If True, all the missing strands are considered to be identical to the others. 
+
+        Returns
+        -------------
+        A Bedpe object
+            A set of ids except which satisfies the argument
         """
         if self in ls_bedpe:
             pass
@@ -843,18 +879,14 @@ class Bedpe(Indexer):
                     param[key_h] = value_h
                     param[key_w] = value_w
 
-                if self._necessary_condition4merge(chr1=[param["chr1h"], param["chr1w"]], chr2=[param["chr2h"], param["chr2w"]], 
-                                              pos1=[param["pos1h"], param["pos1w"]], pos2=[param["pos2h"], param["pos2w"]], 
-                                              str1=[param["str1h"], param["str1w"]], str2=[param["str2h"], param["str2w"]], str_missing=str_missing):
-                    if self._nonoverlap(chr=[param["chr1h"], param["chr2h"]], pos1=[param["pos1h"], param["pos1w"]], pos2=[param["pos2h"], param["pos2w"]]):
+                if self._necessary_condition4merge(param = param, mode = "normal", str_missing = str_missing): 
+                    if self._nonoverlap(param=param):
                         distance_matrix[h, w] = penalty_length
                     else:
                         distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos1w"]), np.abs(param["pos2h"] - param["pos2w"]))                          
 
-                elif self._necessary_condition4merge(chr1=[param["chr1h"], param["chr2w"]], chr2=[param["chr2h"], param["chr1w"]], 
-                                              pos1=[param["pos1h"], param["pos2w"]], pos2=[param["pos2h"], param["pos1w"]], 
-                                              str1=[param["str1h"], param["str2w"]], str2=[param["str2h"], param["str1w"]], str_missing=str_missing):
-                    if self._nonoverlap(chr=[param["chr1h"], param["chr2h"]], pos1=[param["pos1h"], param["pos1w"]], pos2=[param["pos2h"], param["pos2w"]]):
+                elif self._necessary_condition4merge(param = param, mode = "reverse", str_missing = str_missing):
+                    if self._nonoverlap(param=param):
                         distance_matrix[h, w] = penalty_length
                     else:
                         distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos2w"]), np.abs(param["pos2h"] - param["pos1w"]))
@@ -862,8 +894,19 @@ class Bedpe(Indexer):
         hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
         labels = hcl_clustering_model.fit_predict(X = distance_matrix)
         
+        bpid_dict = {labels[0]:0}
+        ls_bpid = []
+        idx_head = 0
+        for label in labels:
+            if label in bpid_dict:
+                ls_bpid.append(bpid_dict[label])
+            else:
+                idx_head += 1
+                bpid_dict[label] = idx_head
+                ls_bpid.append(bpid_dict[label])
+
         value_idx = pd.Series(np.zeros(N, dtype=int))
-        df_bpid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "bpid":pd.Series(labels)})
+        df_bpid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "bpid":pd.Series(ls_bpid)})
         
         originalid = multibedpe.get_table("global_id")["id"]
         df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})

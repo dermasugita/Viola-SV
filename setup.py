@@ -26,6 +26,11 @@ setuptools.setup(
     url="https://github.com/dermasugita/SV_parser",
     packages=PACKAGES,
     package_dir={'': 'src'},
+    entry_points={
+        "console_scripts":[
+            "vcf2bedpe=sgt.cli.vcf2bedpe:main",
+        ]
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "Intended Audience :: Science/Research",

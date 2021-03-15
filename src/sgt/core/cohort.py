@@ -273,10 +273,7 @@ class MultiVcf(Vcf):
         self._ls_infokeys = [ x.lower() for x in odict_df_headers['infos_meta']['id'].tolist()]
         ls_keys = ['global_id', 'positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(odict_df_headers.keys())
-        print(len(ls_keys))
         ls_values = [df_id, df_svpos, df_filters] + list(odict_df_info.values()) + [df_formats] + list(odict_df_headers.values())
-        print(len(ls_values))
-        print(len([(k, v) for k, v in zip(ls_keys, ls_values)]))
         self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,

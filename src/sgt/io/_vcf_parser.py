@@ -208,7 +208,7 @@ def read_vcf_delly(vcf_reader):
     df_infos_meta = pd.DataFrame(odict_infos, index=('id', 'number', 'type', 'description', 'source', 'version')).T.reset_index(drop=True)
     ## Delly
     df_infos_meta.loc[df_infos_meta['id'] == 'SVLEN', 'id'] = 'SVLENORG'
-    df_infos_meta = df_infos_meta.append({'id':'SVLEN', 'number':1, 'type':'Integer', 'description':'Length of SV', 'source':None, 'version':None}, ignore_index=True)
+    df_infos_meta = df_infos_meta.append({'id':'SVLEN', 'number':None, 'type':'Integer', 'description':'Length of SV', 'source':None, 'version':None}, ignore_index=True)
     ## /Delly
 
     # obtain FORMAT informations

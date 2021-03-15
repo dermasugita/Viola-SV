@@ -1054,7 +1054,7 @@ class Vcf(Bedpe):
     def __str__(self):
         return super().__repr__() 
     
-    def create_info_table(self, table_name, table, number, type_, description, source=None, version=None):
+    def add_info_table(self, table_name, table, number, type_, description, source=None, version=None):
         self._ls_infokeys += [table_name]
         self._odict_alltables[table_name] = table
         df_meta = self.get_table('infos_meta')
@@ -1510,8 +1510,8 @@ class Vcf(Bedpe):
         right_name = annotation + suffix[1]
         df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
-        self.create_info_table(left_name, df_left, 0, type_="Flag", description=description)
-        self.create_info_table(right_name, df_right, 0, type_="Flag", description=description)
+        self.add_info_table(left_name, df_left, 0, type_="Flag", description=description)
+        self.add_info_table(right_name, df_right, 0, type_="Flag", description=description)
     
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """

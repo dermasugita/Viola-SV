@@ -209,7 +209,6 @@ def read_vcf_delly(vcf_reader):
     ## Delly
     df_infos_meta.loc[df_infos_meta['id'] == 'SVLEN', 'id'] = 'SVLENORG'
     df_infos_meta = df_infos_meta.append({'id':'SVLEN', 'number':1, 'type':'Integer', 'description':'Length of SV', 'source':None, 'version':None}, ignore_index=True)
-    print(df_infos_meta)
     ## /Delly
 
     # obtain FORMAT informations

@@ -866,7 +866,7 @@ class Bedpe(Indexer):
     def merge(self, ls_caller_names, threshold, ls_bedpe=[], linkage = "complete", str_missing=True):
         """
         merge(ls_caller_names:list, threshold:float, ls_bedpe=[], linkage = "complete", str_missing=True)
-        Return a merged bedpe object from several caller's bedpe objects
+        Return a merged bedpe object from mulitple  caller's bedpe objects in ls_bedpe
 
         Parameters
         ----------
@@ -877,14 +877,14 @@ class Bedpe(Indexer):
         ls_bedpe:list
             a list of bedpe objects to be merged
         linkage:{‘ward’, ‘complete’, ‘average’, ‘single’}, default=’complete’
-            the linkage of hierachial clustering
+            the linkage of hierarchical clustering
         str_missing:boolean, default="True"
             If True, all the missing strands are considered to be identical to the others. 
 
         Returns
         ----------
-        A Bedpe object
-            A set of ids except which satisfies the argument
+        A merged bedpe object
+            
         """
         if self in ls_bedpe:
             pass
@@ -909,13 +909,13 @@ class Bedpe(Indexer):
                     param[key_w] = value_w
 
                 if self._necessary_condition4merge(param = param, mode = "normal", str_missing = str_missing): 
-                    if self._nonoverlap(param=param):
+                    if self._nonoverlap(param = param):
                         distance_matrix[h, w] = penalty_length
                     else:
                         distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos1w"]), np.abs(param["pos2h"] - param["pos2w"]))                          
 
                 elif self._necessary_condition4merge(param = param, mode = "reverse", str_missing = str_missing):
-                    if self._nonoverlap(param=param):
+                    if self._nonoverlap(param = param):
                         distance_matrix[h, w] = penalty_length
                     else:
                         distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos2w"]), np.abs(param["pos2h"] - param["pos1w"]))

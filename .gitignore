@@ -54,6 +54,7 @@ coverage.xml
 *.ipynb
 .ipynb_checkpoints
 .ipynb_checkpoints/
+*.ipynb
 
 # pyenv
 .python-version

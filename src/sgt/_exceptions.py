@@ -3,3 +3,6 @@ class TableNotFoundError(KeyError):
 
 class InfoNotFoundError(KeyError):
     pass
+
+class ContigNotFoundError(KeyError):
+    pass

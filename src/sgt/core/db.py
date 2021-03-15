@@ -1,6 +1,8 @@
 import os,sys
 import numpy as np
 import pandas as pd
+import re
+from functools import reduce
 from typing import (
     List,
     Set,
@@ -19,7 +21,10 @@ from sgt._typing import (
 from sgt._exceptions import (
     TableNotFoundError,
     InfoNotFoundError,
+    ContigNotFoundError,
 )
+
+from sklearn.cluster import AgglomerativeClustering
 
 class Bedpe(Indexer):
     """
@@ -78,8 +83,8 @@ class Bedpe(Indexer):
     _internal_attrs_set = set(_internal_attrs)
     _repr_column_names = [
         "id",
-        "bp1",
-        "bp2",
+        "be1",
+        "be2",
         "strand",
         "qual",
         "svtype",
@@ -385,6 +390,8 @@ class Bedpe(Indexer):
 
             if sq_dtype == 'Integer':
                 sq[-1] = int(sq[-1])
+            elif sq_dtype == 'Float':
+                sq[-1] = float(sq[-1])
             elif sq_dtype == 'String':
                 sq[-1] = str(sq[-1])
             elif sq_dtype =='Flag':
@@ -409,14 +416,21 @@ class Bedpe(Indexer):
         
         # is_locus?
         if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
-            print(sq0)
             split_locus = sq[1].split(':')
+            chrom = split_locus[0]
+            if chrom.startswith('!'):
+                exclude_flag = True
+                chrom = chrom[1:]
+            else:
+                exclude_flag = False
+            
+            if chrom not in self.contigs:
+                raise ContigNotFoundError(chrom)
+
             if len(split_locus) == 1:
-                chrom = split_locus[0]
                 st = None
                 en = None
             elif len(split_locus) == 2:
-                chrom = split_locus[0]
                 split_locus_coord = split_locus[1].split('-')
                 if len(split_locus_coord) == 1:
                     st = int(split_locus_coord[0])
@@ -438,7 +452,12 @@ class Bedpe(Indexer):
             elif sq0 in ['be2', 'pos2']:
                 pos_num = 2
             
-            return self._filter_by_positions(pos_num, chrom, st, en)
+            args = [pos_num, chrom, st, en]
+
+            if exclude_flag:
+                return self._filter_by_positions_exclude(*args)
+            
+            return self._filter_by_positions(*args)
             
             
 
@@ -575,7 +594,11 @@ class Bedpe(Indexer):
             set_out = self.get_ids() - set_out
         return set_out
     
-    def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right']):
+    def annotate_bed(self,
+        bed: Bed,
+        annotation: str,
+        how: str = 'flag',
+        suffix=['left', 'right']):
         """
         annotate_bed(bed, annotation, suffix=['left', 'right'])
         Annotate SV breakpoints using Bed class object.
@@ -589,6 +612,9 @@ class Bedpe(Indexer):
         annotation: str
             The label of annotation.
             The suffixes will be attached then added as INFO table.
+        how: str ['flag', 'value'], default 'flag'
+            If 'flag', Annotate True when a breakend is in Bed, otherwise False.
+            If 'value', Annotate values in the Bed.
         suffix: List[str], default ['left', 'right']
             The suffix that attached after annotation label specified above.
         """
@@ -605,10 +631,22 @@ class Bedpe(Indexer):
             df_bp1 = bed.query(chrom1, pos1)
             df_bp2 = bed.query(chrom2, pos2)
 
-            if not df_bp1.empty:
-                ls_left.append([svid, 0, True])
-            if not df_bp2.empty:
-                ls_right.append([svid, 0, True])
+            if how == 'flag':
+                if not df_bp1.empty:
+                    ls_left.append([svid, 0, True])
+                if not df_bp2.empty:
+                    ls_right.append([svid, 0, True])
+            elif how == 'value':
+                if not df_bp1.empty:
+                    j = 0
+                    for idx_inner, query_result in df_bp1.iterrows():
+                        ls_left.append([svid, j, query_result['name']])
+                        j += 1
+                if not df_bp2.empty:
+                    j = 0
+                    for idx_inner, query_result in df_bp2.iterrows():
+                        ls_right.append([svid, j, query_result['name']])
+                        j += 1
         left_name = annotation + suffix[0]
         right_name = annotation + suffix[1]
         df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
@@ -651,7 +689,28 @@ class Bedpe(Indexer):
         df_homseq = pd.DataFrame(ls_homseq, columns=('id', 'value_idx', 'homseq'))
         self.add_info_table('homlen', df_homlen)
         self.add_info_table('homseq', df_homseq)
-
+    
+    def calculate_info(self, operation, name):
+        """
+        calculate_info(operation, name)
+        Calculate values of INFO tables according to the 'operation' argument and add a new INFO table as the result.
+        """
+        ls_matched = re.findall(r'\${[^}]*}', operation)
+        ls_infonames = [s[2:-1] for s in ls_matched]
+        ls_df_info = []
+        operation_replaced = operation
+        for idx, infoname in enumerate(ls_infonames):
+            # check the info names are valid
+            if infoname not in self.table_list:
+                raise TableNotFoundError(infoname)
+            ls_df_info.append(self.get_table(infoname))
+            operation_replaced = operation_replaced.replace(ls_matched[idx], 'df_merged["'+infoname+'"]')
+        df_merged = reduce(lambda left, right: pd.merge(left, right, on=['id', 'value_idx']), ls_df_info)
+        ser_result = eval(operation_replaced)
+        df_merged[name] = ser_result
+        df_to_add = df_merged[['id', 'value_idx', name]]
+        self.add_info_table(name, df_to_add)
+        
 
 
 
@@ -767,6 +826,134 @@ class Bedpe(Indexer):
         return id_set
 
 
+    def _nonoverlap(self, param):
+        chr = [param["chr1h"], param["chr2h"]]
+        pos1 = [param["pos1h"], param["pos1w"]]
+        pos2 = [param["pos2h"], param["pos2w"]]
+        proposition_chr = chr[0] == chr[1]
+        proposition_pos = (max(pos1[0], pos2[0]) < min(pos1[1], pos2[1])) or (max(pos1[1], pos2[1]) < min(pos1[0], pos2[0]))
+        proposition = proposition_chr and proposition_pos
+        return proposition
+
+    def _necessary_condition4merge(self, param, mode, str_missing=True):
+        if mode == "normal":
+            chr1 = [param["chr1h"], param["chr1w"]]
+            chr2 = [param["chr2h"], param["chr2w"]]
+            pos1 = [param["pos1h"], param["pos1w"]]
+            pos2 = [param["pos2h"], param["pos2w"]]
+            str1 = [param["str1h"], param["str1w"]]
+            str2 = [param["str2h"], param["str2w"]]
+        elif mode == "reverse":
+            chr1 = [param["chr1h"], param["chr2w"]]
+            chr2 = [param["chr2h"], param["chr1w"]]
+            pos1 = [param["pos1h"], param["pos2w"]]
+            pos2 = [param["pos2h"], param["pos1w"]]
+            str1 = [param["str1h"], param["str2w"]]
+            str2 = [param["str2h"], param["str1w"]]
+
+        proposition_chr = (chr1[0] == chr1[1]) and (chr2[0] == chr2[1])
+        proposition_pos = (pos1[0] == pos1[1]) and (pos2[0] == pos2[1])
+        if str_missing: 
+            proposition_str = ((str1[0] == str1[1]) or (str1[0]==".") or (str1[1]==".")) and ((str2[0] == str2[1]) or (str2[0]==".") or (str2[1]=="."))
+        else:
+            proposition_str = (str1[0] == str1[1]) and (str2[0] == str2[1])
+
+        proposition = proposition_chr and proposition_pos and proposition_str
+        return proposition
+
+
+    def merge(self, ls_caller_names, threshold, ls_bedpe=[], linkage = "complete", str_missing=True):
+        """
+        merge(ls_caller_names:list, threshold:float, ls_bedpe=[], linkage = "complete", str_missing=True)
+        Return a merged bedpe object from several caller's bedpe objects
+
+        Parameters
+        ----------
+        ls_caller_names:list
+            a list of names of bedpe objects to be merged, which should have self's name as the first element
+        threshold:float
+            Two SVs whose diference of positions is under this threshold are cosidered to be the same.
+        ls_bedpe:list
+            a list of bedpe objects to be merged
+        linkage:{‘ward’, ‘complete’, ‘average’, ‘single’}, default=’complete’
+            the linkage of hierachial clustering
+        str_missing:boolean, default="True"
+            If True, all the missing strands are considered to be identical to the others. 
+
+        Returns
+        ----------
+        A Bedpe object
+            A set of ids except which satisfies the argument
+        """
+        if self in ls_bedpe:
+            pass
+        else:
+            ls_bedpe = [self] + ls_bedpe#ls_bedpeにはself入っていなくても良い
+
+        multibedpe = sgt.MultiBedpe(ls_bedpe, ls_caller_names)
+        positions_table = multibedpe.get_table("positions")
+        N = len(positions_table)#the number of samples
+        penalty_length = 3e9#whole genome length
+        distance_matrix = np.full((N,N), penalty_length)
+        columns = ["chrom1", "chrom2", "pos1", "pos2", "strand1", "strand2"]
+        for h in range(N):
+            for w in range(N):
+                param = {}
+                for col in columns:#want to create these variables dynamically
+                    key_h = col[:3] + col[-1] + "h"
+                    value_h = positions_table.at[positions_table.index[h], col]
+                    key_w = col[:3] + col[-1] + "w"
+                    value_w = positions_table.at[positions_table.index[w], col]
+                    param[key_h] = value_h
+                    param[key_w] = value_w
+
+                if self._necessary_condition4merge(param = param, mode = "normal", str_missing = str_missing): 
+                    if self._nonoverlap(param=param):
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos1w"]), np.abs(param["pos2h"] - param["pos2w"]))                          
+
+                elif self._necessary_condition4merge(param = param, mode = "reverse", str_missing = str_missing):
+                    if self._nonoverlap(param=param):
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos2w"]), np.abs(param["pos2h"] - param["pos1w"]))
+        
+        hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
+        labels = hcl_clustering_model.fit_predict(X = distance_matrix)
+        
+        bpid_dict = {labels[0]:0}
+        ls_bpid = []
+        idx_head = 0
+        for label in labels:
+            if label in bpid_dict:
+                ls_bpid.append(bpid_dict[label])
+            else:
+                idx_head += 1
+                bpid_dict[label] = idx_head
+                ls_bpid.append(bpid_dict[label])
+
+        value_idx = pd.Series(np.zeros(N, dtype=int))
+        df_bpid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "bpid":pd.Series(ls_bpid)})
+        
+        originalid = multibedpe.get_table("global_id")["id"]
+        df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
+        
+        caller = multibedpe.get_table("global_id")["patients"]
+        df_caller = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "caller":caller})
+
+        ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend']
+        ls_df_infos = []
+        for i in ls_infokeys:
+            ls_df_infos.append(multibedpe.get_table(i))
+        ls_infokeys = ls_infokeys + ["bpid", "originalid", "caller"]
+        ls_df_infos = ls_df_infos + [df_bpid, df_originalid, df_caller]
+        odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
+        args = [positions_table, odict_df_infos]
+        merged_bedpe = sgt.Bedpe(*args)
+        
+        return merged_bedpe
+
 class Vcf(Bedpe):
     """
     Relational database-like object containing SV position dataframes,
@@ -812,6 +999,27 @@ class Vcf(Bedpe):
         The ('id', 'sample', 'format') are the foreign key coming from 
         (df_svpos, samples_meta, format_meta) table, respectively.
     """
+    _internal_attrs = [
+        "_df_svpos",
+        "_df_filters",
+        "_odict_df_info",
+        "_df_formats",
+        "_ls_infokeys",
+        "_odict_df_headers",
+        "_odict_alltables",
+        "_repr_config",
+        "_sig_criteria"
+    ]
+    _internal_attrs_set = set(_internal_attrs)
+    _repr_column_names = [
+        "id",
+        "be1",
+        "be2",
+        "strand",
+        "qual",
+        "svtype",
+    ]
+    _repr_column_names_set = set(_repr_column_names)
     def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
@@ -1021,7 +1229,7 @@ class Vcf(Bedpe):
             Otherwise, breakpoints are represented by a single-nucleotide resolution.
         unique_events: bool, default False
         
-        Returns
+        Returns 
         ---------------
         DataFrame
             A Dataframe in bedpe-like format.
@@ -1173,12 +1381,18 @@ class Vcf(Bedpe):
         # is_locus?
         if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
             split_locus = sq[1].split(':')
+            chrom = split_locus[0]
+            if chrom.startswith('!'):
+                exclude_flag = True
+                chrom = chrom[1:]
+            else:
+                exclude_flag = False
+            if chrom not in self.contigs:
+                raise ContigNotFoundError(chrom)
             if len(split_locus) == 1:
-                chrom = split_locus[0]
                 st = None
                 en = None
             elif len(split_locus) == 2:
-                chrom = split_locus[0]
                 split_locus_coord = split_locus[1].split('-')
                 if len(split_locus_coord) == 1:
                     st = int(split_locus_coord[0])
@@ -1200,8 +1414,11 @@ class Vcf(Bedpe):
             elif sq0 in ['be2', 'pos2']:
                 pos_num = 2
 
+            args = [pos_num, chrom, st, en]
             
-            return self._filter_by_positions(pos_num, chrom, st, en)
+            if exclude_flag:
+                return self._filter_by_positions_exclude(*args)
+            return self._filter_by_positions(*args)
 
     def filter(self, ls_query, query_logic='and'):
         """
@@ -1267,6 +1484,9 @@ class Vcf(Bedpe):
         df_target = df.loc[target_q]
         e = "df_target.loc[df_target['value'] {0} threshold]['id']".format(operator)
         return set(eval(e))
+    
+    def _filter_header(self, tablename):
+        pass
 
     def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right'], description=None):
         df_svpos = self.get_table('positions')
@@ -1309,8 +1529,9 @@ class Vcf(Bedpe):
         set_result_ids = set_all_ids - set_to_subtract
         return set_result_ids
 
-    def get_unique_events(self):
-        set_result_ids = self._get_unique_events_ids()
-        return self.filter_by_id(set_result_ids)
+    def remove_duplicated_records(self):
+        if 'event' not in self._ls_infokeys:
+            return
+        print(self.get_table('event'))
     
             

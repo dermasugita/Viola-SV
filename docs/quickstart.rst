@@ -112,40 +112,47 @@ PySgt has a query system that is easy to understand.
 
 First, let's look at a couple of examples.
 
+
+**a. Filter with SVTYPE of the INFO field.**
+``syntax: "<INFO name> [<value indexer>] <operator> <value>"``
+
+- <value indexer> is optional. 
+- The <value indexer> is a 0-origin indexer which allows you to specify which of the comma-separated INFOs, such as CIPOS, should be filtered.
+- The following syntax can also be used for other INFO.
+
 .. ipython:: python
    
    # filter with svtype.
    query1_1 = 'svtype == DEL'
-   sgt_object1_1 = sgt_object.filter(query1_1)
-   result1_1 = sgt_object1_1.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
-   print(result1_1)
+   sgt_object.filter(query1_1)
+
+**b. Filter with genomic coordinates.**
+``syntax: "<'be1'|'be2'> <chromosome>[:[<start position>]-[<end position>]]"``
+
+- 'be' stands for 'breakend'.
+- If you skip <start position> with the minus sign kept, you can get all SV record younger than <end position>, and vice versa if you skip <end position>.
+- Note that <start position>-<end position> specifies genomic coordinates with left-closed, right-open interval, that is, [<start position>, <end position>).
 
 .. ipython:: python
    :okexcept:
 
    # filter with genomic coordinates.
-   query1_2 = 'be1 chr11'
-   query1_3 = 'be2 chr1:69583189-'
-   sgt_object1_2 = sgt_object.filter(query1_2)
-   result1_2 = sgt_object1_2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
-   sgt_object1_3 = sgt_object.filter(query1_3)
-   result1_3 = sgt_object1_3.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
-   print(result1_2)
-   print(result1_3)
+   sgt_object.filter('be1 chr11')
+   sgt_object.filter('be1 !chr1')
+   sgt_object.filter('be2 chr1:69583189-')
+
+**c. Filter with FORMAT table**
+``syntax: "<sample name> <FORMAT name> [<FORMAT indexer>] <operator> <value>``
+
+- FORMAT indexer is optional. It is not required when the FORMAT isn't separated by commas.
+- FORMAT indexer is 0-origin. Default value is 0.
 
 .. ipython:: python
    :okexcept:
 
-   # filter with FORMAT table
-   # query format: "<sample name> <FORMAT name> [<FORMAT indexer>] <operator> <value>"
-   # FORMAT indexer is optional. It is not required when the FORMAT isn't separated by commas.
-   # FORMAT indexer is 0-origin. Default value is 0.
-   query1_4 = 'sample1_T PR 1 > 5'
-   sgt_object1_4 = sgt_object.filter(query1_4)
-   result1_4 = sgt_object1_4.to_bedpe_like(add_formats=True)
-   print(result1_4)
+   sgt_object.filter('sample1_T PR 1 > 5').to_bedpe_like(add_formats=True)
 
-Query can be a list.
+**d. Query can be a list**
 
 .. ipython:: python
    
@@ -154,3 +161,7 @@ Query can be a list.
    sgt_object2 = sgt_object.filter([query2_1, query2_2], query_logic='and')
    result2 = sgt_object2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
    print(result2)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2) Filter with SV ID using filter_by_id method 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

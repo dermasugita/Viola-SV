@@ -1,4 +1,4 @@
-import sgt
+import viola
 import pandas as pd
 from io import StringIO
 import os
@@ -10,13 +10,13 @@ chr3\t100\t130\tchr3\t210\t230\ttest2\t30\t-\t+
 """
     filepath = os.path.join(HERE, '../../resources/pcawg/00493087-9d9d-40ca-86d5-936f1b951c93.pcawg_consensus_1.6.161116.somatic.sv.bedpe')
     b = StringIO(data)
-    obj = sgt.read_bedpe(b)
+    obj = viola.read_bedpe(b)
     def test_read_bedpe_from_files(self):
-        sgt.read_bedpe(self.filepath)
+        viola.read_bedpe(self.filepath)
 
     def test_read_bedpe(self):
         b = StringIO(self.data)
-        sgt.read_bedpe(b)
+        viola.read_bedpe(b)
     
     def test_svpos(self):
         expected_data = """id\tchrom1\tpos1\tchrom2\tpos2\tstrand1\tstrand2\tqual\tsvtype\tref\talt
@@ -34,5 +34,5 @@ test2\tchr1\t10\tchr1\t10\t+\t-\tDEL\tN
 """
         b = StringIO(test_data)
         df_svpos = pd.read_csv(b, sep="\t")
-        result = sgt.io.parser.create_alt_field_from_position(df_svpos)
+        result = viola.io.parser.create_alt_field_from_position(df_svpos)
         

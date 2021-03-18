@@ -4,8 +4,8 @@ import urllib
 import gzip
 from io import StringIO, BytesIO
 from Bio import SeqIO
-from sgt.core.fasta import Fasta
-from sgt.utils.utils import is_url
+from viola.core.fasta import Fasta
+from viola.utils.utils import is_url
 
 def read_fasta(path_or_url):
     if is_url(path_or_url):

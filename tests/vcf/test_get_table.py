@@ -1,11 +1,11 @@
-import sgt
+import viola
 import pytest
-from sgt._exceptions import (
+from viola._exceptions import (
     TableNotFoundError,
 )
 
 def test_get_table():
-    data = sgt.read_vcf('resources/vcf/manta1.vcf')
+    data = viola.read_vcf('resources/vcf/manta1.vcf')
 
     # get positions table
     positions = data.get_table('positions')

@@ -1,7 +1,7 @@
 import vcf
 import pandas as pd
 from collections import OrderedDict
-from sgt.core.db import Vcf
+from viola.core.db import Vcf
 
 ################################################
 # Manta

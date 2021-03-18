@@ -9,16 +9,21 @@
 ===========
 Quick Start
 ===========
-This is a short example how to analyse vcf files.
+This is a short example how to manage VCF files.
 
 After you have read this page, you can
 
 * Import PySgt package to your script.
-* Read vcf file to create PySgt core object.
-* Convert the vcf file into a bedpe file, with any features you want such as INFO fields, and FORMAT fields.
+* Read VCF file to create PySgt core object.
+* Convert the VCF file into a BEDPE file, with any features you want such as INFO fields, and FORMAT fields.
 * Filter the SVs by any features, including genomic positions, INFO fields, and FORMAT fields.
 
-If you want to learn how to analyse SV signature with this package, see `Signature Analysis Tutorial<signature_analysis>`.
+See Also:
+
+*  :ref:`Signature Analysis Tutorial<signature_analysis>`
+*  :ref:`API Reference<api_reference>`
+
+
 
 ---------------------------
 Import PySgt to your script
@@ -43,6 +48,8 @@ In order to use PySgt's features, you must first run :doc:`read_vcf<reference/ap
 
 Now you're ready to perform a number of functions that the PySgt package has.
 
+To learn detail data structure of Vcf object, see :ref:`PySgt's Data Structure<data_structure>`.
+
 --------------------------------------
 Viewing the contents of Vcf object
 --------------------------------------
@@ -60,7 +67,7 @@ To do so, you have three options.
    print(sgt_object)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2) Generate bedpe like pandas.DataFrame.
+2) Generate BEDPE like pandas.DataFrame.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. ipython:: python
@@ -68,7 +75,7 @@ To do so, you have three options.
    sgt_bedpe_like = sgt_object.to_bedpe_like()
    print(sgt_bedpe_like)
 
-The way to add INFO, FILTER, and FORMAT to this bedpe-like DataFrame is explained :ref:`here<bedpe_generation>` (no link for now).
+The way to add INFO, FILTER, and FORMAT to this bedpe-like DataFrame is explained :ref:`here<bedpe_generation>`.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 3) Use the :doc:`get_table()<reference/api/sgt.core.db.Vcf.get_table>` method to get individual tables composing the Vcf object.

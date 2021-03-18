@@ -82,4 +82,4 @@ chr1	60567906	test3	T	<DEL>	.	MinSomaticScore	END=60675940;SVTYPE=DEL;SVLEN=-108
         expected_b = StringIO(HEADER + body_expected)
         obj_expected = viola.read_vcf(expected_b)
         obj_result = self.obj.filter_by_id(['test1', 'test3'])
-        viola.testing.assert_viola_equal(obj_expected, obj_result)
+        viola.testing.assert_vcf_equal(obj_expected, obj_result)

@@ -4,7 +4,6 @@ import setuptools
 
 
 VERSION = "0.1"
-#PACKAGES = setuptools.find_packages( include = ["sv_parser", "sv_parser.*"] )
 PACKAGES = setuptools.find_packages('src')
 DEPENDENCIES = ["pandas",
                 "PyVCF",
@@ -16,7 +15,7 @@ with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="PySgt",
+    name="Viola",
     version=VERSION,
     author="Itsuki Sugita",
     author_email="itsukiisogin@gmail.com",

@@ -14,4 +14,5 @@ API Reference
 
    io
    bedpe
+   multi_bedpe
    vcf

@@ -6,7 +6,11 @@ import setuptools
 VERSION = "0.1"
 #PACKAGES = setuptools.find_packages( include = ["sv_parser", "sv_parser.*"] )
 PACKAGES = setuptools.find_packages('src')
-DEPENDENCIES = ["pandas", "PyVCF", "intervaltree", "biopython"]
+DEPENDENCIES = ["pandas",
+                "PyVCF",
+                "intervaltree",
+                "biopython",
+                "scikit-learn"]
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
@@ -22,6 +26,11 @@ setuptools.setup(
     url="https://github.com/dermasugita/SV_parser",
     packages=PACKAGES,
     package_dir={'': 'src'},
+    entry_points={
+        "console_scripts":[
+            "vcf2bedpe=sgt.cli.vcf2bedpe:main",
+        ]
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "Intended Audience :: Science/Research",

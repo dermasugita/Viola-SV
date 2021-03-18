@@ -18,6 +18,8 @@ def read_bedpe_multi(dir_path: str,
         If the bedpe file has a svtype column, please pass the column name to this argument.
     file_extension: str or None, default 'bedpe'
         File extension of BEDPE files. If you want to load files with no extension, specify None.
+    escape_dot_files: bool, default True
+        If True, avoid reading hidden files in the directory.
     """
     ls_bedpe = []
     ls_names = []

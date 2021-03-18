@@ -1,5 +1,8 @@
+import os,sys
 import numpy as np
 import pandas as pd
+import re
+from functools import reduce
 from typing import (
     List,
     Set,
@@ -17,7 +20,11 @@ from sgt._typing import (
 )
 from sgt._exceptions import (
     TableNotFoundError,
+    InfoNotFoundError,
+    ContigNotFoundError,
 )
+
+from sklearn.cluster import AgglomerativeClustering
 
 class Bedpe(Indexer):
     """
@@ -76,8 +83,8 @@ class Bedpe(Indexer):
     _internal_attrs_set = set(_internal_attrs)
     _repr_column_names = [
         "id",
-        "bp1",
-        "bp2",
+        "be1",
+        "be2",
         "strand",
         "qual",
         "svtype",
@@ -117,6 +124,17 @@ class Bedpe(Indexer):
         Return all SV ids as list.
         """
         return list(self.get_ids())
+    
+    @property
+    def contigs(self) -> List[str]:
+        """
+        Return a list of contigs(chromosomes) included in the object.
+        """
+        df_svpos = self.get_table('positions')
+        arr_chrom1 = df_svpos['chrom1'].unique()
+        arr_chrom2 = df_svpos['chrom2'].unique()
+        arr_chrom = np.unique(np.concatenate((arr_chrom1, arr_chrom2)))
+        return list(arr_chrom)
     
     @property
     def repr_config(self):
@@ -165,13 +183,13 @@ class Bedpe(Indexer):
         """
         df_svpos = self.get_table('positions')
         ser_id = df_svpos['id']
-        ser_bp1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
-        ser_bp2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
+        ser_be1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
+        ser_be2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
         ser_strand = df_svpos['strand1'] + df_svpos['strand2']
         ser_qual = df_svpos['qual']
         ser_svtype = df_svpos['svtype']
-        ls_ser = [ser_id, ser_bp1, ser_bp2, ser_strand, ser_qual, ser_svtype]
-        ls_key = ['id', 'bp1', 'bp2', 'strand', 'qual', 'svtype']
+        ls_ser = [ser_id, ser_be1, ser_be2, ser_strand, ser_qual, ser_svtype]
+        ls_key = ['id', 'be1', 'be2', 'strand', 'qual', 'svtype']
         dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
         df_out = pd.DataFrame(dict_)
         if custom_infonames is not None:
@@ -337,6 +355,7 @@ class Bedpe(Indexer):
         return df
 
     def _parse_filter_query(self, q):
+        # sq: split query
         sq = q.split(' ')
 
         # for flag informations and filters
@@ -371,6 +390,8 @@ class Bedpe(Indexer):
 
             if sq_dtype == 'Integer':
                 sq[-1] = int(sq[-1])
+            elif sq_dtype == 'Float':
+                sq[-1] = float(sq[-1])
             elif sq_dtype == 'String':
                 sq[-1] = str(sq[-1])
             elif sq_dtype =='Flag':
@@ -389,8 +410,57 @@ class Bedpe(Indexer):
                 set_out = self._filter_infos(sq[0], 0, sq[1], sq[2])
             else:
                 set_out = self._filter_infos(*sq)
+
             #print(set_out)
             return set_out
+        
+        # is_locus?
+        if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
+            split_locus = sq[1].split(':')
+            chrom = split_locus[0]
+            if chrom.startswith('!'):
+                exclude_flag = True
+                chrom = chrom[1:]
+            else:
+                exclude_flag = False
+            
+            if chrom not in self.contigs:
+                raise ContigNotFoundError(chrom)
+
+            if len(split_locus) == 1:
+                st = None
+                en = None
+            elif len(split_locus) == 2:
+                split_locus_coord = split_locus[1].split('-')
+                if len(split_locus_coord) == 1:
+                    st = int(split_locus_coord[0])
+                    en = int(split_locus_coord[0]) + 1
+                elif len(split_locus_coord) == 2:
+                    st = split_locus_coord[0]
+                    en = split_locus_coord[1]
+                    if st == '':
+                        st = None
+                    else:
+                        st = int(st)
+                    if en == '':
+                        en = None
+                    else:
+                        en = int(en)
+            
+            if sq0 in ['be1', 'pos1']:
+                pos_num = 1
+            elif sq0 in ['be2', 'pos2']:
+                pos_num = 2
+            
+            args = [pos_num, chrom, st, en]
+
+            if exclude_flag:
+                return self._filter_by_positions_exclude(*args)
+            
+            return self._filter_by_positions(*args)
+            
+            
+
     
     def _filter(self, ls_query, query_logic):
         if isinstance(ls_query, str):
@@ -407,6 +477,32 @@ class Bedpe(Indexer):
                 set_result = set_result | set_query
         
         return set_result
+    
+    def get_info(self, info_name: str) -> pd.DataFrame:
+        """
+        get_info(info_name: str)
+        Return a info specified in the argument as pandas DataFrame object.
+
+        Parameters
+        ----------
+        info_name: str
+            The name of the info to return.
+
+        Returns
+        ----------
+        DataFrame
+            A info specified in the info_name argument.
+        
+        Raises
+        ----------
+        InfoNotFoundError
+            If the info_name doesn't exist in the object.
+        """
+
+        if info_name not in self._ls_infokeys:
+            raise InfoNotFoundError(info_name)
+        return self.get_table(info_name)
+        
 
     def filter(self,
         ls_query: StrOrIterableStr,
@@ -498,7 +594,11 @@ class Bedpe(Indexer):
             set_out = self.get_ids() - set_out
         return set_out
     
-    def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right']):
+    def annotate_bed(self,
+        bed: Bed,
+        annotation: str,
+        how: str = 'flag',
+        suffix=['left', 'right']):
         """
         annotate_bed(bed, annotation, suffix=['left', 'right'])
         Annotate SV breakpoints using Bed class object.
@@ -512,6 +612,9 @@ class Bedpe(Indexer):
         annotation: str
             The label of annotation.
             The suffixes will be attached then added as INFO table.
+        how: str ['flag', 'value'], default 'flag'
+            If 'flag', Annotate True when a breakend is in Bed, otherwise False.
+            If 'value', Annotate values in the Bed.
         suffix: List[str], default ['left', 'right']
             The suffix that attached after annotation label specified above.
         """
@@ -528,10 +631,22 @@ class Bedpe(Indexer):
             df_bp1 = bed.query(chrom1, pos1)
             df_bp2 = bed.query(chrom2, pos2)
 
-            if not df_bp1.empty:
-                ls_left.append([svid, 0, True])
-            if not df_bp2.empty:
-                ls_right.append([svid, 0, True])
+            if how == 'flag':
+                if not df_bp1.empty:
+                    ls_left.append([svid, 0, True])
+                if not df_bp2.empty:
+                    ls_right.append([svid, 0, True])
+            elif how == 'value':
+                if not df_bp1.empty:
+                    j = 0
+                    for idx_inner, query_result in df_bp1.iterrows():
+                        ls_left.append([svid, j, query_result['name']])
+                        j += 1
+                if not df_bp2.empty:
+                    j = 0
+                    for idx_inner, query_result in df_bp2.iterrows():
+                        ls_right.append([svid, j, query_result['name']])
+                        j += 1
         left_name = annotation + suffix[0]
         right_name = annotation + suffix[1]
         df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
@@ -543,7 +658,7 @@ class Bedpe(Indexer):
         """
         get_microhomology(fasta, max_homlen=200)
         Infer microhomology length and sequence in each breakpoint.
-        The results will be appended as 'HOMLEN' and "HOMSEQ' INFO, respectively.
+        The results will be appended as 'HOMLEN' and 'HOMSEQ' INFO, respectively.
 
         Parameters
         ----------
@@ -574,7 +689,28 @@ class Bedpe(Indexer):
         df_homseq = pd.DataFrame(ls_homseq, columns=('id', 'value_idx', 'homseq'))
         self.add_info_table('homlen', df_homlen)
         self.add_info_table('homseq', df_homseq)
-
+    
+    def calculate_info(self, operation, name):
+        """
+        calculate_info(operation, name)
+        Calculate values of INFO tables according to the 'operation' argument and add a new INFO table as the result.
+        """
+        ls_matched = re.findall(r'\${[^}]*}', operation)
+        ls_infonames = [s[2:-1] for s in ls_matched]
+        ls_df_info = []
+        operation_replaced = operation
+        for idx, infoname in enumerate(ls_infonames):
+            # check the info names are valid
+            if infoname not in self.table_list:
+                raise TableNotFoundError(infoname)
+            ls_df_info.append(self.get_table(infoname))
+            operation_replaced = operation_replaced.replace(ls_matched[idx], 'df_merged["'+infoname+'"]')
+        df_merged = reduce(lambda left, right: pd.merge(left, right, on=['id', 'value_idx']), ls_df_info)
+        ser_result = eval(operation_replaced)
+        df_merged[name] = ser_result
+        df_to_add = df_merged[['id', 'value_idx', name]]
+        self.add_info_table(name, df_to_add)
+        
 
 
 
@@ -624,19 +760,20 @@ class Bedpe(Indexer):
         """
         _filter_by_positions(position_num:int, chrom:str, pos_min:int, pos_sup:int)
         Return ids specified in the argument as a set
+
+        Parameters
         ---------------
         positions_num:int
             1 for the first breakend and 2 for the other 
         chrom:str
-            "chr1","chr2",...,"chrX","chrY" <- Vcf
-            1,2,... <- Bedpe
+            "chr1","chr2",...,"chrX","chrY"
         pos_min:int
         pos_sup:int
 
         Returns
         ---------------
         set
-            set of ids which satisfies the argument
+            A set of ids which satisfies the argument
         """
         positions_df = self.get_table("positions")
         positions_df = positions_df[positions_df["chrom{}".format(position_num)]==chrom]
@@ -655,20 +792,21 @@ class Bedpe(Indexer):
     def _filter_by_positions_exclude(self, ex_position_num, ex_chrom, ex_pos_min=None, ex_pos_max=None):
         """
         _filter_by_positions_exclude(position_num, chrom_exclude, ex_pos_min, ex_pos_max)
-        Return set of ids except which are specified by the argument
+        Return a set of ids except which are specified by the argument
+        
+        Parameters
         ---------------
         ex_positions_num:int
-            1 or 2
+            1 for the first breakend and 2 for the other
         ex_chrom:str
-            "chr1","chr2",...,<- Vcf
-            1,2,... <- Bedpe
+            "chr1","chr2",...,"chrX","chrY"
         ex_pos_min:int
         ex_pos_max:int
 
         Returns
         ---------------
         set
-            set of ids except which satisfies the argument
+            A set of ids except which satisfies the argument
         """
         positions_df = self.get_table("positions")
         whole_id = positions_df["id"].values
@@ -687,6 +825,134 @@ class Bedpe(Indexer):
         id_set = whole_id_set - ex_id_set
         return id_set
 
+
+    def _nonoverlap(self, param):
+        chr = [param["chr1h"], param["chr2h"]]
+        pos1 = [param["pos1h"], param["pos1w"]]
+        pos2 = [param["pos2h"], param["pos2w"]]
+        proposition_chr = chr[0] == chr[1]
+        proposition_pos = (max(pos1[0], pos2[0]) < min(pos1[1], pos2[1])) or (max(pos1[1], pos2[1]) < min(pos1[0], pos2[0]))
+        proposition = proposition_chr and proposition_pos
+        return proposition
+
+    def _necessary_condition4merge(self, param, mode, str_missing=True):
+        if mode == "normal":
+            chr1 = [param["chr1h"], param["chr1w"]]
+            chr2 = [param["chr2h"], param["chr2w"]]
+            pos1 = [param["pos1h"], param["pos1w"]]
+            pos2 = [param["pos2h"], param["pos2w"]]
+            str1 = [param["str1h"], param["str1w"]]
+            str2 = [param["str2h"], param["str2w"]]
+        elif mode == "reverse":
+            chr1 = [param["chr1h"], param["chr2w"]]
+            chr2 = [param["chr2h"], param["chr1w"]]
+            pos1 = [param["pos1h"], param["pos2w"]]
+            pos2 = [param["pos2h"], param["pos1w"]]
+            str1 = [param["str1h"], param["str2w"]]
+            str2 = [param["str2h"], param["str1w"]]
+
+        proposition_chr = (chr1[0] == chr1[1]) and (chr2[0] == chr2[1])
+        proposition_pos = (pos1[0] == pos1[1]) and (pos2[0] == pos2[1])
+        if str_missing: 
+            proposition_str = ((str1[0] == str1[1]) or (str1[0]==".") or (str1[1]==".")) and ((str2[0] == str2[1]) or (str2[0]==".") or (str2[1]=="."))
+        else:
+            proposition_str = (str1[0] == str1[1]) and (str2[0] == str2[1])
+
+        proposition = proposition_chr and proposition_pos and proposition_str
+        return proposition
+
+
+    def merge(self, ls_caller_names, threshold, ls_bedpe=[], linkage = "complete", str_missing=True):
+        """
+        merge(ls_caller_names:list, threshold:float, ls_bedpe=[], linkage = "complete", str_missing=True)
+        Return a merged bedpe object from several caller's bedpe objects
+
+        Parameters
+        ----------
+        ls_caller_names:list
+            a list of names of bedpe objects to be merged, which should have self's name as the first element
+        threshold:float
+            Two SVs whose diference of positions is under this threshold are cosidered to be the same.
+        ls_bedpe:list
+            a list of bedpe objects to be merged
+        linkage:{‘ward’, ‘complete’, ‘average’, ‘single’}, default=’complete’
+            the linkage of hierachial clustering
+        str_missing:boolean, default="True"
+            If True, all the missing strands are considered to be identical to the others. 
+
+        Returns
+        ----------
+        A Bedpe object
+            A set of ids except which satisfies the argument
+        """
+        if self in ls_bedpe:
+            pass
+        else:
+            ls_bedpe = [self] + ls_bedpe#ls_bedpeにはself入っていなくても良い
+
+        multibedpe = sgt.MultiBedpe(ls_bedpe, ls_caller_names)
+        positions_table = multibedpe.get_table("positions")
+        N = len(positions_table)#the number of samples
+        penalty_length = 3e9#whole genome length
+        distance_matrix = np.full((N,N), penalty_length)
+        columns = ["chrom1", "chrom2", "pos1", "pos2", "strand1", "strand2"]
+        for h in range(N):
+            for w in range(N):
+                param = {}
+                for col in columns:#want to create these variables dynamically
+                    key_h = col[:3] + col[-1] + "h"
+                    value_h = positions_table.at[positions_table.index[h], col]
+                    key_w = col[:3] + col[-1] + "w"
+                    value_w = positions_table.at[positions_table.index[w], col]
+                    param[key_h] = value_h
+                    param[key_w] = value_w
+
+                if self._necessary_condition4merge(param = param, mode = "normal", str_missing = str_missing): 
+                    if self._nonoverlap(param=param):
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos1w"]), np.abs(param["pos2h"] - param["pos2w"]))                          
+
+                elif self._necessary_condition4merge(param = param, mode = "reverse", str_missing = str_missing):
+                    if self._nonoverlap(param=param):
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos2w"]), np.abs(param["pos2h"] - param["pos1w"]))
+        
+        hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
+        labels = hcl_clustering_model.fit_predict(X = distance_matrix)
+        
+        bpid_dict = {labels[0]:0}
+        ls_bpid = []
+        idx_head = 0
+        for label in labels:
+            if label in bpid_dict:
+                ls_bpid.append(bpid_dict[label])
+            else:
+                idx_head += 1
+                bpid_dict[label] = idx_head
+                ls_bpid.append(bpid_dict[label])
+
+        value_idx = pd.Series(np.zeros(N, dtype=int))
+        df_bpid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "bpid":pd.Series(ls_bpid)})
+        
+        originalid = multibedpe.get_table("global_id")["id"]
+        df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
+        
+        caller = multibedpe.get_table("global_id")["patients"]
+        df_caller = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "caller":caller})
+
+        ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend']
+        ls_df_infos = []
+        for i in ls_infokeys:
+            ls_df_infos.append(multibedpe.get_table(i))
+        ls_infokeys = ls_infokeys + ["bpid", "originalid", "caller"]
+        ls_df_infos = ls_df_infos + [df_bpid, df_originalid, df_caller]
+        odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
+        args = [positions_table, odict_df_infos]
+        merged_bedpe = sgt.Bedpe(*args)
+        
+        return merged_bedpe
 
 class Vcf(Bedpe):
     """
@@ -733,6 +999,27 @@ class Vcf(Bedpe):
         The ('id', 'sample', 'format') are the foreign key coming from 
         (df_svpos, samples_meta, format_meta) table, respectively.
     """
+    _internal_attrs = [
+        "_df_svpos",
+        "_df_filters",
+        "_odict_df_info",
+        "_df_formats",
+        "_ls_infokeys",
+        "_odict_df_headers",
+        "_odict_alltables",
+        "_repr_config",
+        "_sig_criteria"
+    ]
+    _internal_attrs_set = set(_internal_attrs)
+    _repr_column_names = [
+        "id",
+        "be1",
+        "be2",
+        "strand",
+        "qual",
+        "svtype",
+    ]
+    _repr_column_names_set = set(_repr_column_names)
     def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
@@ -752,13 +1039,22 @@ class Vcf(Bedpe):
         self._repr_config = {
             'info': None,
         }
+    
+    @property
+    def contigs(self) -> List[str]:
+        """
+        Return a list of contigs (chromosomes) listed in the header of the VCF file.
+        """
+        df_contigs_meta = self.get_table('contigs_meta')
+        arr_contigs = df_contigs_meta['id'].unique()
+        return list(arr_contigs)
 
     def __repr__(self):
         return super().__repr__() 
     def __str__(self):
         return super().__repr__() 
     
-    def create_info_table(self, table_name, table, number, type_, description, source=None, version=None):
+    def add_info_table(self, table_name, table, number, type_, description, source=None, version=None):
         self._ls_infokeys += [table_name]
         self._odict_alltables[table_name] = table
         df_meta = self.get_table('infos_meta')
@@ -812,6 +1108,100 @@ class Vcf(Bedpe):
         df_out = pd.merge(df_out, df_formatfield)
         return df_out
 
+    def to_vcf(self, path_or_buf = None, onlyinfo=False) -> str:
+        """
+        to_vcf()
+        Return a vcf-formatted String. Header information will not be reflected.
+        return csv file as str class.
+
+        Parameters
+        ----------
+        path_or_buf: str, optional
+            File path to save the VCF file.
+        onlyinfo: bool
+            if you only want "info", set this option to True
+        
+        Returns
+        -------
+        str
+            return vcf file as a string.
+        """
+
+        str_file_header = "##fileformat=VCFv4.1\n##fileDate=20200417\n##source=GenerateSVCandidates 1.6.0\n##reference=file:///data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa\n"
+        def get_contig():
+            return """\
+##contig=<ID=chr10,length=130694993>
+##contig=<ID=chr11,length=122082543>
+##contig=<ID=chr12,length=120129022>
+##contig=<ID=chr13,length=120421639>
+##contig=<ID=chr14,length=124902244>
+##contig=<ID=chr15,length=104043685>
+##contig=<ID=chr16,length=98207768>
+##contig=<ID=chr17,length=94987271>
+##contig=<ID=chr18,length=90702639>
+##contig=<ID=chr19,length=61431566>
+##contig=<ID=chr1,length=195471971>
+##contig=<ID=chr2,length=182113224>
+##contig=<ID=chr3,length=160039680>
+##contig=<ID=chr4,length=156508116>
+##contig=<ID=chr5,length=151834684>
+##contig=<ID=chr6,length=149736546>
+##contig=<ID=chr7,length=145441459>
+##contig=<ID=chr8,length=129401213>
+##contig=<ID=chr9,length=124595110>
+##contig=<ID=chrM,length=16299>
+##contig=<ID=chrX,length=171031299>
+##contig=<ID=chrY,length=91744698>
+"""
+
+        def get_info():
+            str_info = ""
+            for row in self.get_table("infos_meta").itertuples():
+                if (row.number == None):
+                    str_num = "."
+                elif (row.number == -1):
+                    str_num = "A"
+                else:
+                    str_num = str(row.number)
+                str_info += "##INFO=<ID={},Number={},Type={},Description=\"{}\">".format(row.id, str_num, row.type,row.description)
+                str_info += "\n"
+            return str_info
+        str_contig = get_contig()
+        str_info = get_info()
+        df_vcflike = self.to_vcf_like()
+        str_table = df_vcflike.to_csv(sep='\t', header=False, index=False)
+        str_table += "\n"
+        ls_header = df_vcflike.columns.tolist()
+        ls_header[0:8] = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'INFO', 'FORMAT']
+        str_header = "\t".join(ls_header)
+        str_header += "\n"
+        str_format_filter_alt_others = """##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
+##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
+##FILTER=<ID=MaxDepth,Description="Normal sample site depth is greater than 3x the median chromosome depth near one or both variant breakends">
+##FILTER=<ID=MinSomaticScore,Description="Somatic score is less than 30">
+##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases) in the normal sample, the fraction of reads with MAPQ0 around either breakend exceeds 0.4">
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##cmdline=/home/sugita/miniconda3/envs/manta/bin/configManta.py --normalBam /nvme/sugita/bam/1N_marked_BQSR.bam.bam --tumorBam /nvme/sugita/bam/1T_marked_BQSR.bam.bam --referenceFasta /data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa --runDir /nvme/sugita/manta/mouse1 --generateEvidenceBam --outputContig"""
+
+        ls_vcf_data = [str_file_header, str_contig, str_info,  str_format_filter_alt_others, str_header, str_table]
+
+        print(os.getcwd())
+
+        if (onlyinfo):
+            ret = str_info
+        else:
+            ret = "".join(ls_vcf_data)
+
+        if (path_or_buf is not None):
+            f = open(path_or_buf, 'w')
+            f.write(ret)
+            f.close()
+
+        return ret
+
     def to_bedpe_like(
         self,
         custom_infonames: Iterable[str] = [],
@@ -839,7 +1229,7 @@ class Vcf(Bedpe):
             Otherwise, breakpoints are represented by a single-nucleotide resolution.
         unique_events: bool, default False
         
-        Returns
+        Returns 
         ---------------
         DataFrame
             A Dataframe in bedpe-like format.
@@ -988,6 +1378,48 @@ class Vcf(Bedpe):
                 set_out = self._filter_formats(*sq)
             return set_out
 
+        # is_locus?
+        if sq0 in ['be1', 'be2', 'pos1', 'pos2']:
+            split_locus = sq[1].split(':')
+            chrom = split_locus[0]
+            if chrom.startswith('!'):
+                exclude_flag = True
+                chrom = chrom[1:]
+            else:
+                exclude_flag = False
+            if chrom not in self.contigs:
+                raise ContigNotFoundError(chrom)
+            if len(split_locus) == 1:
+                st = None
+                en = None
+            elif len(split_locus) == 2:
+                split_locus_coord = split_locus[1].split('-')
+                if len(split_locus_coord) == 1:
+                    st = int(split_locus_coord[0])
+                    en = int(split_locus_coord[0]) + 1
+                elif len(split_locus_coord) == 2:
+                    st = split_locus_coord[0]
+                    en = split_locus_coord[1]
+                    if st == '':
+                        st = None
+                    else:
+                        st = int(st)
+                    if en == '':
+                        en = None
+                    else:
+                        en = int(en)
+            
+            if sq0 in ['be1', 'pos1']:
+                pos_num = 1
+            elif sq0 in ['be2', 'pos2']:
+                pos_num = 2
+
+            args = [pos_num, chrom, st, en]
+            
+            if exclude_flag:
+                return self._filter_by_positions_exclude(*args)
+            return self._filter_by_positions(*args)
+
     def filter(self, ls_query, query_logic='and'):
         """
         filter(ls_query, query_logic)
@@ -1052,6 +1484,9 @@ class Vcf(Bedpe):
         df_target = df.loc[target_q]
         e = "df_target.loc[df_target['value'] {0} threshold]['id']".format(operator)
         return set(eval(e))
+    
+    def _filter_header(self, tablename):
+        pass
 
     def annotate_bed(self, bed: Bed, annotation: str, suffix=['left', 'right'], description=None):
         df_svpos = self.get_table('positions')
@@ -1075,8 +1510,8 @@ class Vcf(Bedpe):
         right_name = annotation + suffix[1]
         df_left = pd.DataFrame(ls_left, columns=('id', 'value_idx', left_name))
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
-        self.create_info_table(left_name, df_left, 0, type_="Flag", description=description)
-        self.create_info_table(right_name, df_right, 0, type_="Flag", description=description)
+        self.add_info_table(left_name, df_left, 0, type_="Flag", description=description)
+        self.add_info_table(right_name, df_right, 0, type_="Flag", description=description)
     
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """
@@ -1094,10 +1529,9 @@ class Vcf(Bedpe):
         set_result_ids = set_all_ids - set_to_subtract
         return set_result_ids
 
-    def get_unique_events(self):
-        set_result_ids = self._get_unique_events_ids()
-        return self.filter_by_id(set_result_ids)
+    def remove_duplicated_records(self):
+        if 'event' not in self._ls_infokeys:
+            return
+        print(self.get_table('event'))
     
             
-
-         

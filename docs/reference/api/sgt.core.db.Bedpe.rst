@@ -38,6 +38,7 @@ sgt.core.db.Bedpe
 
    .. autosummary::
    
+      ~Bedpe.contigs
       ~Bedpe.ids
       ~Bedpe.idx
       ~Bedpe.repr_config

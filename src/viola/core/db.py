@@ -1025,6 +1025,7 @@ class Vcf(Bedpe):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
         if not isinstance(odict_df_headers, OrderedDict):
             raise TypeError('the type of the argument "odict_df_headers" should be collections.OrderedDict')
+        df_svpos['alt'] = df_svpos['alt'].astype(str)
         self._df_svpos = df_svpos
         self._df_filters = df_filters
         self._odict_df_info = odict_df_info
@@ -1068,20 +1069,52 @@ class Vcf(Bedpe):
         to_vcf_like()
         Return a vcf-formatted DataFrame. Header information will not be reflected.
         """
-        df_base = self.get_table('positions')[['chrom1', 'pos1', 'id', 'ref', 'alt', 'qual']]
-        print(self._ls_infokeys)
+        df_base_before_position_modification = self.get_table('positions')[['chrom1', 'pos1', 'id', 'ref', 'alt', 'qual', 'svtype', 'strand1']]
+        def _modify_positions(x):
+            svtype = x.name
+            if svtype == 'DUP':
+                x['pos1'] = x['pos1'] - 1
+                return x
+            elif svtype == 'INV':
+                # if strand1 == '-', subtract 1 from pos1, otherwise subtract 0.
+                arr_strand1 = x['strand1'].values 
+                arr_num_of_subtraction = np.where(arr_strand1 == '+', 0, 1)
+                x['pos1'] = x['pos1'] - arr_num_of_subtraction
+                return x
+            else:
+                return x
+                
+        df_base = df_base_before_position_modification.groupby('svtype').apply(_modify_positions)
+        df_base = df_base[['chrom1', 'pos1', 'id', 'ref', 'alt', 'qual']]
+        df_base['qual'] = df_base['qual'].fillna('.')
         ser_id = df_base['id']
+
+        ser_filter = pd.Series(["" for i in range(len(ser_id))], index=ser_id) 
+        df_filter = self.get_table('filters')
+        def _create_filter_field(x):
+            out = ';'.join(x['filter'])
+            return out
+        ser_filter = df_filter.groupby('id').apply(_create_filter_field)
+        df_filter = ser_filter.reset_index(name='filter')
+
         ser_vcfinfo = pd.Series(["" for i in range(len(ser_id))], index=ser_id)
         def _create_info_field(x, info):
-            if x.iloc[0] > 0:
-                return ',' + str(x.iloc[1])
-            if type(x.iloc[1]) == bool:
+            if x.iloc[1] > 0:
+                return ',' + str(x.iloc[2])
+            if type(x.iloc[2]) == bool:
                 return ';' + info.upper()
-            return ';' + info.upper() + '=' + str(x.iloc[1])
+            return ';' + info.upper() + '=' + str(x.iloc[2])
         for info in self._ls_infokeys:
-            df_info = self.get_table(info).set_index('id')
+            df_info = self.get_table(info)
             ser_be_appended = df_info.apply(_create_info_field, axis=1, **{'info':info})
-            ser_vcfinfo.loc[df_info.index] = ser_vcfinfo.loc[df_info.index] + ser_be_appended
+            if ser_be_appended.empty:
+                continue
+            df_info_appended = df_info.copy()
+            df_info_appended['info'] = ser_be_appended
+            df_vcfinfo = df_info_appended.pivot(index='id', columns='value_idx', values='info')
+            print(df_vcfinfo)
+            ser_vcfinfo_to_append = df_vcfinfo.apply(''.join, axis=1)
+            ser_vcfinfo.loc[ser_vcfinfo_to_append.index] = ser_vcfinfo.loc[ser_vcfinfo_to_append.index] + ser_vcfinfo_to_append
         ser_vcfinfo.replace("^;", "", regex=True, inplace=True)
         df_infofield = ser_vcfinfo.reset_index(name='info')
 
@@ -1104,7 +1137,8 @@ class Vcf(Bedpe):
 
         df_formatfield = df_format.groupby('id').apply(_create_format_field).reset_index()
 
-        df_out = pd.merge(df_base, df_infofield)
+        df_out = pd.merge(df_base, df_filter)
+        df_out = pd.merge(df_out, df_infofield)
         df_out = pd.merge(df_out, df_formatfield)
         return df_out
 
@@ -1127,32 +1161,13 @@ class Vcf(Bedpe):
             return vcf file as a string.
         """
 
-        str_file_header = "##fileformat=VCFv4.1\n##fileDate=20200417\n##source=GenerateSVCandidates 1.6.0\n##reference=file:///data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa\n"
+        str_file_header = "##fileformat=VCFv4.1\n"
         def get_contig():
-            return """\
-##contig=<ID=chr10,length=130694993>
-##contig=<ID=chr11,length=122082543>
-##contig=<ID=chr12,length=120129022>
-##contig=<ID=chr13,length=120421639>
-##contig=<ID=chr14,length=124902244>
-##contig=<ID=chr15,length=104043685>
-##contig=<ID=chr16,length=98207768>
-##contig=<ID=chr17,length=94987271>
-##contig=<ID=chr18,length=90702639>
-##contig=<ID=chr19,length=61431566>
-##contig=<ID=chr1,length=195471971>
-##contig=<ID=chr2,length=182113224>
-##contig=<ID=chr3,length=160039680>
-##contig=<ID=chr4,length=156508116>
-##contig=<ID=chr5,length=151834684>
-##contig=<ID=chr6,length=149736546>
-##contig=<ID=chr7,length=145441459>
-##contig=<ID=chr8,length=129401213>
-##contig=<ID=chr9,length=124595110>
-##contig=<ID=chrM,length=16299>
-##contig=<ID=chrX,length=171031299>
-##contig=<ID=chrY,length=91744698>
-"""
+            df_contig = self.get_table('contigs_meta')
+            ser_contig = '##contig=<ID=' + df_contig['id'].astype(str) + ',length=' + df_contig['length'].astype(str) + '>'
+            out = '\n'.join(ser_contig)
+            out += '\n'
+            return out
 
         def get_info():
             str_info = ""
@@ -1166,27 +1181,43 @@ class Vcf(Bedpe):
                 str_info += "##INFO=<ID={},Number={},Type={},Description=\"{}\">".format(row.id, str_num, row.type,row.description)
                 str_info += "\n"
             return str_info
+        
+        def get_format():
+            df_format = self.get_table('formats_meta')
+            df_format['number'] = df_format['number'].fillna('.')
+            ser_out = '##FORMAT=<ID=' + df_format['id'].astype(str) + ',Number=' + df_format['number'].astype(str) + \
+            ',Type=' + df_format['type'].astype(str) + ',Description="' + df_format['description'].astype(str) + '">'
+            out = '\n'.join(ser_out)
+            out += '\n'
+            return out
+        
+        def get_filter():
+            df_filter = self.get_table('filters_meta')
+            ser_out = '##FILTER=<ID=' + df_filter['id'].astype(str) + ',Description="' + df_filter['description'].astype(str) + '">'
+            out = '\n'.join(ser_out)
+            out += '\n'
+            return out
+        
+        def get_alt():
+            df_alt = self.get_table('alts_meta')
+            ser_out = '##ALT=<ID=' + df_alt['id'].astype(str) + ',Description="' + df_alt['description'].astype(str) + '">'
+            out = '\n'.join(ser_out)
+            out += '\n'
+            return out
+
         str_contig = get_contig()
         str_info = get_info()
+        str_format = get_format()
+        str_filter = get_filter()
+        str_alt = get_alt()
         df_vcflike = self.to_vcf_like()
         str_table = df_vcflike.to_csv(sep='\t', header=False, index=False)
-        str_table += "\n"
         ls_header = df_vcflike.columns.tolist()
-        ls_header[0:8] = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'INFO', 'FORMAT']
+        ls_header[0:9] = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT']
         str_header = "\t".join(ls_header)
         str_header += "\n"
-        str_format_filter_alt_others = """##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
-##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
-##FILTER=<ID=MaxDepth,Description="Normal sample site depth is greater than 3x the median chromosome depth near one or both variant breakends">
-##FILTER=<ID=MinSomaticScore,Description="Somatic score is less than 30">
-##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases) in the normal sample, the fraction of reads with MAPQ0 around either breakend exceeds 0.4">
-##ALT=<ID=INV,Description="Inversion">
-##ALT=<ID=DEL,Description="Deletion">
-##ALT=<ID=INS,Description="Insertion">
-##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
-##cmdline=/home/sugita/miniconda3/envs/manta/bin/configManta.py --normalBam /nvme/sugita/bam/1N_marked_BQSR.bam.bam --tumorBam /nvme/sugita/bam/1T_marked_BQSR.bam.bam --referenceFasta /data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa --runDir /nvme/sugita/manta/mouse1 --generateEvidenceBam --outputContig"""
 
-        ls_vcf_data = [str_file_header, str_contig, str_info,  str_format_filter_alt_others, str_header, str_table]
+        ls_vcf_data = [str_file_header, str_contig, str_info, str_format, str_filter, str_alt, str_header, str_table]
 
         print(os.getcwd())
 

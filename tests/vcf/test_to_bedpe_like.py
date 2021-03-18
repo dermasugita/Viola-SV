@@ -1,5 +1,5 @@
 import pytest
-import sgt
+import viola
 import sys, os
 import pandas as pd
 from io import StringIO
@@ -43,14 +43,14 @@ HEADER = """##fileformat=VCFv4.1
 """
 class TestToBedpe:
     #manta_path = os.path.join(HERE, 'data/manta1.inv.vcf')
-    #result = sgt.read_vcf(manta_path)
+    #result = viola.read_vcf(manta_path)
     body = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
 chr1	22814216	test2	T	<INV>	.	MinSomaticScore	END=92581131;SVTYPE=INV;SVLEN=69766915;IMPRECISE;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
 chr1	60567906	test3	T	<DEL>	.	MinSomaticScore	END=60675940;SVTYPE=DEL;SVLEN=-108034;CIPOS=-44,44;CIEND=-38,39;SOMATIC;SOMATICSCORE=18	PR	23,0	44,6
 chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE;CIPOS=-123,123;CIEND=-135,136;SOMATIC;SOMATICSCORE=47	PR	21,0	20,12
 """
     b = StringIO(HEADER + body)
-    result = sgt.read_vcf(b)
+    result = viola.read_vcf(b)
     def test_to_bedpe_like(self):
         expected_data = """chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tscore\tstrand1\tstrand2
 chr1\t82550461\t82550462\tchr1\t82554225\t82554226\ttest1\t\t+\t-

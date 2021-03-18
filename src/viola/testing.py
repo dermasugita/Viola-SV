@@ -1,8 +1,8 @@
-import sgt
-from sgt.core.db import Bedpe, Vcf
+import viola
+from viola.core.db import Bedpe, Vcf
 import pandas as pd
 
-def assert_sgt_equal(left, right):
+def assert_vcf_equal(left, right):
     ls_left_table = left.table_list
     ls_right_table = right.table_list
     assert set(ls_left_table) == set(ls_right_table)

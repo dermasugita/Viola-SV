@@ -1,7 +1,7 @@
 import pandas as pd
-import sgt
-from sgt.core.db import Vcf
-from sgt.core.cohort import MultiVcf
+import viola
+from viola.core.db import Vcf
+from viola.core.cohort import MultiVcf
 from collections import OrderedDict
 from typing import (
     List,

@@ -1,12 +1,12 @@
 import pytest
-import sgt
+import viola
 import sys, os
 import numpy as np
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 class TestReadVcf:
     manta_path = os.path.join(HERE, 'data/manta1.inv.vcf')
-    result_manta = sgt.read_vcf(manta_path)
+    result_manta = viola.read_vcf(manta_path)
     def test_read_vcf_info_cipos(self):
         info_cipos = self.result_manta.get_table('cipos')
         assert list(info_cipos.columns) == ['id', 'value_idx', 'cipos']

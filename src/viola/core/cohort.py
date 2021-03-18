@@ -1,6 +1,6 @@
 import pandas as pd
 from collections import OrderedDict
-from sgt.core.db import Vcf, Bedpe
+from viola.core.db import Vcf, Bedpe
 from typing import (
     List,
     Optional,

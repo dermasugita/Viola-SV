@@ -1,6 +1,6 @@
 import os
-from sgt.io.parser import read_bedpe
-from sgt.core.cohort import MultiBedpe
+from viola.io.parser import read_bedpe
+from viola.core.cohort import MultiBedpe
 
 def read_bedpe_multi(dir_path: str,
     svtype_col_name: str = 'svclass',

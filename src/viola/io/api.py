@@ -1,13 +1,13 @@
-from sgt.io.parser import (
+from viola.io.parser import (
     read_vcf,
     read_bedpe,
     read_bed,
 )
 
-from sgt.io.multi_parser import (
+from viola.io.multi_parser import (
     read_bedpe_multi,
 )
 
-from sgt.io.fasta_io import (
+from viola.io.fasta_io import (
     read_fasta,
 )

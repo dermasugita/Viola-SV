@@ -9,16 +9,16 @@ from typing import (
     Iterable,
 )
 from collections import OrderedDict
-import sgt
-from sgt.core.indexing import Indexer
-from sgt.core.bed import Bed
-from sgt.core.fasta import Fasta
-from sgt.utils.microhomology import get_microhomology_from_positions
-from sgt._typing import (
+import viola
+from viola.core.indexing import Indexer
+from viola.core.bed import Bed
+from viola.core.fasta import Fasta
+from viola.utils.microhomology import get_microhomology_from_positions
+from viola._typing import (
     IntOrStr,
     StrOrIterableStr,
 )
-from sgt._exceptions import (
+from viola._exceptions import (
     TableNotFoundError,
     InfoNotFoundError,
     ContigNotFoundError,
@@ -890,7 +890,7 @@ class Bedpe(Indexer):
         else:
             ls_bedpe = [self] + ls_bedpe#ls_bedpeにはself入っていなくても良い
 
-        multibedpe = sgt.MultiBedpe(ls_bedpe, ls_caller_names)
+        multibedpe = viola.MultiBedpe(ls_bedpe, ls_caller_names)
         positions_table = multibedpe.get_table("positions")
         N = len(positions_table)#the number of samples
         penalty_length = 3e9#whole genome length
@@ -950,7 +950,7 @@ class Bedpe(Indexer):
         ls_df_infos = ls_df_infos + [df_bpid, df_originalid, df_caller]
         odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
         args = [positions_table, odict_df_infos]
-        merged_bedpe = sgt.Bedpe(*args)
+        merged_bedpe = viola.Bedpe(*args)
         
         return merged_bedpe
 

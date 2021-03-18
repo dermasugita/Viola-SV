@@ -9,10 +9,10 @@ from typing import (
     Optional,
 )
 from io import StringIO
-from sgt.core.db import Vcf, Bedpe
-from sgt.core.bed import Bed
-from sgt.utils.utils import is_url
-from sgt.io._vcf_parser import (
+from viola.core.db import Vcf, Bedpe
+from viola.core.bed import Bed
+from viola.utils.utils import is_url
+from viola.io._vcf_parser import (
     read_vcf_manta,
     read_vcf_delly,
     read_vcf_lumpy,

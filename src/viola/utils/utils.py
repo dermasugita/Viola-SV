@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
 import re
-from sgt.core.db import Bedpe, Vcf
-from sgt.core.cohort import MultiBedpe
+from viola.core.db import Bedpe, Vcf
+from viola.core.cohort import MultiBedpe
 from typing import (
     Set,
     Union,
 )
-from sgt._typing import (
+from viola._typing import (
     IntOrStr,
 )
 

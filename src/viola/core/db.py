@@ -1006,6 +1006,7 @@ class Vcf(Bedpe):
         "_df_formats",
         "_ls_infokeys",
         "_odict_df_headers",
+        "_metadata",
         "_odict_alltables",
         "_repr_config",
         "_sig_criteria"
@@ -1020,7 +1021,7 @@ class Vcf(Bedpe):
         "svtype",
     ]
     _repr_column_names_set = set(_repr_column_names)
-    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
+    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}, metadata = None):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
         if not isinstance(odict_df_headers, OrderedDict):
@@ -1031,6 +1032,7 @@ class Vcf(Bedpe):
         self._odict_df_info = odict_df_info
         self._df_formats = df_formats
         self._odict_df_headers = odict_df_headers
+        self._metadata = metadata
         self._ls_infokeys = [ x.lower() for x in odict_df_headers['infos_meta']['id'].tolist()]
         ls_keys = ['positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(odict_df_headers.keys())
@@ -1112,7 +1114,7 @@ class Vcf(Bedpe):
             df_info_appended = df_info.copy()
             df_info_appended['info'] = ser_be_appended
             df_vcfinfo = df_info_appended.pivot(index='id', columns='value_idx', values='info')
-            print(df_vcfinfo)
+            df_vcfinfo = df_vcfinfo.fillna('')
             ser_vcfinfo_to_append = df_vcfinfo.apply(''.join, axis=1)
             ser_vcfinfo.loc[ser_vcfinfo_to_append.index] = ser_vcfinfo.loc[ser_vcfinfo_to_append.index] + ser_vcfinfo_to_append
         ser_vcfinfo.replace("^;", "", regex=True, inplace=True)
@@ -1122,7 +1124,8 @@ class Vcf(Bedpe):
         ls_samples = self.get_table('samples_meta')['id']
 
         def _create_format_field(x):
-            arr_format_ = np.unique(x['format'])
+            arr_format_, ind_format_ = np.unique(x['format'], return_index=True)
+            arr_format_ = arr_format_[np.argsort(ind_format_)]
             format_ = ':'.join(arr_format_)
             ls_sample_format_ = []
             for sample in ls_samples:
@@ -1161,9 +1164,20 @@ class Vcf(Bedpe):
             return vcf file as a string.
         """
 
-        str_file_header = "##fileformat=VCFv4.1\n"
+        def get_metadata():
+            metadata = self._metadata
+            out = ''
+            for key, value in metadata.items():
+                if not isinstance(value, list):
+                    value = [value]
+                value = [str(s) for s in value]
+                out += '##' + str(key) + '=' + ','.join(value) + '\n'
+            return out
+        
         def get_contig():
             df_contig = self.get_table('contigs_meta')
+            if df_contig.empty:
+                return ''
             ser_contig = '##contig=<ID=' + df_contig['id'].astype(str) + ',length=' + df_contig['length'].astype(str) + '>'
             out = '\n'.join(ser_contig)
             out += '\n'
@@ -1184,6 +1198,8 @@ class Vcf(Bedpe):
         
         def get_format():
             df_format = self.get_table('formats_meta')
+            if df_format.empty:
+                return ''
             df_format['number'] = df_format['number'].fillna('.')
             ser_out = '##FORMAT=<ID=' + df_format['id'].astype(str) + ',Number=' + df_format['number'].astype(str) + \
             ',Type=' + df_format['type'].astype(str) + ',Description="' + df_format['description'].astype(str) + '">'
@@ -1193,6 +1209,8 @@ class Vcf(Bedpe):
         
         def get_filter():
             df_filter = self.get_table('filters_meta')
+            if df_filter.empty:
+                return ''
             ser_out = '##FILTER=<ID=' + df_filter['id'].astype(str) + ',Description="' + df_filter['description'].astype(str) + '">'
             out = '\n'.join(ser_out)
             out += '\n'
@@ -1200,11 +1218,14 @@ class Vcf(Bedpe):
         
         def get_alt():
             df_alt = self.get_table('alts_meta')
+            if df_alt.empty:
+                return ''
             ser_out = '##ALT=<ID=' + df_alt['id'].astype(str) + ',Description="' + df_alt['description'].astype(str) + '">'
             out = '\n'.join(ser_out)
             out += '\n'
             return out
 
+        str_metadata = get_metadata()
         str_contig = get_contig()
         str_info = get_info()
         str_format = get_format()
@@ -1217,7 +1238,7 @@ class Vcf(Bedpe):
         str_header = "\t".join(ls_header)
         str_header += "\n"
 
-        ls_vcf_data = [str_file_header, str_contig, str_info, str_format, str_filter, str_alt, str_header, str_table]
+        ls_vcf_data = [str_metadata, str_contig, str_info, str_format, str_filter, str_alt, str_header, str_table]
 
         print(os.getcwd())
 

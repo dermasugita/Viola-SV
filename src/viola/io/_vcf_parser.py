@@ -9,6 +9,7 @@ from viola.core.db import Vcf
 ################################################
 
 def read_vcf_manta(vcf_reader):
+    metadata = vcf_reader.metadata
     # obtain header informations
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)
@@ -181,7 +182,7 @@ def read_vcf_manta(vcf_reader):
     df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
     return Vcf(*args)
 
 ################################################
@@ -196,6 +197,7 @@ def read_vcf_delly(vcf_reader):
     """
     Replace table name SVLEN into SVLENORG to avoid name conflict.
     """
+    metadata = vcf_reader.metadata
     # obtain header informations
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)
@@ -393,7 +395,7 @@ def read_vcf_delly(vcf_reader):
     df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
     return Vcf(*args)
 
 ################################################
@@ -409,6 +411,7 @@ def read_vcf_lumpy(vcf_reader):
     split INV lines.
     INFO=SU is modified according to the INFO=STRANDS.
     """
+    metadata = vcf_reader.metadata
     # obtain header informations
     ################# This is empty DataFrame! ############################
     odict_contigs = vcf_reader.contigs
@@ -421,6 +424,8 @@ def read_vcf_lumpy(vcf_reader):
     # obtain info field information
     odict_infos = vcf_reader.infos
     df_infos_meta = pd.DataFrame(odict_infos, index=('id', 'number', 'type', 'description', 'source', 'version')).T.reset_index(drop=True)
+    df_suorg = pd.DataFrame([['SUORG', None, 'Integer', 'Original value of Lumpy SU', None, None]], columns = ('id', 'number', 'type', 'description', 'source', 'version'))
+    df_infos_meta = pd.concat([df_infos_meta, df_suorg])
 
     # obtain FORMAT informations
     odict_formats = vcf_reader.formats
@@ -503,12 +508,19 @@ def read_vcf_lumpy(vcf_reader):
                 for idx, value in enumerate(values):
                     if info == 'SU':
                         value = row_INFO['STRANDS'][0].split(':')[1]
+                        value = int(value)
+                    elif info == 'STRANDS':
+                        if idx == 1: continue
                     ls_value1 = [row_ID1, idx, value]
                     dict_a_info1 = {k: v for k, v in zip(ls_keys, ls_value1)}
                     dict_infos[info].append(dict_a_info1)
                 for idx, value in enumerate(values):
                     if info == 'SU':
                         value = row_INFO['STRANDS'][1].split(':')[1]
+                        value = int(value)
+                    elif info == 'STRANDS':
+                        if idx == 0: continue
+                        idx = 0
                     ls_value2 = [row_ID2, idx, value]
                     dict_a_info2 = {k: v for k, v in zip(ls_keys, ls_value2)}
                     dict_infos[info].append(dict_a_info2)
@@ -517,6 +529,11 @@ def read_vcf_lumpy(vcf_reader):
                     ls_value = [row_ID, idx, value]
                     dict_a_info = {k: v for k, v in zip(ls_keys, ls_value)}
                     dict_infos[info].append(dict_a_info)
+        
+        if is_inv:
+            suorg = row_INFO['SU'][0]
+            dict_infos['SUORG'].append({'id': row_ID1, 'value_idx': 0, 'suorg': suorg})
+            dict_infos['SUORG'].append({'id': row_ID2, 'value_idx': 0, 'suorg': suorg})
         #####/INFO
 
         ###POS
@@ -628,7 +645,7 @@ def read_vcf_lumpy(vcf_reader):
     df_contigs_meta = pd.DataFrame({'id': arr_contigs, 'length': arr_contigs_length})
     odict_df_headers['contigs_meta'] = df_contigs_meta
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
     return Vcf(*args)
 
 ################################################
@@ -640,6 +657,7 @@ def read_vcf_lumpy(vcf_reader):
 ################################################
 
 def read_vcf_gridss(vcf_reader):
+    metadata = vcf_reader.metadata
     # obtain header informations
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)
@@ -812,7 +830,7 @@ def read_vcf_gridss(vcf_reader):
     df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
     return Vcf(*args)
 
 ################################################

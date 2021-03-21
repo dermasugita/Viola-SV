@@ -1,4 +1,9 @@
-##fileformat=VCFv4.1
+import viola
+import sys, os
+import pandas as pd
+from io import StringIO
+HERE = os.path.abspath(os.path.dirname(__file__))
+HEADER = """##fileformat=VCFv4.1
 ##contig=<ID=chr1,length=195471971>
 ##contig=<ID=chr2,length=182113224>
 ##contig=<ID=chr11,length=122082543>
@@ -35,8 +40,26 @@
 ##ALT=<ID=INS,Description="Insertion">
 ##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse1_N	mouse1_T
-chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	IMPRECISE;SVTYPE=DEL;SVLEN=-3764;END=82554225;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
+"""
+class TestToVcf:
+    #manta_path = os.path.join(HERE, 'data/manta1.inv.vcf')
+    #result = viola.read_vcf(manta_path)
+    body = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
+chr1	22814216	test2	T	<INV>	.	MinSomaticScore;MaxMQ0Frac	END=92581131;SVTYPE=INV;SVLEN=69766915;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
+chr11	46689527	test3	C	<INV>	.	MinSomaticScore	END=46751206;SVTYPE=INV;SVLEN=61679;IMPRECISE;CIPOS=-64,64;CIEND=-65,65;SOMATIC;SOMATICSCORE=13;INV3	PR	17,1	55,19
+chr11	30018803	test4	G	]chr8:69735694]G	.	MinSomaticScore	SVTYPE=BND;MATEID=MantaBND:16687:0:1:0:0:0:1;IMPRECISE;CIPOS=-100,100;SOMATIC;SOMATICSCORE=12;BND_DEPTH=35;MATE_BND_DEPTH=49	PR	30,1	68,9
+chr11	30625198	test5	C	<DUP:TANDEM>	.	PASS	END=31200561;SVTYPE=DUP;SVLEN=575363;IMPRECISE;CIPOS=-27,27;CIEND=-69,70;SOMATIC;SOMATICSCORE=39	PR	14,0	38,10
+"""
+    expected_out = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	IMPRECISE;SVTYPE=DEL;SVLEN=-3764;END=82554225;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
 chr1	22814216	test2	T	<INV>	.	MinSomaticScore;MaxMQ0Frac	SVTYPE=INV;SVLEN=69766915;END=92581131;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
 chr11	46689527	test3	C	<INV>	.	MinSomaticScore	IMPRECISE;SVTYPE=INV;SVLEN=61679;END=46751206;CIPOS=-64,64;CIEND=-65,65;SOMATIC;SOMATICSCORE=13;INV3	PR	17,1	55,19
 chr11	30018803	test4	G	]chr8:69735694]G	.	MinSomaticScore	IMPRECISE;SVTYPE=BND;CIPOS=-100,100;MATEID=MantaBND:16687:0:1:0:0:0:1;BND_DEPTH=35;MATE_BND_DEPTH=49;SOMATIC;SOMATICSCORE=12	PR	30,1	68,9
 chr11	30625198	test5	C	<DUP:TANDEM>	.	PASS	IMPRECISE;SVTYPE=DUP;SVLEN=575363;END=31200561;CIPOS=-27,27;CIEND=-69,70;SOMATIC;SOMATICSCORE=39	PR	14,0	38,10
+"""
+    b = StringIO(HEADER + body)
+    result = viola.read_vcf(b)
+    def test_to_vcf_like(self):
+        df_vcf = self.result.to_vcf_like()
+        df_expected = pd.read_csv(StringIO(self.expected_out), index_col=False, names=df_vcf.columns, sep='\t')
+        pd.testing.assert_frame_equal(df_vcf, df_expected)
+        

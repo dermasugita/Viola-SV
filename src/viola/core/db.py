@@ -1064,7 +1064,19 @@ class Vcf(Bedpe):
         df_replace = df_meta.append({'id': table_name.upper(), 'number': number, 'type': type_, 'description': description, 'source': source, 'version': version},
                                     ignore_index=True)
         self._odict_alltables['infos_meta'] = df_replace # not beautiful code...
-
+    
+    def copy(self):
+        """
+        copy()
+        Return copy of the instance.
+        """
+        df_svpos = self.get_table('positions')
+        df_filters = self.get_table('filters')
+        odict_df_infos = OrderedDict([(k, self.get_table(k.lower())) for k, v in self._odict_df_info.items()])
+        df_formats = self.get_table('formats')
+        odict_df_headers = OrderedDict([(k, self.get_table(k)) for k,v in self._odict_df_headers.items()])
+        metadata = self._metadata
+        return Vcf(df_svpos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata)
 
     def to_vcf_like(self) -> pd.DataFrame:
         """
@@ -1567,6 +1579,12 @@ class Vcf(Bedpe):
         df_right = pd.DataFrame(ls_right, columns=('id', 'value_idx', right_name))
         self.add_info_table(left_name, df_left, 0, type_="Flag", description=description)
         self.add_info_table(right_name, df_right, 0, type_="Flag", description=description)
+    
+    def breakend2breakpoint(self):
+        """
+        breakend2breakpoint()
+        """
+        df_svpos = self.get_table('positions')
     
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """

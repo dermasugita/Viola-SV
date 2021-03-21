@@ -1167,6 +1167,8 @@ class Vcf(Bedpe):
         def get_metadata():
             metadata = self._metadata
             out = ''
+            if metadata is None:
+                return out
             for key, value in metadata.items():
                 if not isinstance(value, list):
                     value = [value]
@@ -1240,7 +1242,7 @@ class Vcf(Bedpe):
 
         ls_vcf_data = [str_metadata, str_contig, str_info, str_format, str_filter, str_alt, str_header, str_table]
 
-        print(os.getcwd())
+        #print(os.getcwd())
 
         if (onlyinfo):
             ret = str_info
@@ -1252,7 +1254,7 @@ class Vcf(Bedpe):
             f.write(ret)
             f.close()
 
-        return ret
+        #return ret
 
     def to_bedpe_like(
         self,
@@ -1516,7 +1518,8 @@ class Vcf(Bedpe):
         out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
         out_formats = self._filter_by_id('formats', arrlike_id)
         out_odict_df_headers = self._odict_df_headers.copy()
-        return Vcf(out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers)
+        out_metadata = self._metadata
+        return Vcf(out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers, out_metadata)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')

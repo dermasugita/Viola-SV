@@ -51,7 +51,8 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     elif isinstance(filepath_or_buffer, StringIO):
         vcf_reader = vcf.Reader(filepath_or_buffer)
     else:
-        raise TypeError("should be file or buffer")
+        vcf_reader = vcf.Reader(filepath_or_buffer)
+        #raise TypeError("should be file or buffer")
 
     if variant_caller == 'manta':
         return read_vcf_manta(vcf_reader)

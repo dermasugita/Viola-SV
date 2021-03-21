@@ -16,3 +16,6 @@ def assert_vcf_equal(left, right):
         except AssertionError:
             print('\nwhen asserting {} table, following error occured!'.format(tablename))
             raise 
+    
+    # assert metadata
+    assert left._metadata == right._metadata

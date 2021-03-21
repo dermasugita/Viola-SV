@@ -9,7 +9,8 @@ DEPENDENCIES = ["pandas",
                 "PyVCF",
                 "intervaltree",
                 "biopython",
-                "scikit-learn"]
+                "scikit-learn",
+                "click",]
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
@@ -27,7 +28,7 @@ setuptools.setup(
     package_dir={'': 'src'},
     entry_points={
         "console_scripts":[
-            "vcf2bedpe=sgt.cli.vcf2bedpe:main",
+            "vcf2bedpe=viola.cli.vcf2bedpe:main",
         ]
     },
     classifiers=[
@@ -37,6 +38,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.5',
+    extras_require={
+        'test': ['pytest']
+    },
     install_requires=DEPENDENCIES,
     keywords="bioinformatics",
 )

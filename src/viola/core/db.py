@@ -1056,14 +1056,87 @@ class Vcf(Bedpe):
         return super().__repr__() 
     def __str__(self):
         return super().__repr__() 
+
+    def replace_svid(self, to_replace, value):
+        """
+        replace_svid(to_replace, value)
+        Renamed specified SV ID.
+
+        Parameters
+        ----------
+        to_replace: int or str or List[int or str]
+            SV ID which are replaced.
+        value: int or str or List[int or str]
+            Values of new SV ID.
+        """
+        if not isinstance(to_replace, list):
+            to_replace = [to_replace]
+        if not isinstance(value, list):
+            value = [value]
+        if len(to_replace) != len(value):
+            raise ValueError('Two arguments should be the same length. {} vs {}'.format(len(to_replace), len(value)))
+        
+        set_table_list = set(self.table_list)
+        set_table_list_header = set(self._odict_df_headers.keys())
+        set_table_list_without_header = set_table_list - set_table_list_header
+        for rep, val in zip(to_replace, value):
+            for table_name in set_table_list_without_header:
+                df_target = self._odict_alltables[table_name]
+                df_target.loc[df_target['id'] == rep, 'id'] = val
+                self._odict_alltables[table_name] = df_target
+                if table_name in self._ls_infokeys:
+                    self._odict_df_info[table_name.upper()] = df_target
+
+
     
     def add_info_table(self, table_name, table, number, type_, description, source=None, version=None):
         self._ls_infokeys += [table_name]
+        self._odict_df_info[table_name.upper()] = table
         self._odict_alltables[table_name] = table
         df_meta = self.get_table('infos_meta')
         df_replace = df_meta.append({'id': table_name.upper(), 'number': number, 'type': type_, 'description': description, 'source': source, 'version': version},
                                     ignore_index=True)
+        self._odict_df_headers['infos_meta'] = df_replace
         self._odict_alltables['infos_meta'] = df_replace # not beautiful code...
+    
+    def remove_info_table(self, table_name):
+        del self._odict_df_info[table_name.upper()]
+        del self._odict_alltables[table_name]
+        df_replace = self.get_table('infos_meta')
+        df_replace = df_replace.loc[df_replace['id'] != table_name.upper()]
+        self._odict_df_headers['infos_meta'] = df_replace
+        self._odict_alltables['infos_meta'] = df_replace
+        self._ls_infokeys.remove(table_name)
+        
+    
+    def drop_by_id(self, svid):
+        """
+        drop_by_id(svid)
+        Remove SV records specified in "svid" argument.
+        
+        Paramters
+        ---------
+        svid: int or str or List[int or str]
+            ID of SV record to be removed.
+        inplace: bool, default False
+            If False, return a copy. Otherwise, dropped SV record of the self and return None.
+        
+        Returns
+        --------
+        Vcf
+            Return a removed Vcf instance.
+        """
+        if not isinstance(svid, list):
+            svid = [svid]
+        set_svid = set(svid)
+
+        set_svid_all = set(self.ids)
+
+        set_svid_preserved = set_svid_all - set_svid
+
+        vcf_removed = self.filter_by_id(set_svid_preserved)
+
+        return vcf_removed
     
     def copy(self):
         """
@@ -1584,7 +1657,38 @@ class Vcf(Bedpe):
         """
         breakend2breakpoint()
         """
-        df_svpos = self.get_table('positions')
+        out = self.copy()
+        df_svpos = out.get_table('positions')
+        df_mateid = out.get_table('mateid')
+        df_bnd = df_svpos[df_svpos['svtype'] == 'BND']
+        ls_info_breakend_id = []
+        breakpoint_id_num = 0
+        if df_bnd.empty:
+            return self
+        arr_skip = np.array([])
+        for idx, row in df_bnd.iterrows():
+            svid = row['id']
+            if np.isin(svid, arr_skip):
+                continue
+            if row['chrom1'] != row['chrom2']:
+                svtype = 'TRA'
+            else:
+                svtype = 'unknown'
+            
+            mateid = df_mateid.loc[df_mateid['id'] == svid, 'mateid'].item()
+            arr_skip = np.append(arr_skip, mateid)
+
+            breakpoint_id = 'viola_breakpoint:' + str(breakpoint_id_num)
+            ls_info_breakend_id += [[breakpoint_id, 0, svid], [breakpoint_id, 1, mateid]]
+
+            df_svpos.loc[df_svpos['id'] == svid, ['id', 'svtype']] = [breakpoint_id, svtype]
+            breakpoint_id_num += 0
+
+        print(df_svpos) 
+            
+            
+        print(df_bnd)
+        print(df_mateid)
     
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """

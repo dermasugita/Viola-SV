@@ -27,7 +27,6 @@ class TestWriteVcf:
         assert filecmp.cmp('tests/io/output/write_vcf_lumpy.vcf', 'tests/io/data/test.lumpy.validation.vcf')
 
     def test_write_vcf_delly(self):
-        # self.df.to_csv('path/to/csv')
         self.vcf_delly.to_vcf('tests/io/output/write_vcf_delly.vcf')
         assert filecmp.cmp('tests/io/output/write_vcf_delly.vcf', 'tests/io/data/test.delly.validation.vcf')
 

@@ -840,30 +840,25 @@ class Bedpe(Indexer):
         if mode == "normal":
             chr1 = [param["chr1h"], param["chr1w"]]
             chr2 = [param["chr2h"], param["chr2w"]]
-            pos1 = [param["pos1h"], param["pos1w"]]
-            pos2 = [param["pos2h"], param["pos2w"]]
             str1 = [param["str1h"], param["str1w"]]
             str2 = [param["str2h"], param["str2w"]]
         elif mode == "reverse":
             chr1 = [param["chr1h"], param["chr2w"]]
             chr2 = [param["chr2h"], param["chr1w"]]
-            pos1 = [param["pos1h"], param["pos2w"]]
-            pos2 = [param["pos2h"], param["pos1w"]]
             str1 = [param["str1h"], param["str2w"]]
             str2 = [param["str2h"], param["str1w"]]
 
         proposition_chr = (chr1[0] == chr1[1]) and (chr2[0] == chr2[1])
-        proposition_pos = (pos1[0] == pos1[1]) and (pos2[0] == pos2[1])
         if str_missing: 
             proposition_str = ((str1[0] == str1[1]) or (str1[0]==".") or (str1[1]==".")) and ((str2[0] == str2[1]) or (str2[0]==".") or (str2[1]=="."))
         else:
             proposition_str = (str1[0] == str1[1]) and (str2[0] == str2[1])
 
-        proposition = proposition_chr and proposition_pos and proposition_str
+        proposition = proposition_chr and proposition_str
         return proposition
 
 
-    def merge(self, ls_caller_names, threshold, ls_bedpe=[], linkage = "complete", str_missing=True):
+    def merge(self, ls_caller_names, threshold, ls_bedpe, linkage = "complete", str_missing=True):
         """
         merge(ls_caller_names:list, threshold:float, ls_bedpe=[], linkage = "complete", str_missing=True)
         Return a merged bedpe object from mulitple  caller's bedpe objects in ls_bedpe
@@ -1761,4 +1756,100 @@ class Vcf(Bedpe):
             return
         print(self.get_table('event'))
     
+    def merge(self, ls_caller_names, threshold, ls_vcf, linkage = "complete", str_missing=True):
+        print("test")#kesu
+        """
+        merge(ls_caller_names:list, threshold:float, ls_vcf=[], linkage = "complete", str_missing=True)
+        Return a merged vcf object from mulitple  caller's bedpe objects in ls_bedpe
+
+        Parameters
+        ----------
+        ls_caller_names:list
+            a list of names of bedpe objects to be merged, which should have self's name as the first element
+        threshold:float
+            Two SVs whose diference of positions is under this threshold are cosidered to be the same.
+        ls_vcf:list
+            a list of vcf objects to be merged, which are the same order with ls_caller_names
+        linkage:{‘ward’, ‘complete’, ‘average’, ‘single’}, default=’complete’
+            the linkage of hierarchical clustering
+        str_missing:boolean, default="True"
+            If True, all the missing strands are considered to be identical to the others. 
+
+        Returns
+        ----------
+        A merged vcf object
+            
+        """
+        if self in ls_vcf:
+            pass
+        else:
+            ls_vcf = [self] + ls_vcf#ls_bedpeにはself入っていなくても良い
+
+        multivcf = viola.TmpVcfForMerge(ls_vcf, ls_caller_names)
+        positions_table = multivcf.get_table("positions")
+        N = len(positions_table)
+        penalty_length = 3e9
+        distance_matrix = np.full((N,N), penalty_length)
+        columns = ["chrom1", "chrom2", "pos1", "pos2", "strand1", "strand2"]
+        for h in range(N):
+            for w in range(N):
+                param = {}
+                for col in columns:
+                    key_h = col[:3] + col[-1] + "h"
+                    value_h = positions_table.at[positions_table.index[h], col]
+                    key_w = col[:3] + col[-1] + "w"
+                    value_w = positions_table.at[positions_table.index[w], col]
+                    param[key_h] = value_h
+                    param[key_w] = value_w
+
+                if self._necessary_condition4merge(param = param, mode = "normal", str_missing = str_missing): 
+                    if self._nonoverlap(param = param):
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos1w"]), np.abs(param["pos2h"] - param["pos2w"]))                          
+
+                elif self._necessary_condition4merge(param = param, mode = "reverse", str_missing = str_missing):
+                    if self._nonoverlap(param = param):
+                        distance_matrix[h, w] = penalty_length
+                    else:
+                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos2w"]), np.abs(param["pos2h"] - param["pos1w"]))
+        
+        hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
+        labels = hcl_clustering_model.fit_predict(X = distance_matrix)
+        
+        bpid_dict = {labels[0]:0}
+        ls_bpid = []
+        idx_head = 0
+        for label in labels:
+            if label in bpid_dict:
+                ls_bpid.append(bpid_dict[label])
+            else:
+                idx_head += 1
+                bpid_dict[label] = idx_head
+                ls_bpid.append(bpid_dict[label])
+
+        value_idx = pd.Series(np.zeros(N, dtype=int))
+        df_bpid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "bpid":pd.Series(ls_bpid)})
+        
+        originalid = multivcf.get_table("global_id")["id"]
+        df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
+        
+        caller = multivcf.get_table("global_id")["patients"]
+        df_caller = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "caller":caller})
+
+        df_pos = multivcf._df_svpos
+        df_filters = multivcf._df_filters
+        odict_df_info = multivcf._odict_df_info
+        df_formats = multivcf._df_formats
+        odict_df_headers = multivcf._odict_df_headers
+        args = [df_pos, df_filters, odict_df_info, df_formats, odict_df_headers]
+        merged_vcf = viola.Vcf(*args)
+    
+        merged_vcf.add_info_table(table_name="bpid", table=df_bpid, number=1, type_="String", description="ID of breakpoints.")
+        merged_vcf.add_info_table(table_name="originalid", table=df_originalid, number=1, type_="String", description="The SV-caller-derived ID before merging.")
+        merged_vcf.add_info_table(table_name="caller", table=df_caller, number=None, type_="String", description="The name of SV caller which identified the SV record.")
+        
+        return merged_vcf
+
+
             

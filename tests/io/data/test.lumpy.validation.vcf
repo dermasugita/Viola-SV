@@ -1,5 +1,6 @@
 ##fileformat=VCFv4.2
 ##source=LUMPY
+##variantcaller=lumpy
 ##contig=<ID=chr10,length=.>
 ##contig=<ID=chr14,length=.>
 ##contig=<ID=chr15,length=.>

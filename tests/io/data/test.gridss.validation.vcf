@@ -1,5 +1,6 @@
 ##fileformat=VCFv4.2
 ##gridssVersion=2.10.2-gridss
+##variantcaller=gridss
 ##contig=<ID=chr10,length=130694993>
 ##contig=<ID=chr11,length=122082543>
 ##contig=<ID=chr12,length=120129022>

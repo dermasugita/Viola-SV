@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 import re
-from viola.core.db import Bedpe, Vcf
-from viola.core.cohort import MultiBedpe
 from typing import (
     Set,
     Union,
@@ -21,8 +19,38 @@ def is_url(x):
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     return re.match(regex, x) is not None
 
+def get_inslen_and_insseq_from_alt(alt):
+    """
+    parse_alt(str)
+    
+    This function is the modification of Reader._parse_alt of PyVCF package.
+    """
+    alt_pattern = re.compile('[\[\]]')
+    if alt_pattern.search(alt) is not None:
+        # Paired breakend
+        items = alt_pattern.split(alt)
+        mate_be = items[1].split(':')
+        chrom2 = mate_be[0]
+        if chrom2[0] == '<':
+            chrom2 = chrom2[1:-1]
+            within_main_assembly = False
+        else:
+            within_main_assembly = True
+        pos2 = mate_be[1]
+        orientation = (alt[0] == '[' or alt[0] == ']') # If True, strand of be1 is '-'.
+        remote_orientation = (re.search('\[', alt) is not None)
+        if orientation:
+            insertion_sequence = items[2][:-1]
+        else:
+            insertion_sequence = items[0][1:]
+        #print(connecting_sequence)
+        return (len(insertion_sequence), insertion_sequence)
+    else:
+        return (0, '')
+
+
 def get_id_by_slicing_info(
-    bedpe_or_vcf: Union[Bedpe, Vcf],
+    bedpe_or_vcf: "Union[Bedpe, Vcf]",
     info: str, 
     value_idx: int = 0,
     st = None, 
@@ -52,7 +80,7 @@ def get_id_by_slicing_info(
     return set(df_info['id'].tolist())
 
 def get_id_by_boolean_info(
-    bedpe_or_vcf: Union[Bedpe, MultiBedpe, Vcf],
+    bedpe_or_vcf: "Union[Bedpe, MultiBedpe, Vcf]",
     info: str,
     true_or_false: bool = True,
     svtype: str = 'any') -> Set[str]:

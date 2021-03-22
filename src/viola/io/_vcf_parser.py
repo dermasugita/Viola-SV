@@ -10,6 +10,7 @@ from viola.core.db import Vcf
 
 def read_vcf_manta(vcf_reader):
     metadata = vcf_reader.metadata
+    metadata['variantcaller'] = 'manta'
     # obtain header informations
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)
@@ -198,6 +199,7 @@ def read_vcf_delly(vcf_reader):
     Replace table name SVLEN into SVLENORG to avoid name conflict.
     """
     metadata = vcf_reader.metadata
+    metadata['variantcaller'] = 'delly'
     # obtain header informations
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)
@@ -412,6 +414,7 @@ def read_vcf_lumpy(vcf_reader):
     INFO=SU is modified according to the INFO=STRANDS.
     """
     metadata = vcf_reader.metadata
+    metadata['variantcaller'] = 'lumpy'
     # obtain header informations
     ################# This is empty DataFrame! ############################
     odict_contigs = vcf_reader.contigs
@@ -425,7 +428,7 @@ def read_vcf_lumpy(vcf_reader):
     odict_infos = vcf_reader.infos
     df_infos_meta = pd.DataFrame(odict_infos, index=('id', 'number', 'type', 'description', 'source', 'version')).T.reset_index(drop=True)
     df_suorg = pd.DataFrame([['SUORG', None, 'Integer', 'Original value of Lumpy SU', None, None]], columns = ('id', 'number', 'type', 'description', 'source', 'version'))
-    df_infos_meta = pd.concat([df_infos_meta, df_suorg])
+    df_infos_meta = pd.concat([df_infos_meta, df_suorg], ignore_index=True)
 
     # obtain FORMAT informations
     odict_formats = vcf_reader.formats
@@ -658,6 +661,7 @@ def read_vcf_lumpy(vcf_reader):
 
 def read_vcf_gridss(vcf_reader):
     metadata = vcf_reader.metadata
+    metadata['variantcaller'] = 'gridss'
     # obtain header informations
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)

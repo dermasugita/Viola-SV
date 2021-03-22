@@ -5,7 +5,7 @@ filepath = os.path.join(HERE, '../../resources/vcf/manta1.inv.vcf')
 bedpepath1 = os.path.join(HERE, '../../resources/pcawg/10ad692b-4c3d-42de-9b5e-4968441388b3.pcawg_consensus_1.6.161116.somatic.sv.bedpe')
 bedpepath2 = os.path.join(HERE, '../../resources/pcawg/0b19bee7-5281-4915-9d98-c20eb3e84ecf.pcawg_consensus_1.6.161116.somatic.sv.bedpe')
 bedpath = os.path.join(HERE, '../../resources/bed/fragile_site.hg19.bed')
-def test_hello():
+def test_classify_manual_svtype():
     bedpe1 = viola.read_bedpe(bedpepath1)
     bedpe2 = viola.read_bedpe(bedpepath2)
     viola.MultiBedpe([bedpe1, bedpe2], ['p1', 'p2'])

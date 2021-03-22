@@ -14,6 +14,7 @@ from viola.core.indexing import Indexer
 from viola.core.bed import Bed
 from viola.core.fasta import Fasta
 from viola.utils.microhomology import get_microhomology_from_positions
+from viola.utils.utils import get_inslen_and_insseq_from_alt
 from viola._typing import (
     IntOrStr,
     StrOrIterableStr,
@@ -1056,15 +1057,100 @@ class Vcf(Bedpe):
         return super().__repr__() 
     def __str__(self):
         return super().__repr__() 
+
+    def replace_svid(self, to_replace, value):
+        """
+        replace_svid(to_replace, value)
+        Renamed specified SV ID.
+
+        Parameters
+        ----------
+        to_replace: int or str or List[int or str]
+            SV ID which are replaced.
+        value: int or str or List[int or str]
+            Values of new SV ID.
+        """
+        if not isinstance(to_replace, list):
+            to_replace = [to_replace]
+        if not isinstance(value, list):
+            value = [value]
+        if len(to_replace) != len(value):
+            raise ValueError('Two arguments should be the same length. {} vs {}'.format(len(to_replace), len(value)))
+        
+        set_table_list = set(self.table_list)
+        set_table_list_header = set(self._odict_df_headers.keys())
+        set_table_list_without_header = set_table_list - set_table_list_header
+        for rep, val in zip(to_replace, value):
+            for table_name in set_table_list_without_header:
+                df_target = self._odict_alltables[table_name]
+                df_target.loc[df_target['id'] == rep, 'id'] = val
+                self._odict_alltables[table_name] = df_target
+                if table_name in self._ls_infokeys:
+                    self._odict_df_info[table_name.upper()] = df_target
+
+
     
     def add_info_table(self, table_name, table, number, type_, description, source=None, version=None):
         self._ls_infokeys += [table_name]
+        self._odict_df_info[table_name.upper()] = table
         self._odict_alltables[table_name] = table
         df_meta = self.get_table('infos_meta')
         df_replace = df_meta.append({'id': table_name.upper(), 'number': number, 'type': type_, 'description': description, 'source': source, 'version': version},
                                     ignore_index=True)
+        self._odict_df_headers['infos_meta'] = df_replace
         self._odict_alltables['infos_meta'] = df_replace # not beautiful code...
+    
+    def remove_info_table(self, table_name):
+        del self._odict_df_info[table_name.upper()]
+        del self._odict_alltables[table_name]
+        df_replace = self.get_table('infos_meta')
+        df_replace = df_replace.loc[df_replace['id'] != table_name.upper()]
+        self._odict_df_headers['infos_meta'] = df_replace
+        self._odict_alltables['infos_meta'] = df_replace
+        self._ls_infokeys.remove(table_name)
+        
+    
+    def drop_by_id(self, svid):
+        """
+        drop_by_id(svid)
+        Remove SV records specified in "svid" argument.
+        
+        Paramters
+        ---------
+        svid: int or str or List[int or str]
+            ID of SV record to be removed.
+        inplace: bool, default False
+            If False, return a copy. Otherwise, dropped SV record of the self and return None.
+        
+        Returns
+        --------
+        Vcf
+            Return a removed Vcf instance.
+        """
+        if not isinstance(svid, list):
+            svid = [svid]
+        set_svid = set(svid)
 
+        set_svid_all = set(self.ids)
+
+        set_svid_preserved = set_svid_all - set_svid
+
+        vcf_removed = self.filter_by_id(set_svid_preserved)
+
+        return vcf_removed
+    
+    def copy(self):
+        """
+        copy()
+        Return copy of the instance.
+        """
+        df_svpos = self.get_table('positions')
+        df_filters = self.get_table('filters')
+        odict_df_infos = OrderedDict([(k, self.get_table(k.lower())) for k, v in self._odict_df_info.items()])
+        df_formats = self.get_table('formats')
+        odict_df_headers = OrderedDict([(k, self.get_table(k)) for k,v in self._odict_df_headers.items()])
+        metadata = self._metadata
+        return Vcf(df_svpos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata)
 
     def to_vcf_like(self) -> pd.DataFrame:
         """
@@ -1515,7 +1601,7 @@ class Vcf(Bedpe):
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_filters = self._filter_by_id('filters', arrlike_id)
-        out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
+        out_odict_df_info = OrderedDict([(k.upper(), self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
         out_formats = self._filter_by_id('formats', arrlike_id)
         out_odict_df_headers = self._odict_df_headers.copy()
         out_metadata = self._metadata
@@ -1568,6 +1654,92 @@ class Vcf(Bedpe):
         self.add_info_table(left_name, df_left, 0, type_="Flag", description=description)
         self.add_info_table(right_name, df_right, 0, type_="Flag", description=description)
     
+    def breakend2breakpoint(self):
+        """
+        breakend2breakpoint()
+        Transforms SV records whose svtype are BND, infer the SV type, and return a breakpoint-based Vcf object. 
+
+        Returns
+        --------
+        Vcf
+            SV records with svtype being BND were integrated into breakpoints, and svtype will be overwritten.
+        """
+        out = self.copy()
+        if out._metadata['variantcaller'] == 'lumpy':
+            ls_secondary = self.get_table('secondary')['id'].tolist()
+            out = out.drop_by_id(ls_secondary)
+            out.remove_info_table('secondary')
+        df_svpos = out.get_table('positions')
+        df_svtype = out.get_table('svtype')
+
+        if out._metadata['variantcaller'] == 'delly':
+            df_svpos.loc[df_svpos['svtype'] == 'BND', 'svtype'] = 'TRA'
+            df_svtype.loc[df_svtype['svtype'] == 'BND', 'svtype'] = 'TRA'
+            out._odict_alltables['positions'] = df_svpos
+            out._odict_alltables['svtype'] = df_svtype
+            out._odict_df_info['SVTYPE'] = df_svtype
+            return out
+
+        df_mateid = out.get_table('mateid')
+        df_bnd = df_svpos[df_svpos['svtype'] == 'BND']
+        ls_info_breakend_id = []
+        breakpoint_id_num = 0
+        if df_bnd.empty:
+            return self
+        arr_skip = np.array([])
+        for idx, row in df_bnd.iterrows():
+            svid = row['id']
+            ser_mateid = df_mateid.loc[df_mateid['id'] == svid, 'mateid']
+            if ser_mateid.empty:
+                mateid = None
+            else:
+                mateid = ser_mateid.item()
+            if np.isin(svid, arr_skip):
+                continue
+            if mateid is None:
+                svtype = 'BND'
+            elif row['chrom1'] != row['chrom2']:
+                svtype = 'TRA'
+            elif row['strand1'] == row['strand2']:
+                svtype = 'INV'
+            elif get_inslen_and_insseq_from_alt(row['alt'])[0] > abs(row['pos1'] - row['pos2']) * 0.5:
+                svtype = 'INS'
+            elif (row['pos1'] < row['pos2']) & (row['strand1'] == '-') & (row['strand2'] == '+'):
+                svtype = 'DUP'
+            elif (row['pos1'] > row['pos2']) & (row['strand1'] == '+') & (row['strand2'] == '-'):
+                svtype = 'DUP'
+            else:
+                svtype = 'DEL'
+            
+            arr_skip = np.append(arr_skip, mateid)
+
+            breakpoint_id = 'viola_breakpoint:' + str(breakpoint_id_num)
+            if mateid is not None:
+                ls_info_breakend_id += [[breakpoint_id, 0, svid], [breakpoint_id, 1, mateid]]
+            else:
+                ls_info_breakend_id += [[breakpoint_id, 0, svid]]
+
+
+            df_svpos.loc[df_svpos['id'] == svid, ['id', 'svtype']] = [breakpoint_id, svtype]
+            df_svtype.loc[df_svtype['id'] == svid, ['id', 'svtype']] = [breakpoint_id, svtype]
+
+            out.replace_svid(svid, breakpoint_id)
+            
+            breakpoint_id_num += 1
+        
+        out._odict_alltables['positions'] = df_svpos
+        out._odict_alltables['svtype'] = df_svtype
+        out._odict_df_info['SVTYPE'] = df_svtype
+        out.remove_info_table('mateid')
+
+        df_info_breakend_id = pd.DataFrame(ls_info_breakend_id, columns=('id', 'value_idx', 'orgbeid'))
+        out.add_info_table('orgbeid', df_info_breakend_id, type_='String', number=2, description='Breakend ID which were in original VCF file.', source='Python package, Viola-SV.')
+
+        if out._metadata['variantcaller'] != 'lumpy':
+            out = out.drop_by_id(list(arr_skip))
+
+        return out
+            
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """
         now yields errors!!!

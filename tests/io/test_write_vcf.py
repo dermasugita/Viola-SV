@@ -32,7 +32,7 @@ class TestWriteVcf:
         self.vcf_delly.to_vcf('tests/io/output/write_vcf_delly.vcf')
         assert filecmp.cmp('tests/io/output/write_vcf_delly.vcf', 'tests/io/data/test.delly.validation.vcf')
 
-    def test_write_vcf_delly(self):
+    def test_write_vcf_gridss(self):
         self.vcf_gridss.to_vcf('tests/io/output/write_vcf_gridss.vcf')
         assert filecmp.cmp('tests/io/output/write_vcf_gridss.vcf', 'tests/io/data/test.gridss.validation.vcf')
 

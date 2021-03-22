@@ -3,6 +3,7 @@
 ##reference=/data/share/iGenomes/Mus_musculus/UCSC/mm10/Sequence/BWAIndex/genome.fa
 ##bcftools_viewVersion=1.8+htslib-1.8
 ##bcftools_viewCommand=view mouse1_filtered.bcf; Date=Wed Oct 14 15:37:56 2020
+##variantcaller=delly
 ##contig=<ID=chr10,length=130694993>
 ##contig=<ID=chr11,length=122082543>
 ##INFO=<ID=PRECISE,Number=0,Type=Flag,Description="Precise structural variation">

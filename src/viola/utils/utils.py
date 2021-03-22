@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 import re
-from viola.core.db import Bedpe, Vcf
-from viola.core.cohort import MultiBedpe
 from typing import (
     Set,
     Union,
@@ -52,7 +50,7 @@ def get_inslen_and_insseq_from_alt(alt):
 
 
 def get_id_by_slicing_info(
-    bedpe_or_vcf: Union[Bedpe, Vcf],
+    bedpe_or_vcf: "Union[Bedpe, Vcf]",
     info: str, 
     value_idx: int = 0,
     st = None, 
@@ -82,7 +80,7 @@ def get_id_by_slicing_info(
     return set(df_info['id'].tolist())
 
 def get_id_by_boolean_info(
-    bedpe_or_vcf: Union[Bedpe, MultiBedpe, Vcf],
+    bedpe_or_vcf: "Union[Bedpe, MultiBedpe, Vcf]",
     info: str,
     true_or_false: bool = True,
     svtype: str = 'any') -> Set[str]:

@@ -14,6 +14,7 @@ from viola.core.indexing import Indexer
 from viola.core.bed import Bed
 from viola.core.fasta import Fasta
 from viola.utils.microhomology import get_microhomology_from_positions
+from viola.utils.utils import get_inslen_and_insseq_from_alt
 from viola._typing import (
     IntOrStr,
     StrOrIterableStr,
@@ -1600,7 +1601,7 @@ class Vcf(Bedpe):
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_filters = self._filter_by_id('filters', arrlike_id)
-        out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
+        out_odict_df_info = OrderedDict([(k.upper(), self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
         out_formats = self._filter_by_id('formats', arrlike_id)
         out_odict_df_headers = self._odict_df_headers.copy()
         out_metadata = self._metadata
@@ -1656,9 +1657,29 @@ class Vcf(Bedpe):
     def breakend2breakpoint(self):
         """
         breakend2breakpoint()
+        Transforms SV records whose svtype are BND, infer the SV type, and return a breakpoint-based Vcf object. 
+
+        Returns
+        --------
+        Vcf
+            SV records with svtype being BND were integrated into breakpoints, and svtype will be overwritten.
         """
         out = self.copy()
+        if out._metadata['variantcaller'] == 'lumpy':
+            ls_secondary = self.get_table('secondary')['id'].tolist()
+            out = out.drop_by_id(ls_secondary)
+            out.remove_info_table('secondary')
         df_svpos = out.get_table('positions')
+        df_svtype = out.get_table('svtype')
+
+        if out._metadata['variantcaller'] == 'delly':
+            df_svpos.loc[df_svpos['svtype'] == 'BND', 'svtype'] = 'TRA'
+            df_svtype.loc[df_svtype['svtype'] == 'BND', 'svtype'] = 'TRA'
+            out._odict_alltables['positions'] = df_svpos
+            out._odict_alltables['svtype'] = df_svtype
+            out._odict_df_info['SVTYPE'] = df_svtype
+            return out
+
         df_mateid = out.get_table('mateid')
         df_bnd = df_svpos[df_svpos['svtype'] == 'BND']
         ls_info_breakend_id = []
@@ -1668,28 +1689,57 @@ class Vcf(Bedpe):
         arr_skip = np.array([])
         for idx, row in df_bnd.iterrows():
             svid = row['id']
+            ser_mateid = df_mateid.loc[df_mateid['id'] == svid, 'mateid']
+            if ser_mateid.empty:
+                mateid = None
+            else:
+                mateid = ser_mateid.item()
             if np.isin(svid, arr_skip):
                 continue
-            if row['chrom1'] != row['chrom2']:
+            if mateid is None:
+                svtype = 'BND'
+            elif row['chrom1'] != row['chrom2']:
                 svtype = 'TRA'
+            elif row['strand1'] == row['strand2']:
+                svtype = 'INV'
+            elif get_inslen_and_insseq_from_alt(row['alt'])[0] > abs(row['pos1'] - row['pos2']) * 0.5:
+                svtype = 'INS'
+            elif (row['pos1'] < row['pos2']) & (row['strand1'] == '-') & (row['strand2'] == '+'):
+                svtype = 'DUP'
+            elif (row['pos1'] > row['pos2']) & (row['strand1'] == '+') & (row['strand2'] == '-'):
+                svtype = 'DUP'
             else:
-                svtype = 'unknown'
+                svtype = 'DEL'
             
-            mateid = df_mateid.loc[df_mateid['id'] == svid, 'mateid'].item()
             arr_skip = np.append(arr_skip, mateid)
 
             breakpoint_id = 'viola_breakpoint:' + str(breakpoint_id_num)
-            ls_info_breakend_id += [[breakpoint_id, 0, svid], [breakpoint_id, 1, mateid]]
+            if mateid is not None:
+                ls_info_breakend_id += [[breakpoint_id, 0, svid], [breakpoint_id, 1, mateid]]
+            else:
+                ls_info_breakend_id += [[breakpoint_id, 0, svid]]
+
 
             df_svpos.loc[df_svpos['id'] == svid, ['id', 'svtype']] = [breakpoint_id, svtype]
-            breakpoint_id_num += 0
+            df_svtype.loc[df_svtype['id'] == svid, ['id', 'svtype']] = [breakpoint_id, svtype]
 
-        print(df_svpos) 
+            out.replace_svid(svid, breakpoint_id)
             
+            breakpoint_id_num += 1
+        
+        out._odict_alltables['positions'] = df_svpos
+        out._odict_alltables['svtype'] = df_svtype
+        out._odict_df_info['SVTYPE'] = df_svtype
+        out.remove_info_table('mateid')
+
+        df_info_breakend_id = pd.DataFrame(ls_info_breakend_id, columns=('id', 'value_idx', 'orgbeid'))
+        out.add_info_table('orgbeid', df_info_breakend_id, type_='String', number=2, description='Breakend ID which were in original VCF file.', source='Python package, Viola-SV.')
+
+        if out._metadata['variantcaller'] != 'lumpy':
+            out = out.drop_by_id(list(arr_skip))
+
+        return out
             
-        print(df_bnd)
-        print(df_mateid)
-    
     def _get_unique_events_ids(self) -> Set[IntOrStr]:
         """
         now yields errors!!!

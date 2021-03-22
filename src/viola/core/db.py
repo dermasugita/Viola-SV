@@ -727,7 +727,8 @@ class Bedpe(Indexer):
         ls_result_names = []
         for func, name in zip(ls_conditions, ls_names):
             obj = obj.filter_by_id(set_ids_current)
-            set_ids = func(obj)
+            ids = func(obj)
+            set_ids = set(ids)
             set_ids_intersection = set_ids_current & set_ids
             ls_ids += list(set_ids_intersection)
             ls_result_names += [name for i in range(len(set_ids_intersection))]

@@ -84,6 +84,9 @@ class TmpVcfForMerge(MultiVcf):
             if key == 'infos_meta':
                 df_merged = _integrate_infos_meta(value)
             else:
+                if key == 'contigs_meta':
+                    lumpy_index = [i for i, x in enumerate(ls_patient_names) if x == 'lumpy'][0]
+                    value = [v for i, v in enumerate(value) if i != lumpy_index]
                 for idx, df in enumerate(value):
                     if idx == 0:
                         df_merged = df

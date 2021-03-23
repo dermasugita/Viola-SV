@@ -938,15 +938,13 @@ class Bedpe(Indexer):
         caller = multibedpe.get_table("global_id")["patients"]
         df_caller = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "caller":caller})
 
-        ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend']
-        ls_df_infos = []
-        for i in ls_infokeys:
-            ls_df_infos.append(multibedpe.get_table(i))
-        ls_infokeys = ls_infokeys + ["bpid", "originalid", "caller"]
-        ls_df_infos = ls_df_infos + [df_bpid, df_originalid, df_caller]
-        odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
-        args = [positions_table, odict_df_infos]
-        merged_bedpe = viola.Bedpe(*args)
+        df_svpos = multibedpe._df_svpos
+        odict_df_info = multibedpe._odict_df_info
+    
+        merged_bedpe = viola.Bedpe(df_svpos=df_svpos, odict_df_info=odict_df_info)
+        merged_bedpe.add_info_table(table_name="bpid", df=df_bpid)
+        merged_bedpe.add_info_table(table_name="originalid", df=df_originalid)
+        merged_bedpe.add_info_table(table_name="caller", df=df_caller)
         
         return merged_bedpe
 
@@ -1757,7 +1755,6 @@ class Vcf(Bedpe):
         print(self.get_table('event'))
     
     def merge(self, ls_caller_names, threshold, ls_vcf, linkage = "complete", str_missing=True):
-        print("test")#kesu
         """
         merge(ls_caller_names:list, threshold:float, ls_vcf=[], linkage = "complete", str_missing=True)
         Return a merged vcf object from mulitple  caller's bedpe objects in ls_bedpe
@@ -1783,7 +1780,7 @@ class Vcf(Bedpe):
         if self in ls_vcf:
             pass
         else:
-            ls_vcf = [self] + ls_vcf#ls_bedpeにはself入っていなくても良い
+            ls_vcf = [self] + ls_vcf
 
         multivcf = viola.TmpVcfForMerge(ls_vcf, ls_caller_names)
         positions_table = multivcf.get_table("positions")

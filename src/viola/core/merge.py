@@ -96,6 +96,8 @@ class TmpVcfForMerge(MultiVcf):
                         continue
                     on = list(df_merged.columns)
                     df_merged = df_merged.merge(df, how='outer', on=on)
+                    if 'number' in on:
+                        df_merged['number'] = df_merged['number'].astype(object)
             
             odict_df_headers[key] = df_merged
         

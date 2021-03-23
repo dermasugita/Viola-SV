@@ -712,9 +712,6 @@ class Bedpe(Indexer):
         df_to_add = df_merged[['id', 'value_idx', name]]
         self.add_info_table(name, df_to_add)
         
-
-
-
     def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
@@ -1756,6 +1753,44 @@ class Vcf(Bedpe):
         if 'event' not in self._ls_infokeys:
             return
         print(self.get_table('event'))
+
+    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
+        """
+        classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
+        Classify SV records by user-defined criteria. A new INFO table named
+        'manual_sv_type' will be created.
+        """
+        set_ids_current = set(self.ids)
+        obj = self
+        ls_ids = []
+        ls_result_names = []
+        for func, name in zip(ls_conditions, ls_names):
+            obj = obj.filter_by_id(set_ids_current)
+            ids = func(obj)
+            set_ids = set(ids)
+            set_ids_intersection = set_ids_current & set_ids
+            ls_ids += list(set_ids_intersection)
+            ls_result_names += [name for i in range(len(set_ids_intersection))]
+            set_ids_current = set_ids_current - set_ids_intersection
+        ls_ids += list(set_ids_current)
+        ls_result_names += ['others' for i in range(len(set_ids_current))]
+        ls_zeros = [0 for i in range(len(self.ids))]
+        df_result = pd.DataFrame({'id': ls_ids, 'value_idx': ls_zeros, 'manual_sv_type': ls_result_names})
+        self.add_info_table('manual_sv_type', df_result, number=1, type_='String', description='Custom SV class defined by user')
+        if return_series:
+            if ls_order is None:
+                pd_ind_reindex = pd.Index(ls_names + ['others'])
+            else:
+                pd_ind_reindex = pd.Index(ls_order)
+            ser_feature_counts = self.get_feature_count_as_series(ls_order=pd_ind_reindex)
+            return ser_feature_counts
+    
+    def get_feature_count_as_series(self, feature='manual_sv_type', ls_order=None):
+        ser_feature_counts = self.get_table(feature)[feature].value_counts()
+        if ls_order is not None:
+            pd_ind_reindex = pd.Index(ls_order)
+            ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value=0)
+        return ser_feature_counts
     
     def merge(self, threshold, ls_caller_names=None, ls_vcf = [], linkage = "complete", str_missing=True):
         """

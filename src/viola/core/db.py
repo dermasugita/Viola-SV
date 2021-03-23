@@ -1754,7 +1754,7 @@ class Vcf(Bedpe):
             return
         print(self.get_table('event'))
     
-    def merge(self, ls_caller_names:List, threshold, ls_vcf = [], linkage = "complete", str_missing=True):
+    def merge(self, threshold, ls_caller_names=None, ls_vcf = [], linkage = "complete", str_missing=True):
         """
         merge(ls_caller_names:list, threshold:float, ls_vcf=[], linkage = "complete", str_missing=True)
         Return a merged vcf object from mulitple  caller's bedpe objects in ls_bedpe
@@ -1783,6 +1783,9 @@ class Vcf(Bedpe):
             pass
         else:
             ls_vcf = [self] + ls_vcf
+        
+        if ls_caller_names is None:
+            ls_caller_names = [vcf._metadata["variantcaller"] for vcf in ls_vcf] 
 
         multivcf = viola.TmpVcfForMerge(ls_vcf, ls_caller_names)
         positions_table = multivcf.get_table("positions")

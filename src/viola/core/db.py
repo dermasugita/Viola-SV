@@ -858,7 +858,7 @@ class Bedpe(Indexer):
         return proposition
 
 
-    def merge(self, ls_caller_names, threshold, ls_bedpe, linkage = "complete", str_missing=True):
+    def merge(self, ls_caller_names:List, threshold, ls_bedpe=[], linkage = "complete", str_missing=True):
         """
         merge(ls_caller_names:list, threshold:float, ls_bedpe=[], linkage = "complete", str_missing=True)
         Return a merged bedpe object from mulitple  caller's bedpe objects in ls_bedpe
@@ -1754,7 +1754,7 @@ class Vcf(Bedpe):
             return
         print(self.get_table('event'))
     
-    def merge(self, ls_caller_names, threshold, ls_vcf, linkage = "complete", str_missing=True):
+    def merge(self, ls_caller_names:List, threshold, ls_vcf = [], linkage = "complete", str_missing=True):
         """
         merge(ls_caller_names:list, threshold:float, ls_vcf=[], linkage = "complete", str_missing=True)
         Return a merged vcf object from mulitple  caller's bedpe objects in ls_bedpe
@@ -1764,13 +1764,15 @@ class Vcf(Bedpe):
         ls_caller_names:list
             a list of names of bedpe objects to be merged, which should have self's name as the first element
         threshold:float
-            Two SVs whose diference of positions is under this threshold are cosidered to be the same.
+            Two SVs whose diference of positions is under this threshold are cosidered to be identical.
         ls_vcf:list
             a list of vcf objects to be merged, which are the same order with ls_caller_names
         linkage:{‘ward’, ‘complete’, ‘average’, ‘single’}, default=’complete’
-            the linkage of hierarchical clustering
+            the linkage of hierarchical clustering.
+            To keep the mutual distance of all SVs in each cluster below the threshold, 
+            "complete" is recommended.
         str_missing:boolean, default="True"
-            If True, all the missing strands are considered to be identical to the others. 
+            If True, all the missing strands are considered to be the same with the others.
 
         Returns
         ----------
@@ -1844,7 +1846,7 @@ class Vcf(Bedpe):
     
         merged_vcf.add_info_table(table_name="bpid", table=df_bpid, number=1, type_="String", description="ID of breakpoints.")
         merged_vcf.add_info_table(table_name="originalid", table=df_originalid, number=1, type_="String", description="The SV-caller-derived ID before merging.")
-        merged_vcf.add_info_table(table_name="caller", table=df_caller, number=None, type_="String", description="The name of SV caller which identified the SV record.")
+        merged_vcf.add_info_table(table_name="caller", table=df_caller, number=1, type_="String", description="The name of SV caller which identified the SV record.")
         
         return merged_vcf
 

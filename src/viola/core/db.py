@@ -858,21 +858,23 @@ class Bedpe(Indexer):
         return proposition
 
 
-    def merge(self, ls_caller_names:List, threshold, ls_bedpe=[], linkage = "complete", str_missing=True):
+    def merge(self, threshold, ls_caller_names, ls_bedpe=[], linkage = "complete", str_missing=True):
         """
-        merge(ls_caller_names:list, threshold:float, ls_bedpe=[], linkage = "complete", str_missing=True)
+        merge(ls_caller_names:list, threshold:float, ls_bedpe:list, linkage = "complete", str_missing=True)
         Return a merged bedpe object from mulitple  caller's bedpe objects in ls_bedpe
 
         Parameters
         ----------
         ls_caller_names:list
-            a list of names of bedpe objects to be merged, which should have self's name as the first element
+            A list of names of bedpe objects to be merged, which should have self's name as the first element
         threshold:float
-            Two SVs whose diference of positions is under this threshold are cosidered to be the same.
+            Two SVs whose diference of positions is under this threshold are cosidered to be identical.
         ls_bedpe:list
-            a list of bedpe objects to be merged
-        linkage:{‘ward’, ‘complete’, ‘average’, ‘single’}, default=’complete’
-            the linkage of hierarchical clustering
+            A list of bedpe objects to be merged, which are the same order with ls_caller_names
+        linkage:{‘complete’, ‘average’, ‘single’}, default=’complete’
+            The linkage of hierarchical clustering.
+            To keep the mutual distance of all SVs in each cluster below the threshold, 
+            "complete" is recommended.
         str_missing:boolean, default="True"
             If True, all the missing strands are considered to be identical to the others. 
 
@@ -884,18 +886,18 @@ class Bedpe(Indexer):
         if self in ls_bedpe:
             pass
         else:
-            ls_bedpe = [self] + ls_bedpe#ls_bedpeにはself入っていなくても良い
+            ls_bedpe = [self] + ls_bedpe
 
         multibedpe = viola.MultiBedpe(ls_bedpe, ls_caller_names)
         positions_table = multibedpe.get_table("positions")
-        N = len(positions_table)#the number of samples
-        penalty_length = 3e9#whole genome length
+        N = len(positions_table)
+        penalty_length = 3e9
         distance_matrix = np.full((N,N), penalty_length)
         columns = ["chrom1", "chrom2", "pos1", "pos2", "strand1", "strand2"]
         for h in range(N):
             for w in range(N):
                 param = {}
-                for col in columns:#want to create these variables dynamically
+                for col in columns:
                     key_h = col[:3] + col[-1] + "h"
                     value_h = positions_table.at[positions_table.index[h], col]
                     key_w = col[:3] + col[-1] + "w"
@@ -1756,19 +1758,19 @@ class Vcf(Bedpe):
     
     def merge(self, threshold, ls_caller_names=None, ls_vcf = [], linkage = "complete", str_missing=True):
         """
-        merge(ls_caller_names:list, threshold:float, ls_vcf=[], linkage = "complete", str_missing=True)
+        merge(ls_caller_names:list, threshold:float, ls_vcf:list, linkage = "complete", str_missing=True)
         Return a merged vcf object from mulitple  caller's bedpe objects in ls_bedpe
 
         Parameters
         ----------
         ls_caller_names:list
-            a list of names of bedpe objects to be merged, which should have self's name as the first element
+            A list of names of bedpe objects to be merged, which should have self's name as the first element
         threshold:float
             Two SVs whose diference of positions is under this threshold are cosidered to be identical.
         ls_vcf:list
-            a list of vcf objects to be merged, which are the same order with ls_caller_names
-        linkage:{‘ward’, ‘complete’, ‘average’, ‘single’}, default=’complete’
-            the linkage of hierarchical clustering.
+            A list of vcf objects to be merged, which are the same order with ls_caller_names
+        linkage:{‘complete’, ‘average’, ‘single’}, default=’complete’
+            The linkage of hierarchical clustering.
             To keep the mutual distance of all SVs in each cluster below the threshold, 
             "complete" is recommended.
         str_missing:boolean, default="True"

@@ -5,6 +5,7 @@ from viola.io.parser import (
 )
 
 from viola.io.multi_parser import (
+    read_vcf_multi,
     read_bedpe_multi,
 )
 

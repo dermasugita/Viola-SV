@@ -20,6 +20,10 @@ from viola.core.api import (
     TmpVcfForMerge,
 )
 
+from viola.ml.api import (
+    SV_signature_extractor,
+)
+
 from viola.utils.api import (
     get_microhomology_from_positions,
     is_url,

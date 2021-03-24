@@ -1,6 +1,7 @@
 import pandas as pd
 from collections import OrderedDict
-from viola.core.db import Vcf, Bedpe
+from viola.core.bedpe import Bedpe
+from viola.core.vcf import Vcf
 from typing import (
     List,
     Optional,
@@ -320,7 +321,8 @@ class MultiVcf(Vcf):
         ls_result_names = []
         for func, name in zip(ls_conditions, ls_names):
             obj = obj.filter_by_id(set_ids_current)
-            set_ids = func(obj)
+            ids = func(obj)
+            set_ids = set(ids)
             set_ids_intersection = set_ids_current & set_ids
             ls_ids += list(set_ids_intersection)
             ls_result_names += [name for i in range(len(set_ids_intersection))]
@@ -329,7 +331,7 @@ class MultiVcf(Vcf):
         ls_result_names += ['others' for i in range(len(set_ids_current))]
         ls_zeros = [0 for i in range(len(self.ids))]
         df_result = pd.DataFrame({'id': ls_ids, 'value_idx': ls_zeros, 'manual_sv_type': ls_result_names})
-        self.add_info_table('manual_sv_type', df_result)
+        self.add_info_table('manual_sv_type', df_result, number=1, type_='String', description='Custom SV class defined by user')
         if return_data_frame:
             if ls_order is None:
                 pd_ind_reindex = pd.Index(ls_names + ['others'])

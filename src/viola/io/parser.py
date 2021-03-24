@@ -37,7 +37,6 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         (Acceptable types should be extended in the future)
     variant_caller: str
         Let this function know which SV caller was used to create vcf file.
-        Only "manta" is supported for now.
     
     Returns
     ---------------

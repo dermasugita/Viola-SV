@@ -113,7 +113,7 @@ class MultiBedpe(Bedpe):
         return MultiBedpe(direct_tables=[out_global_id, out_svpos, out_odict_df_info])
     
 
-    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_data_frame=True):
+    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
@@ -123,9 +123,18 @@ class MultiBedpe(Bedpe):
         obj = self
         ls_ids = []
         ls_result_names = []
-        for func, name in zip(ls_conditions, ls_names):
+        if definitions is not None:
+            if isinstance(definitions, str):
+                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+            else:
+                ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
+        for cond, name in zip(ls_conditions, ls_names):
             obj = obj.filter_by_id(set_ids_current)
-            set_ids = func(obj)
+            if callable(cond):
+                ids = cond(obj)
+            else:
+                ids = cond
+            set_ids = set(ids)
             set_ids_intersection = set_ids_current & set_ids
             ls_ids += list(set_ids_intersection)
             ls_result_names += [name for i in range(len(set_ids_intersection))]
@@ -309,7 +318,7 @@ class MultiVcf(Vcf):
         return MultiVcf(direct_tables=[out_global_id, out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers])
     
 
-    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_data_frame=True):
+    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
@@ -319,9 +328,17 @@ class MultiVcf(Vcf):
         obj = self
         ls_ids = []
         ls_result_names = []
-        for func, name in zip(ls_conditions, ls_names):
+        if definitions is not None:
+            if isinstance(definitions, str):
+                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+            else:
+                ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
+        for cond, name in zip(ls_conditions, ls_names):
             obj = obj.filter_by_id(set_ids_current)
-            ids = func(obj)
+            if callable(cond):
+                ids = cond(obj)
+            else:
+                ids = cond
             set_ids = set(ids)
             set_ids_intersection = set_ids_current & set_ids
             ls_ids += list(set_ids_intersection)

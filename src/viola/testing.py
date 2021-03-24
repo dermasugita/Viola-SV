@@ -1,5 +1,6 @@
 import viola
-from viola.core.db import Bedpe, Vcf
+from viola.core.bedpe import Bedpe
+from viola.core.vcf import Vcf
 import pandas as pd
 
 def assert_vcf_equal(left, right, check_like=True):

@@ -7,10 +7,9 @@ from viola.core.cohort import (
     MultiVcf,
 )
 
-from viola.core.db import (
-    Bedpe,
-    Vcf,
-)
+from viola.core.bedpe import Bedpe
+from viola.core.vcf import Vcf
+
 
 from viola.core.fasta import (
     Fasta,

@@ -9,7 +9,8 @@ from typing import (
     Optional,
 )
 from io import StringIO
-from viola.core.db import Vcf, Bedpe
+from viola.core.bedpe import Bedpe
+from viola.core.vcf import Vcf
 from viola.core.bed import Bed
 from viola.utils.utils import is_url
 from viola.io._vcf_parser import (

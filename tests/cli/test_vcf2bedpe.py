@@ -21,3 +21,9 @@ def test_vcf2bedpe_lumpy():
   runner = CliRunner()
   result = runner.invoke(vcf2bedpe, ['--caller=lumpy', path])
   assert result.exit_code == 0
+
+def test_vcf2bedpe_gridss():
+  path = os.path.join(HERE, '../io/data/test.gridss.vcf')
+  runner = CliRunner()
+  result = runner.invoke(vcf2bedpe, ['--caller=gridss', path])
+  assert result.exit_code == 0

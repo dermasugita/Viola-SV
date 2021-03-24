@@ -1,0 +1,41 @@
+# lines start with # are comments
+# example file of custom SV class definitione
+
+name "small deletion"
+0 SVTYPE == DEL
+1 SVLEN > -1000000
+2 SVLEN < 0
+logic 0 & 1 & 2 
+
+name "large deletion"
+0 SVTYPE == DEL
+1 SVLEN < -1000000
+logic 0 & 1
+
+name "small duplication"
+0 SVTYPE == DUP
+1 SVLEN > -1000000
+2 SVLEN < 0
+logic 0 & 1 & 2 
+
+name "large duplication"
+0 SVTYPE == DUP
+1 SVLEN < -1000000
+logic 0 & 1
+
+name "small inversion"
+0 SVTYPE == t2tINV
+1 SVTYPE == h2hINV
+2 SVLEN > -1000000
+3 SVLEN < 0
+logic (0 | 1) & 2 & 3
+
+name "large inversion"
+0 SVTYPE == t2tINV
+1 SVTYPE == h2hINV
+2 SVLEN < -1000000
+logic (0 | 1) & 2
+
+name "translocation"
+0 SVTYPE == TRA
+logic 0

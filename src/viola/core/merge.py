@@ -1,6 +1,6 @@
 import pandas as pd
 import viola
-from viola.core.db import Vcf
+from viola.core.vcf import Vcf
 from viola.core.cohort import MultiVcf
 from collections import OrderedDict
 from typing import (

@@ -2,7 +2,7 @@ import vcf
 import pandas as pd
 import numpy as np
 from collections import OrderedDict
-from viola.core.db import Vcf
+from viola.core.vcf import Vcf
 
 ################################################
 # Manta

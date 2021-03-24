@@ -1,0 +1,26 @@
+name 'small_del'
+0 SVLEN > -100
+1 SVTYPE == DEL
+logic 0 & 1
+
+name 'large_del'
+0 SVTYPE == DEL
+logic 0
+
+name 'small_dup'
+0 SVLEN < 100
+1 SVTYPE == DUP
+logic 0 & 1
+
+name 'large_dup'
+0 SVTYPE == DUP
+logic 0
+
+name 'small_inv'
+0 SVLEN < 100
+1 SVTYPE == INV
+logic 0 & 1
+
+name 'tra'
+0 SVTYPE == BND
+logic 0

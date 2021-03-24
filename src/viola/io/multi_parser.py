@@ -1,6 +1,46 @@
 import os
-from viola.io.parser import read_bedpe
-from viola.core.cohort import MultiBedpe
+from viola.io.parser import read_bedpe, read_vcf
+from viola.core.cohort import MultiBedpe, MultiVcf
+
+def read_vcf_multi(dir_path: str,
+    variant_caller: str = 'manta',
+    as_breakpoint: bool = False,
+    file_extension: str = 'vcf',
+    escape_dot_files: bool = True):
+    """
+    read_vcf_multi(dir_path, variant_caller, as_breakpoint, file_extension, escape_dot_files)
+    Read VCF files in a specified directory at the same time and return as MultiBedpe object.
+    
+    Parameters
+    ----------
+    dir_path: str
+        Path to the directory containing the VCF files.
+    variant_caller: str
+        Let this function know which SV caller was used to create vcf file.
+        Only "manta" is supported for now.
+    as_breakpoint: bool, default False
+        Convert SVTYPE=BND record into breakpoint-wise SV. The SVTYPE is predicted and can be DEL, DUP, INV, INS, TRA or BND.
+    file_extension: str or None, default 'vcf'
+        File extension of BEDPE files. If you want to load files with no extension, specify None.
+    escape_dot_files: bool, default True
+        If True, avoid reading hidden files in the directory.
+    """
+    ls_vcf = []
+    ls_names = []
+    for f in os.listdir(dir_path):
+        if escape_dot_files and f.startswith('.'): continue
+        if (file_extension is not None) and (f.split('.')[-1] != file_extension): continue
+        abspath = os.path.abspath(os.path.join(dir_path, f))
+        vcf = read_vcf(abspath, variant_caller=variant_caller)
+        if as_breakpoint:
+            vcf = vcf.breakend2breakpoint()
+        ls_vcf.append(vcf)
+        patient_id = f.replace('.vcf', '')
+        ls_names.append(patient_id)
+    multi_vcf = MultiVcf(ls_vcf, ls_names)
+    return multi_vcf
+
+
 
 def read_bedpe_multi(dir_path: str,
     svtype_col_name: str = 'svclass',

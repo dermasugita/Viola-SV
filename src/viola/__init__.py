@@ -4,6 +4,7 @@ from viola.io.api import (
     read_vcf,
     read_bedpe,
     read_bed,
+    read_vcf_multi,
     read_bedpe_multi,
     read_fasta,
 )

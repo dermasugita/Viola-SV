@@ -365,7 +365,7 @@ class Bedpe(Indexer):
         else:
             sq0 = sq[0]
 
-        if sq0 in self._ls_infokeys:
+        if sq0.lower() in self._ls_infokeys:
             sqtail = sq[-1]
             def _isfloat(value):
                 try:
@@ -554,7 +554,7 @@ class Bedpe(Indexer):
         --------
         A filtered DataFrame.
         """
-        df = self.get_table(tablename)
+        df = self.get_table(tablename.lower())
         return df.loc[df['id'].isin(arrlike_id)].reset_index(drop=True)
 
 
@@ -585,6 +585,7 @@ class Bedpe(Indexer):
         return set(eval(e))
 
     def _filter_infos(self, infoname, value_idx=0, operator=None, threshold=None):## returning result ids
+        infoname = infoname.lower()
         df = self.get_table(infoname)
         value_idx = int(value_idx)
         df = df.loc[df['value_idx'] == value_idx]
@@ -716,19 +717,34 @@ class Bedpe(Indexer):
         df_to_add = df_merged[['id', 'value_idx', name]]
         self.add_info_table(name, df_to_add)
         
-    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
+    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_series=True):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
         'manual_sv_type' will be created.
+
+        Parameters
+        -----------
+        ls_conditions: list-like or callable
+            list of 
         """
         set_ids_current = set(self.ids)
         obj = self
         ls_ids = []
         ls_result_names = []
-        for func, name in zip(ls_conditions, ls_names):
+
+        if definitions is not None:
+            if isinstance(definitions, str):
+                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+            else:
+                ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
+
+        for cond, name in zip(ls_conditions, ls_names):
             obj = obj.filter_by_id(set_ids_current)
-            ids = func(obj)
+            if callable(cond):
+                ids = cond(obj)
+            else:
+                ids = cond
             set_ids = set(ids)
             set_ids_intersection = set_ids_current & set_ids
             ls_ids += list(set_ids_intersection)
@@ -754,6 +770,28 @@ class Bedpe(Indexer):
             ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value=0)
         return ser_feature_counts
 
+    def _parse_signature_definition_file(self, infile):
+        ls_query = []
+        ls_conditions = []
+        ls_names = []
+        for line in infile:
+            line = line.strip('\n')
+            if line.startswith('#'): continue
+            if line == '': continue
+            if line.startswith('name'):
+                sig_name = line[5:]
+                ls_names.append(sig_name.strip('"\''))
+                continue
+            if line.startswith('logic'):
+                query_logic = line[6:]
+                result = self.filter(ls_query, query_logic=query_logic).ids
+                ls_conditions.append(result)
+                ls_query=[]
+                continue
+
+            pattern = re.compile('^[0-9]+ ')
+            ls_query.append(pattern.sub('', line))
+        return ls_conditions, ls_names
 
 
     def is_reciprocal(self):

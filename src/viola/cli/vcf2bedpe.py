@@ -2,6 +2,7 @@ import viola
 import click
 import sys
 from io import StringIO, TextIOWrapper
+
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version='1.0.0')
@@ -27,6 +28,3 @@ def vcf2bedpe(caller, info, filter_, format_, vcf):
       ls_info_lower = []
    bedpe_like = vcf_obj.to_bedpe_like(custom_infonames=ls_info_lower, add_filters=filter_, add_formats=format_)
    click.echo(bedpe_like.to_string(index=None))
-
-if __name__ == '__main__':
-   vcf2bedpe()

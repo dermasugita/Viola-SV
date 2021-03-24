@@ -1,5 +1,5 @@
 # lines start with # are comments
-# example file of custom SV class definitione
+# example file of custom SV class definition
 
 name "small deletion"
 0 SVTYPE == DEL

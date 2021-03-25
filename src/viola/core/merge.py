@@ -50,11 +50,20 @@ class TmpVcfForMerge(MultiVcf):
         # Header Integration
         def _integrate_infos_meta(value):
             for idx, df in enumerate(value):
+                
+                # resolving conflict of 'number' field in the headers of different callers.
+                df.loc[df['id'] == 'HOMLEN', 'number'] = 1
+                df.loc[df['id'] == 'PE', 'number'] = 1
+                df.loc[df['id'] == 'SR', 'number'] = 1
+                # /resolving conflict of 'number' field in the headers of different callers.
+
                 if idx == 0:
                     df_merged = df
                     continue
                 on = ['id', 'number', 'type']
                 df_merged = df_merged.merge(df, how='outer', on=on)
+            
+            mask = df_merged['id'].duplicated(keep=False)
             
             # construct description
             ser_description = ''
@@ -130,10 +139,11 @@ class TmpVcfForMerge(MultiVcf):
                 else:
                     df_info = df_info_.copy()
                     df_info['id'] = str(patient_name) + '_' + df_info['id'].astype(str)
-                if odict_ls_df_info.get(info) is None:
+                if odict_ls_df_info.get(info, None) is None:
                     odict_ls_df_info[info] = [df_info]
                 else:
                     odict_ls_df_info[info].append(df_info)
+            
 
             
         df_concat_id = pd.concat(ls_df_id, ignore_index=True)

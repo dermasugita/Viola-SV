@@ -13,10 +13,10 @@ This is a short example how to manage VCF files.
 
 After you have read this page, you can
 
-* Import PySgt package to your script.
-* Read VCF file to create PySgt core object.
-* Convert the VCF file into a BEDPE file, with any features you want such as INFO fields, and FORMAT fields.
-* Filter the SVs by any features, including genomic positions, INFO fields, and FORMAT fields.
+* Import Viola package to your script.
+* Read VCF files to create Viola.Vcf object.
+* Convert VCF files into BEDPE files, with any features you wish, such as INFO fields and FORMAT fields.
+* Filter SV records by any features, including genomic positions, INFO fields, and FORMAT fields.
 
 See Also:
 
@@ -26,25 +26,24 @@ See Also:
 
 
 ---------------------------
-Import PySgt to your script
+Import Viola to your script
 ---------------------------
-How to import PySgt package is as follow:
 
 .. ipython:: python
    :okexcept:
 
-   import sgt
+   import viola
 
------------------
-Read the vcf file
------------------
-In order to use PySgt's features, you must first run :doc:`read_vcf<reference/api/sgt.io.parser.read_vcf>` to create an :ref:`Vcf<vcf>` object.
+-------------------------------------
+Create Vcf object from VCF file.
+-------------------------------------
+In order to use PySgt's features, you must first run :doc:`read_vcf<reference/api/viola.io.parser.read_vcf>` to create an :ref:`Vcf<vcf>` object.
 
 .. ipython:: python
    :okexcept:
 
-   url = 'https://dermasugita.github.io/PySgtDocs/docs/html/_static/tutorial.vcf'
-   sgt_object = sgt.read_vcf(url) # filepath, url, and file-like object are acceptable.
+   #url = 'https://dermasugita.github.io/PySgtDocs/docs/html/_static/tutorial.vcf'
+   #sgt_object = sgt.read_vcf(url) # filepath, url, and file-like object are acceptable.
 
 Now you're ready to perform a number of functions that the PySgt package has.
 
@@ -64,7 +63,7 @@ To do so, you have three options.
    :okexcept:
 
    # The column name 'be' stands for 'breakend'.
-   print(sgt_object)
+   #print(sgt_object)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2) Generate BEDPE like pandas.DataFrame.
@@ -72,30 +71,30 @@ To do so, you have three options.
 
 .. ipython:: python
    
-   sgt_bedpe_like = sgt_object.to_bedpe_like()
-   print(sgt_bedpe_like)
+   #sgt_bedpe_like = sgt_object.to_bedpe_like()
+   #print(sgt_bedpe_like)
 
 The way to add INFO, FILTER, and FORMAT to this bedpe-like DataFrame is explained :ref:`here<bedpe_generation>`.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3) Use the :doc:`get_table()<reference/api/sgt.core.db.Vcf.get_table>` method to get individual tables composing the Vcf object.
+3) Use the :doc:`get_table()<reference/api/viola.core.vcf.Vcf.get_table>` method to get individual tables composing the Vcf object.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    
 .. ipython:: python
 
-   sgt_object.get_table('positions')
+   #sgt_object.get_table('positions')
 
-The names of all the tables in ``sgt_object`` are stored in the :doc:`table_list<reference/api/sgt.core.db.Vcf.table_list>` attribute:
+The names of all the tables in ``sgt_object`` are stored in the :doc:`table_list<reference/api/viola.core.vcf.Vcf.table_list>` attribute:
 
 .. ipython:: python
    
-   sgt_object.table_list
+   #sgt_object.table_list
 
 You can get any table you want.
 
 .. ipython:: python
 
-   sgt_object.get_table('formats_meta') # get header information of FORMAT field
+   #sgt_object.get_table('formats_meta') # get header information of FORMAT field
 
 ------------------------
 Export as VCF/BEDPE file
@@ -130,8 +129,8 @@ First, let's look at a couple of examples.
 .. ipython:: python
    
    # filter with svtype.
-   query1_1 = 'svtype == DEL'
-   sgt_object.filter(query1_1)
+   #query1_1 = 'svtype == DEL'
+   #sgt_object.filter(query1_1)
 
 **b. Filter with genomic coordinates.**
 ``syntax: "<'be1'|'be2'> <chromosome>[:[<start position>]-[<end position>]]"``
@@ -144,9 +143,9 @@ First, let's look at a couple of examples.
    :okexcept:
 
    # filter with genomic coordinates.
-   sgt_object.filter('be1 chr11')
-   sgt_object.filter('be1 !chr1')
-   sgt_object.filter('be2 chr1:69583189-')
+   #sgt_object.filter('be1 chr11')
+   #sgt_object.filter('be1 !chr1')
+   #sgt_object.filter('be2 chr1:69583189-')
 
 **c. Filter with FORMAT table**
 ``syntax: "<sample name> <FORMAT name> [<FORMAT indexer>] <operator> <value>``
@@ -157,17 +156,17 @@ First, let's look at a couple of examples.
 .. ipython:: python
    :okexcept:
 
-   sgt_object.filter('sample1_T PR 1 > 5').to_bedpe_like(add_formats=True)
+   #sgt_object.filter('sample1_T PR 1 > 5').to_bedpe_like(add_formats=True)
 
 **d. Query can be a list**
 
 .. ipython:: python
    
-   query2_1 = 'svlen < -4000'
-   query2_2 = 'svlen > -10000'
-   sgt_object2 = sgt_object.filter([query2_1, query2_2], query_logic='and')
-   result2 = sgt_object2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
-   print(result2)
+   #query2_1 = 'svlen < -4000'
+   #query2_2 = 'svlen > -10000'
+   #sgt_object2 = sgt_object.filter([query2_1, query2_2], query_logic='and')
+   #result2 = sgt_object2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
+   #print(result2)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2) Filter with SV ID using filter_by_id method 

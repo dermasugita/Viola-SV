@@ -3,7 +3,7 @@
 Bedpe
 =========
 
-.. currentmodule:: sgt.core.db
+.. currentmodule:: viola
 
 Constructor
 -----------

@@ -4,7 +4,7 @@
 Input/Output
 ============
 
-.. currentmodule:: sgt.io.api
+.. currentmodule:: viola
 
 --------
 VCF file

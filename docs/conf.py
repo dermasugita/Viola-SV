@@ -14,13 +14,14 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../src'))
 import sphinx_rtd_theme
-from sgt.core.db import Vcf, Bedpe 
+from viola.core.vcf import Vcf 
+from viola.core.bedpe import Bedpe
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'PySgt'
-copyright = '2020, Itsuki Sugita'
+project = 'Viola'
+copyright = '2021, Itsuki Sugita'
 author = 'Itsuki Sugita'
 
 # The full version, including alpha/beta/rc tags

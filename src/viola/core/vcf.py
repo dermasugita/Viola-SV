@@ -1019,7 +1019,7 @@ class Vcf(Bedpe):
         for info in info_list:
             df[info] = pd.DataFrame(data=array_dict[info], columns=["id", "value_idx", info])
 
-        integrated_vcf = merged_vcf.drop_by_id(list(set(globalid) - id_set))
+        integrated_vcf = vcf.drop_by_id(list(set(globalid) - id_set))
         integrated_vcf.add_info_table(table_name="supportedid", table=df["supportedid"], number=None, 
                                     type_="String", description="IDs of original SV records supporting the merged SV record.")
         integrated_vcf.add_info_table(table_name="supportedcaller", table=df["supportedcaller"], number=None, 

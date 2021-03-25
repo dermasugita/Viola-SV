@@ -46,7 +46,7 @@ First, read all BEDPE files in the 'pcawg' directory into MultiBedpe class (See 
 .. ipython:: python
    :okexcept:
 
-   import sgt
+   #import sgt
 
 .. ipython:: python
    :okexcept:
@@ -92,7 +92,7 @@ This process requires hg19 fasta file. To read it, run code shown below to get F
 
    #fasta = sgt.read_fasta("http://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/hg19.fa.gz")
 
-:doc:`get_microhomology<reference/api/sgt.core.db.Bedpe.get_microhomology>` method of Bedpe class is quite useful to append INFO table of microhomology.
+:doc:`get_microhomology<reference/api/viola.core.bedpe.Bedpe.get_microhomology>` method of Bedpe class is quite useful to append INFO table of microhomology.
 
 .. ipython:: python
    :okexcept:
@@ -104,7 +104,7 @@ The 'HOMLEN' and 'HOMSEQ' tables have been successfully added!
 
 Now, let's define custom SV types and add new INFO table named 'manual_sv_type'.
 
-To do this, you can use :doc:`classify_manual_svtype<reference/api/sgt.core.cohort.MultiBedpe.classify_manual_svtype>` method.
+To do this, you can use :doc:`classify_manual_svtype<reference/api/viola.core.cohort.MultiBedpe.classify_manual_svtype>` method.
 
 This function requires at least two arguments:
 

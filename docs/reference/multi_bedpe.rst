@@ -6,7 +6,7 @@ MultiBedpe
 ===========
 
 
-.. currentmodule:: sgt.core.cohort
+.. currentmodule:: viola
 
 Constructor
 -----------

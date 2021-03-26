@@ -27,6 +27,7 @@ from viola._exceptions import (
 )
 
 from sklearn.cluster import AgglomerativeClustering
+
 class Vcf(Bedpe):
     """
     Relational database-like object containing SV position dataframes,
@@ -569,7 +570,7 @@ class Vcf(Bedpe):
         else:
             sq0 = sq[0]
 
-        if sq0.lower() in self._ls_infokeys:
+        if sq0 in self._ls_infokeys:
             df_infometa = self.get_table('infos_meta')
             row_mask = df_infometa['id'].str.contains(sq0.upper())
             sq_dtype = df_infometa.loc[row_mask, 'type'].iloc[0]
@@ -699,7 +700,7 @@ class Vcf(Bedpe):
         return out
 
     def _filter_by_id(self, tablename, arrlike_id):
-        df = self.get_table(tablename.lower())
+        df = self.get_table(tablename)
         return df.loc[df['id'].isin(arrlike_id)].reset_index(drop=True)
 
     def filter_by_id(self, arrlike_id):
@@ -882,7 +883,7 @@ class Vcf(Bedpe):
             return
         print(self.get_table('event'))
 
-    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_series=True):
+    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
@@ -892,19 +893,9 @@ class Vcf(Bedpe):
         obj = self
         ls_ids = []
         ls_result_names = []
-
-        if definitions is not None:
-            if isinstance(definitions, str):
-                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
-            else:
-                ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
-
-        for cond, name in zip(ls_conditions, ls_names):
+        for func, name in zip(ls_conditions, ls_names):
             obj = obj.filter_by_id(set_ids_current)
-            if callable(cond):
-                ids = cond(obj)
-            else:
-                ids = cond
+            ids = func(obj)
             set_ids = set(ids)
             set_ids_intersection = set_ids_current & set_ids
             ls_ids += list(set_ids_intersection)
@@ -930,30 +921,31 @@ class Vcf(Bedpe):
             ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value=0)
         return ser_feature_counts
     
-    
-    def merge(self, threshold, ls_caller_names=None, ls_vcf = [], linkage = "complete", str_missing=True):
+    def merge(self, ls_vcf = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing = True, integration = False):
         """
-        merge(ls_caller_names:list, threshold:float, ls_vcf:list, linkage = "complete", str_missing=True)
-        Return a merged vcf object from mulitple  caller's bedpe objects in ls_bedpe
+        merge(ls_vcf:list, ls_caller_names:list, threshold:float, linkage = "complete", str_missing=True, integration=False)
+        Return a merged or integrated vcf object from mulitple  caller's bedpe objects in ls_bedpe
 
         Parameters
         ----------
-        ls_caller_names:list
-            A list of names of bedpe objects to be merged, which should have self's name as the first element
-        threshold:float
-            Two SVs whose diference of positions is under this threshold are cosidered to be identical.
         ls_vcf:list
             A list of vcf objects to be merged, which are the same order with ls_caller_names
-        linkage:{‘complete’, ‘average’, ‘single’}, default=’complete’
+        ls_caller_names:list
+            A list of names of bedpe objects to be merged, which should have self's name as the first element
+        threshold:float, deefault 100
+            Two SVs whose diference of positions is under this threshold are cosidered to be identical.
+        linkage:{‘complete’, ‘average’, ‘single’}, default ’complete’
             The linkage of hierarchical clustering.
             To keep the mutual distance of all SVs in each cluster below the threshold, 
             "complete" is recommended.
-        str_missing:boolean, default="True"
+        str_missing:bool, default True
             If True, all the missing strands are considered to be the same with the others.
+        integration:bool, default False
+            If True, vcf objects in ls_vcf will be merged and integrated with priority as ls_caller_names.
 
         Returns
         ----------
-        A merged vcf object
+        A merged  vcf object or an integrated vcf object
             
         """
         if self in ls_vcf:
@@ -1027,8 +1019,75 @@ class Vcf(Bedpe):
         merged_vcf.add_info_table(table_name="bpid", table=df_bpid, number=1, type_="String", description="ID of breakpoints.")
         merged_vcf.add_info_table(table_name="originalid", table=df_originalid, number=1, type_="String", description="The SV-caller-derived ID before merging.")
         merged_vcf.add_info_table(table_name="caller", table=df_caller, number=1, type_="String", description="The name of SV caller which identified the SV record.")
+
+        if integration is False:
+            return merged_vcf
         
-        return merged_vcf
+        if integration is True:
+            intergrated_vcf = merged_vcf.integrate(merged_vcf = merged_vcf, priority=ls_caller_names)    
+            return intergrated_vcf
+
+    def integrate(self, merged_vcf, priority):
+        """
+        integrate(merged_vcf:Vcf object, priority:List)
+        Return an integrated Vcf object 
+
+        Parameters
+        ----------
+        merged_vcf:Vcf object
+            A Vcf object to be integrated
+        priority:list
+            Have caller names in list, 
+            and shows the priority at which id is adopted in a bpid cluster.
+
+        Returns
+        ----------
+        An integrated vcf object
+            
+        """
+        vcf = merged_vcf.copy()
+        prior_dict = {}
+        for i, c in enumerate(priority):
+            prior_dict[c] = i
+        bpid = vcf.get_table("bpid")["bpid"]
+        globalid = vcf.get_table("positions")["id"]
+        caller = vcf.get_table("caller")["caller"]
+        priority_num = [prior_dict[c] for c in caller]
+        intg_df = pd.DataFrame({"bpid":bpid, "supportedid":globalid, "supportedcaller":caller, "priority":priority_num}, 
+                                columns=['bpid', 'supportedid', 'supportedcaller', "priority"])
+        
+        id_set = set()
+        array_dict = {}
+        info_list = ["supportedid", "supportedcaller"]
+        for info in info_list:
+            array_dict[info] = np.empty((0, 3))
+        
+        for bp in intg_df.groupby("bpid"):
+            priority_block = next(iter(bp[1].groupby("priority")))[1]
+            id = priority_block.at[priority_block.index[0], "supportedid"]
+            id_set.add(id)
+            info_dict = {}
+            info_dict["supportedid"] = bp[1]["supportedid"].values.reshape(-1,1)
+            info_dict["supportedcaller"] = np.array(list(set(bp[1]["supportedcaller"].values))).reshape(-1,1)
+            for info in info_list:
+                N = info_dict[info].shape[0]
+                block = np.concatenate([np.array([id]*N).reshape(-1,1), np.arange(0, N, dtype=int).reshape(-1,1), info_dict[info]], axis=1)
+                array_dict[info] = np.concatenate([array_dict[info], block])
+        
+        df = {}
+        for info in info_list:
+            df[info] = pd.DataFrame(data=array_dict[info], columns=["id", "value_idx", info]).astype({'value_idx': int})
+
+        integrated_vcf = vcf.drop_by_id(list(set(globalid) - id_set))
+        integrated_vcf.add_info_table(table_name="supportedid", table=df["supportedid"], number=None, 
+                                    type_="String", description="IDs of original SV records supporting the merged SV record.")
+        integrated_vcf.add_info_table(table_name="supportedcaller", table=df["supportedcaller"], number=None, 
+                                    type_="String", description="SV callers supporting the variant.")
+        return integrated_vcf
+        
+        
+
+
 
 
             

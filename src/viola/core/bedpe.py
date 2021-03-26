@@ -917,19 +917,20 @@ class Bedpe(Indexer):
         return proposition
 
 
-    def merge(self, threshold, ls_caller_names, ls_bedpe=[], linkage = "complete", str_missing=True):
+    def merge(self, ls_bedpe = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing = True):
         """
-        merge(ls_caller_names:list, threshold:float, ls_bedpe:list, linkage = "complete", str_missing=True)
+        
+        merge(ls_bedpe:list, ls_caller_names:list, threshold:float, linkage = "complete", str_missing=True)
         Return a merged bedpe object from mulitple  caller's bedpe objects in ls_bedpe
 
         Parameters
         ----------
+        ls_bedpe:list
+            A list of bedpe objects to be merged, which are the same order with ls_caller_names
         ls_caller_names:list
             A list of names of bedpe objects to be merged, which should have self's name as the first element
         threshold:float
             Two SVs whose diference of positions is under this threshold are cosidered to be identical.
-        ls_bedpe:list
-            A list of bedpe objects to be merged, which are the same order with ls_caller_names
         linkage:{‘complete’, ‘average’, ‘single’}, default=’complete’
             The linkage of hierarchical clustering.
             To keep the mutual distance of all SVs in each cluster below the threshold, 

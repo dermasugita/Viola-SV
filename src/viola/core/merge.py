@@ -1,12 +1,45 @@
 import pandas as pd
 import viola
 from viola.core.vcf import Vcf
+from viola.core.bedpe import Bedpe
 from viola.core.cohort import MultiVcf
 from collections import OrderedDict
 from typing import (
     List,
     Optional
 )
+def merge(ls_input, ls_caller_names=None, threshold=100, integration=False):
+    """
+    merge(ls_input:list, ls_caller_names:list, threshold=100, integration=None)
+    merge and integrate Vcf objects or Bedpe objects
+    Return a merged Vcf or Bedpe
+
+    Parameters
+    ----------
+    ls_input:list
+        A list of Vcf or Bedpe objects to be merged
+    ls_caller_names:list
+        A list of caller names(int).
+        Only needed for Bedpes.
+    threshold:int, default 100
+        Two SVs of mutual distance is under 
+        this threshold are cosidered to be identical.
+    integration:bool, default False
+        If true, Vcf objects will be integrated
+        For now it only works for Vcf 
+
+    Returns
+    ----------
+    Vcf or Bedpe
+    """
+    first_object = ls_input[0]
+    if isinstance(first_object, Vcf):
+        return first_object.merge(ls_vcf = ls_input, integration = integration, threshold = threshold)
+
+    if isinstance(first_object, Bedpe):
+        return first_object.merge(ls_bedpe = ls_input, ls_caller_names = ls_caller_names, threshold = threshold)
+        
+
 class TmpVcfForMerge(MultiVcf):
     _internal_attrs = [
         "_df_id",

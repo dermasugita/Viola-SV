@@ -143,6 +143,15 @@ class Bedpe(Indexer):
         Return current configuration of __repr__() function.
         """
         return self._repr_config
+    
+    def copy(self):
+        """
+        copy()
+        Return copy of the instance
+        """
+        df_svpos = self.get_table('positions')
+        odict_df_infos = OrderedDict([(k, self.get_table(k.lower())) for k, v in self._odict_df_info.items()])
+        return Bedpe(df_svpos, odict_df_infos)
 
     def add_info_table(self, table_name: str, df: pd.DataFrame):
         """
@@ -160,8 +169,16 @@ class Bedpe(Indexer):
             2nd column: "value_idx"
             3rd column: table_name (equivalent to the first argument of this function)
         """
+        if table_name in self._ls_infokeys:
+            self.remove_info_table(table_name)
         self._ls_infokeys += [table_name]
         self._odict_alltables[table_name] = df
+        self._odict_df_info[table_name] = df
+
+    def remove_info_table(self, table_name):
+        del self._odict_df_info[table_name]
+        del self._odict_alltables[table_name]
+        self._ls_infokeys.remove(table_name)
     
     def change_repr_config(self, key, value):
         self._repr_config[key] = value
@@ -197,8 +214,10 @@ class Bedpe(Indexer):
             df_out = self.append_infos(df_out, ls_tablenames=custom_infonames)
         str_df_out = str(df_out)
         str_infokeys = ','.join(list(self._ls_infokeys))
-        desc = 'INFO='
-        out = desc + str_infokeys + '\n' + str_df_out
+        desc_info = 'INFO='
+        desc_doc = 'Documentation of Bedpe object ==> '
+        doc_link = 'https://dermasugita.github.io/PySgtDocs/docs/html/reference/bedpe.html'
+        out = desc_info + str_infokeys + '\n' + desc_doc + doc_link + '\n' + str_df_out
         if return_as_dataframe:
             return df_out
         return str(out)

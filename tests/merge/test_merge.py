@@ -9,5 +9,5 @@ def test_merge():
     lumpy = viola.read_vcf(os.path.join(HERE, 'data/test.merge.lumpy.vcf'), variant_caller='lumpy')
     gridss = viola.read_vcf(os.path.join(HERE, 'data/test.merge.gridss.vcf'), variant_caller='gridss')
 
-    merged = manta.merge(100, ['manta', 'delly', 'lumpy', 'gridss'], [manta, delly, lumpy, gridss])
+    merged = manta.merge(threshold=100, ls_caller_names=['manta', 'delly', 'lumpy', 'gridss'], ls_vcf=[manta, delly, lumpy, gridss])
 

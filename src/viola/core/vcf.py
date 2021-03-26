@@ -130,6 +130,41 @@ class Vcf(Bedpe):
     def __str__(self):
         return super().__repr__() 
 
+    def view(self, custom_infonames=None, return_as_dataframe=False):
+        """
+        view(custom_infonames, return_as_dataframe)
+        Quick view function of the Vcf object.
+
+        Parameters
+        -----------
+        custom_infonames: list_like or None, default None
+            The names of the INFO to show additionally.
+        return_as_dataframe: bool, default False
+            If true, return as pandas DataFrame.
+        """
+        df_svpos = self.get_table('positions')
+        ser_id = df_svpos['id']
+        ser_be1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
+        ser_be2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
+        ser_strand = df_svpos['strand1'] + df_svpos['strand2']
+        ser_qual = df_svpos['qual']
+        ser_svtype = df_svpos['svtype']
+        ls_ser = [ser_id, ser_be1, ser_be2, ser_strand, ser_qual, ser_svtype]
+        ls_key = ['id', 'be1', 'be2', 'strand', 'qual', 'svtype']
+        dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
+        df_out = pd.DataFrame(dict_)
+        if custom_infonames is not None:
+            df_out = self.append_infos(df_out, ls_tablenames=custom_infonames)
+        str_df_out = str(df_out)
+        str_infokeys = ','.join(list(self._ls_infokeys))
+        desc_info = 'INFO='
+        desc_doc = 'Documentation of Vcf object ==> '
+        doc_link = 'https://dermasugita.github.io/PySgtDocs/docs/html/reference/vcf.html'
+        out = desc_info + str_infokeys + '\n' + desc_doc + doc_link + '\n' + str_df_out
+        if return_as_dataframe:
+            return df_out
+        return str(out)
+
     def replace_svid(self, to_replace, value):
         """
         replace_svid(to_replace, value)
@@ -163,6 +198,8 @@ class Vcf(Bedpe):
 
     
     def add_info_table(self, table_name, table, number, type_, description, source=None, version=None):
+        if table_name in self._ls_infokeys:
+            self.remove_info_table(table_name)
         self._ls_infokeys += [table_name]
         self._odict_df_info[table_name.upper()] = table
         self._odict_alltables[table_name] = table

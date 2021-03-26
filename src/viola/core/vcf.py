@@ -570,7 +570,7 @@ class Vcf(Bedpe):
         else:
             sq0 = sq[0]
 
-        if sq0 in self._ls_infokeys:
+        if sq0.lower() in self._ls_infokeys:
             df_infometa = self.get_table('infos_meta')
             row_mask = df_infometa['id'].str.contains(sq0.upper())
             sq_dtype = df_infometa.loc[row_mask, 'type'].iloc[0]
@@ -883,7 +883,7 @@ class Vcf(Bedpe):
             return
         print(self.get_table('event'))
 
-    def classify_manual_svtype(self, ls_conditions, ls_names, ls_order=None, return_series=True):
+    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_series=True):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
@@ -893,9 +893,17 @@ class Vcf(Bedpe):
         obj = self
         ls_ids = []
         ls_result_names = []
-        for func, name in zip(ls_conditions, ls_names):
+        if definitions is not None:
+            if isinstance(definitions, str):
+                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+            else:
+                ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
+        for cond, name in zip(ls_conditions, ls_names):
             obj = obj.filter_by_id(set_ids_current)
-            ids = func(obj)
+            if callable(cond):
+                ids = cond(obj)
+            else:
+                ids = cond
             set_ids = set(ids)
             set_ids_intersection = set_ids_current & set_ids
             ls_ids += list(set_ids_intersection)

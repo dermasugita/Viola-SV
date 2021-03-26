@@ -884,10 +884,10 @@ class Vcf(Bedpe):
             ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value=0)
         return ser_feature_counts
     
-    def merge(self, ls_vcf = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing=True):
+    def merge(self, ls_vcf = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing = True, integration = False):
         """
-        merge(ls_caller_names:list, threshold:float, ls_vcf:list, linkage = "complete", str_missing=True)
-        Return a merged vcf object from mulitple  caller's bedpe objects in ls_bedpe
+        merge(ls_vcf:list, ls_caller_names:list, threshold:float, linkage = "complete", str_missing=True, integration=False)
+        Return a merged or integrated vcf object from mulitple  caller's bedpe objects in ls_bedpe
 
         Parameters
         ----------
@@ -895,19 +895,20 @@ class Vcf(Bedpe):
             A list of vcf objects to be merged, which are the same order with ls_caller_names
         ls_caller_names:list
             A list of names of bedpe objects to be merged, which should have self's name as the first element
-        threshold:float
+        threshold:float, deefault 100
             Two SVs whose diference of positions is under this threshold are cosidered to be identical.
-            Default 100bp.
-        linkage:{‘complete’, ‘average’, ‘single’}, default=’complete’
+        linkage:{‘complete’, ‘average’, ‘single’}, default ’complete’
             The linkage of hierarchical clustering.
             To keep the mutual distance of all SVs in each cluster below the threshold, 
             "complete" is recommended.
-        str_missing:boolean, default="True"
+        str_missing:bool, default True
             If True, all the missing strands are considered to be the same with the others.
+        integration:bool, default False
+            If True, vcf objects in ls_vcf will be merged and integrated with priority as ls_caller_names.
 
         Returns
         ----------
-        A merged vcf object
+        A merged  vcf object or an integrated vcf object
             
         """
         if self in ls_vcf:
@@ -981,10 +982,32 @@ class Vcf(Bedpe):
         merged_vcf.add_info_table(table_name="bpid", table=df_bpid, number=1, type_="String", description="ID of breakpoints.")
         merged_vcf.add_info_table(table_name="originalid", table=df_originalid, number=1, type_="String", description="The SV-caller-derived ID before merging.")
         merged_vcf.add_info_table(table_name="caller", table=df_caller, number=1, type_="String", description="The name of SV caller which identified the SV record.")
+
+        if integration is False:
+            return merged_vcf
         
-        return merged_vcf
+        if integration is True:
+            intergrated_vcf = merged_vcf.integrate(merged_vcf = merged_vcf, priority=ls_caller_names)    
+            return intergrated_vcf
 
     def integrate(self, merged_vcf, priority):
+        """
+        integrate(merged_vcf:Vcf object, priority:List)
+        Return an integrated Vcf object 
+
+        Parameters
+        ----------
+        merged_vcf:Vcf object
+            A Vcf object to be integrated
+        priority:list
+            Have caller names in list, 
+            and shows the priority at which id is adopted in a bpid cluster.
+
+        Returns
+        ----------
+        An integrated vcf object
+            
+        """
         vcf = merged_vcf.copy()
         prior_dict = {}
         for i, c in enumerate(priority):
@@ -998,7 +1021,7 @@ class Vcf(Bedpe):
         
         id_set = set()
         array_dict = {}
-        info_list = ["supportedid", "supportedcaller", "bpid"]
+        info_list = ["supportedid", "supportedcaller"]
         for info in info_list:
             array_dict[info] = np.empty((0, 3))
         
@@ -1009,7 +1032,6 @@ class Vcf(Bedpe):
             info_dict = {}
             info_dict["supportedid"] = bp[1]["supportedid"].values.reshape(-1,1)
             info_dict["supportedcaller"] = np.array(list(set(bp[1]["supportedcaller"].values))).reshape(-1,1)
-            info_dict["bpid"] = np.array(bp[0]).reshape(-1,1)
             for info in info_list:
                 N = info_dict[info].shape[0]
                 block = np.concatenate([np.array([id]*N).reshape(-1,1), np.arange(0, N, dtype=int).reshape(-1,1), info_dict[info]], axis=1)
@@ -1017,14 +1039,13 @@ class Vcf(Bedpe):
         
         df = {}
         for info in info_list:
-            df[info] = pd.DataFrame(data=array_dict[info], columns=["id", "value_idx", info])
+            df[info] = pd.DataFrame(data=array_dict[info], columns=["id", "value_idx", info]).astype({'value_idx': int})
 
         integrated_vcf = vcf.drop_by_id(list(set(globalid) - id_set))
         integrated_vcf.add_info_table(table_name="supportedid", table=df["supportedid"], number=None, 
                                     type_="String", description="IDs of original SV records supporting the merged SV record.")
         integrated_vcf.add_info_table(table_name="supportedcaller", table=df["supportedcaller"], number=None, 
                                     type_="String", description="SV callers supporting the variant.")
-        integrated_vcf.add_info_table(table_name="bpid", table=df["bpid"], number=1, type_="Int", description="ID of breakpoints.")
         return integrated_vcf
         
         

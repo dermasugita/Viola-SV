@@ -19,6 +19,7 @@ from viola.core.api import (
     RootIndexer,
     SvIdIndexer,
     TmpVcfForMerge,
+    merge,
 )
 
 from viola.ml.api import (

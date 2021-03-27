@@ -35,7 +35,7 @@ PCAWG data preparation
 8. Now you've got decompressed BEDPE files in the "pcawg" directory.
 
 .. warning::
-   Due to the very large amount of data in PCAWG, the code described below will also take some time. If you want to try it in a shorter time, reduce the number of files in the directory.
+   Due to the very large amount of data in PCAWG, the code described below will also take long time (around 50 min on Google Colab). If you want to try it in a shorter time, reduce the number of files in the directory.
 
 ----------------
 Generate Matrix

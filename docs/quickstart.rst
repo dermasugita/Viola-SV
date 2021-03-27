@@ -44,7 +44,8 @@ In order to use Viola's features, you must first run :doc:`read_vcf<reference/ap
 
 .. ipython:: python
 
-   vcf = viola.read_vcf('_static/tutorial.manta.vcf', variant_caller='manta') # filepath, url, and file-like object are acceptable.
+   url = 'https://raw.githubusercontent.com/dermasugita/ViolaDocs/main/docs/html/_static/tutorial.manta.vcf'
+   vcf = viola.read_vcf(url, variant_caller='manta') # filepath, url, and file-like object are acceptable.
 
 Now you're ready to perform a number of functions that the Viola package has.
 

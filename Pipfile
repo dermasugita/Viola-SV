@@ -6,6 +6,8 @@ verify_ssl = true
 [dev-packages]
 viola = {path = "."}
 pip-licenses = "*"
+twine = "*"
+wheel = "*"
 
 [packages]
 pytest = "*"

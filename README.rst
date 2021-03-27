@@ -4,7 +4,7 @@ Welcom to Viola Package!
 
 Current version: 1.0.0.dev1
 
-.. image:: https://dermasugita.github.io/PySgtDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
+.. image:: https://dermasugita.github.io/ViolaDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
 
 
 Viola is a flexible and powerful python package designed specifically for analysis of genomic structural variant (SV) signatures.

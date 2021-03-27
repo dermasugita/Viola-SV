@@ -458,7 +458,6 @@ class Vcf(Bedpe):
         add_filters: bool = False,
         add_formats: bool = False, 
         confidence_intervals: bool = False,
-        unique_events: bool = False
     ) -> pd.DataFrame:
         """
         to_bedpe_like(custom_infonames=[], add_filters, add_formats, confidence_intervals: bool=False)
@@ -477,7 +476,6 @@ class Vcf(Bedpe):
             Whether or not to consider confidence intervals of the breakpoints.  
             If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
             Otherwise, breakpoints are represented by a single-nucleotide resolution.
-        unique_events: bool, default False
         
         Returns 
         ---------------
@@ -494,13 +492,37 @@ class Vcf(Bedpe):
             df_out = self.append_filters(df_out, left_on='name')
         if add_formats:
             df_out = self.append_formats(df_out, left_on='name')
-        if unique_events:
-            # deprecated for now
-            set_unique_ids = self._get_unique_events_ids()
-            df_out.set_index('name', inplace=True)
-            df_out = df_out.loc[set_unique_ids]
-            df_out.reset_index(inplace=True)
         return df_out
+
+    def to_bedpe(
+        self,
+        file_or_buf: str,
+        custom_infonames: Iterable[str] = [],
+        add_filters: bool = False,
+        add_formats: bool = False, 
+        confidence_intervals: bool = False,
+    ):
+        """
+        to_bedpe_like(file_or_buf, custom_infonames=[], add_filters, add_formats, confidence_intervals: bool=False)
+        Return a BEDPE file.
+
+        Parameters
+        ---------------
+        file_or_buf: str
+            File path to save the VCF file.
+        custom_infonames: list-like[str]
+            The table names of INFOs to append.
+        add_filters: bool, default False
+            sth
+        add_formats: bool, default False
+            sth
+        confidence_intervals: bool, default False
+            Whether or not to consider confidence intervals of the breakpoints.  
+            If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
+            Otherwise, breakpoints are represented by a single-nucleotide resolution.
+        """
+        bedpe = self.to_bedpe_like(custom_infonames=custom_infonames, add_filters=add_filters, add_formats=add_formats, confidence_intervals=confidence_intervals)
+        bedpe.to_csv(file_or_buf, index=None, sep='\t')
 
     def append_infos(self, base_df,
         ls_tablenames,

@@ -1,7 +1,7 @@
 .. _bedpe:
 
 Bedpe
-=========
+======
 
 .. currentmodule:: viola
 
@@ -11,7 +11,6 @@ Constructor
    :toctree: api/
    
    Bedpe
-
 
 Attributes
 ----------
@@ -23,14 +22,39 @@ Attributes
    Bedpe.table_list
    Bedpe.ids
 
-Accessing the Tables
+Annotation
 --------------------
 
 .. autosummary::
    :toctree: api/
 
-   Bedpe.get_table
+   Bedpe.annotate_bed
+   Bedpe.get_microhomology
+
+Calculation
+----------------
+
+.. autosummary::
+   :toctree: api/
+
+   Bedpe.calculate_info
+
+Conversion
+--------------------
+
+.. autosummary::
+   :toctree: api/
+
+   Bedpe.copy
    Bedpe.to_bedpe_like
+
+Export
+--------
+
+.. autosummary::
+   :toctree: api/
+
+   Bedpe.to_bedpe
 
 Filtering
 ---------
@@ -41,22 +65,31 @@ Filtering
    Bedpe.filter
    Bedpe.filter_by_id
 
-Adding Informations
---------------------
+Managing Tables
+-----------------
 
 .. autosummary::
    :toctree: api/
 
+   Bedpe.append_infos
+   Bedpe.get_table
    Bedpe.add_info_table
+   Bedpe.remove_info_table
 
-Annotation
---------------------
+Merging
+----------
 
 .. autosummary::
    :toctree: api/
 
-   Bedpe.annotate_bed
-   Bedpe.get_microhomology
+   Bedpe.merge
+
+Representation
+--------------
+.. autosummary::
+   :toctree: api/
+
+   Bedpe.view
 
 Signature_analysis
 --------------------
@@ -65,4 +98,4 @@ Signature_analysis
    :toctree: api/
 
    Bedpe.classify_manual_svtype
-   Bedpe.get_feature_count_as_data_frame
+   Bedpe.get_feature_count_as_series

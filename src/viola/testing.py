@@ -15,7 +15,7 @@ def assert_bedpe_equal(left, right, check_like=True):
         if df_left.empty & df_right.empty:
             continue
         try:
-            pd.testing.assert_frame_equal(df_left, df_right, check_like=check_like)
+            pd.testing.assert_frame_equal(df_left, df_right, check_like=check_like, check_exact=True)
         except AssertionError:
             print('\nwhen asserting {} table, following error occured!'.format(tablename))
             raise 
@@ -32,7 +32,7 @@ def assert_vcf_equal(left, right, check_like=True):
         if df_left.empty & df_right.empty:
             continue
         try:
-            pd.testing.assert_frame_equal(df_left, df_right, check_like=check_like)
+            pd.testing.assert_frame_equal(df_left, df_right, check_like=check_like, check_exact=True)
         except AssertionError:
             print('\nwhen asserting {} table, following error occured!'.format(tablename))
             raise 

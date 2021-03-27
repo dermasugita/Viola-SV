@@ -57,4 +57,5 @@ chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE
         assert filecmp.cmp(os.path.join(HERE, 'data/out.bedpe'), os.path.join(HERE, 'data/expected.bedpe'))
 
     def test_to_bedpe_like_with_info(self):
-        pass
+        self.result.to_bedpe(os.path.join(HERE, 'data/out.svlen.bedpe'), custom_infonames=['svlen'])
+        assert filecmp.cmp(os.path.join(HERE, 'data/out.svlen.bedpe'), os.path.join(HERE, 'data/expected.svlen.bedpe'))

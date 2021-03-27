@@ -2,6 +2,7 @@ import pytest
 import viola
 import sys, os
 import pandas as pd
+import filecmp
 from io import StringIO
 HERE = os.path.abspath(os.path.dirname(__file__))
 HEADER = """##fileformat=VCFv4.1
@@ -41,37 +42,19 @@ HEADER = """##fileformat=VCFv4.1
 ##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse1_N	mouse1_T
 """
-#manta_path = os.path.join(HERE, 'data/manta1.inv.vcf')
-#result = viola.read_vcf(manta_path)
-body = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
+class TestToBedpe:
+    #manta_path = os.path.join(HERE, 'data/manta1.inv.vcf')
+    #result = viola.read_vcf(manta_path)
+    body = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
 chr1	22814216	test2	T	<INV>	.	MinSomaticScore	END=92581131;SVTYPE=INV;SVLEN=69766915;IMPRECISE;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
 chr1	60567906	test3	T	<DEL>	.	MinSomaticScore	END=60675940;SVTYPE=DEL;SVLEN=-108034;CIPOS=-44,44;CIEND=-38,39;SOMATIC;SOMATICSCORE=18	PR	23,0	44,6
 chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE;CIPOS=-123,123;CIEND=-135,136;SOMATIC;SOMATICSCORE=47	PR	21,0	20,12
 """
-b = StringIO(HEADER + body)
-result = viola.read_vcf(b)
-def test_to_bedpe_like():
-    expected_data = """chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tscore\tstrand1\tstrand2
-chr1\t82550460\t82550461\tchr1\t82554225\t82554226\ttest1\t\t+\t-
-chr1\t22814216\t22814217\tchr1\t92581131\t92581132\ttest2\t\t-\t-
-chr1\t60567905\t60567906\tchr1\t60675940\t60675941\ttest3\t\t+\t-
-chr1\t69583189\t69583190\tchr1\t69590947\t69590948\ttest4\t\t+\t-
-"""
-    df_expected = pd.read_csv(StringIO(expected_data), sep='\t')
-    df_expected['score'] = df_expected['score'].astype(object) # because score field is empty in this case
-    bedpe = result.to_bedpe_like()
-    print(df_expected)
-    print(bedpe)
-    pd.testing.assert_frame_equal(bedpe, df_expected, check_exact=True)
+    b = StringIO(HEADER + body)
+    result = viola.read_vcf(b)
+    def test_to_bedpe_like(self):
+        self.result.to_bedpe(os.path.join(HERE, 'data/out.bedpe'))
+        assert filecmp.cmp(os.path.join(HERE, 'data/out.bedpe'), os.path.join(HERE, 'data/expected.bedpe'))
 
-def test_to_bedpe_like_with_info():
-    expected_data = """chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tscore\tstrand1\tstrand2\tsvlen_0
-chr1\t82550460\t82550461\tchr1\t82554225\t82554226\ttest1\t\t+\t-\t-3764
-chr1\t22814216\t22814217\tchr1\t92581131\t92581132\ttest2\t\t-\t-\t69766915
-chr1\t60567905\t60567906\tchr1\t60675940\t60675941\ttest3\t\t+\t-\t-108034
-chr1\t69583189\t69583190\tchr1\t69590947\t69590948\ttest4\t\t+\t-\t-7757
-"""
-    df_expected = pd.read_csv(StringIO(expected_data), sep='\t')
-    df_expected['score'] = df_expected['score'].astype(object) # because score field is empty in this case
-    bedpe = result.to_bedpe_like(custom_infonames=['svlen'])
-    pd.testing.assert_frame_equal(bedpe, df_expected, check_exact=True)
+    def test_to_bedpe_like_with_info(self):
+        pass

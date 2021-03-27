@@ -175,7 +175,16 @@ class Bedpe(Indexer):
         self._odict_alltables[table_name] = df
         self._odict_df_info[table_name] = df
 
-    def remove_info_table(self, table_name):
+    def remove_info_table(self, table_name: str):
+        """
+        remove_info_table(table_name)
+        Remove an INFO table from self.
+
+        Parameters
+        -----------
+        table_name: str
+            The name of the INFO table to be removed.
+        """
         del self._odict_df_info[table_name]
         del self._odict_alltables[table_name]
         self._ls_infokeys.remove(table_name)
@@ -377,11 +386,6 @@ class Bedpe(Indexer):
         DataFrame
             A DataFrame which the INFO tables are added.
         
-        Note
-        ----
-        This function seems to have a bug when a value is 
-        passed to the ls_tablenames argument.
-        Can someone please fix it?
         """
         df = base_df.copy()
         for tablename in ls_tablenames:
@@ -805,6 +809,17 @@ class Bedpe(Indexer):
             return ser_feature_counts
     
     def get_feature_count_as_series(self, feature='manual_sv_type', ls_order=None):
+        """
+        get_feature_count_as_series(feature, ls_order)
+        Return counts of unique values as a pd.Series for the INFO specified in the "feature" argument.
+
+        Parameters
+        -----------
+        feature: str, default 'manual_sv_type'
+            The name of INFO to be counted
+        ls_order: List[str], default None
+            Order of the index (unique feature values) of the output Series.
+        """
         ser_feature_counts = self.get_table(feature)[feature].value_counts()
         if ls_order is not None:
             pd_ind_reindex = pd.Index(ls_order)

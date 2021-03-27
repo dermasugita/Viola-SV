@@ -1,10 +1,10 @@
 .. _data_structure:
 
 ======================
-PySgt's Data Structure
+Viola's Data Structure
 ======================
 
-| PySgt employs relational-database-like structure to enable flexible data proccessing.
+| Viola employs relational-database-like structure to enable flexible data proccessing.
 | Here, we explain the specific data structure of Bedpe and Vcf class.
 
 -------------------------------

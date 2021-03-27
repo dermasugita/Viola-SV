@@ -42,7 +42,7 @@ The package can be installed with ``pip``:
 
    $ pip install viola-sv
 
-To import PySgt in your script, simply run below:
+To import Viola in your script, simply run below:
 
 .. code:: python
    

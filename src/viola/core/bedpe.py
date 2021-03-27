@@ -225,7 +225,7 @@ class Bedpe(Indexer):
         str_infokeys = ','.join(list(self._ls_infokeys))
         desc_info = 'INFO='
         desc_doc = 'Documentation of Bedpe object ==> '
-        doc_link = 'https://dermasugita.github.io/PySgtDocs/docs/html/reference/bedpe.html'
+        doc_link = 'https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html'
         out = desc_info + str_infokeys + '\n' + desc_doc + doc_link + '\n' + str_df_out
         if return_as_dataframe:
             return df_out

@@ -337,11 +337,12 @@ class Bedpe(Indexer):
         confidence_intervals: bool = False):
         """
         to_beddpe(path_or_buf, custom_infonames, confidence_intervals)
+        Return a BEDPE file.
 
         Parameters
         ----------
         path_or_buf: str, optional
-            File path to save the VCF file.
+            File path to save the BEDPE file.
         custom_infonames: list-like[str]
             The table names of INFOs to append.
         confidence_intervals: bool, default False

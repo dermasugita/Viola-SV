@@ -14,3 +14,4 @@ User Guide
 
    data_structure
    filtering
+   bedpe_generation

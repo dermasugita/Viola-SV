@@ -1,4 +1,11 @@
-##fileformat=VCFv4.1
+import pytest
+import viola
+import sys, os
+import pandas as pd
+import filecmp
+from io import StringIO
+HERE = os.path.abspath(os.path.dirname(__file__))
+HEADER = """##fileformat=VCFv4.1
 ##contig=<ID=chr1,length=195471971>
 ##contig=<ID=chr2,length=182113224>
 ##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
@@ -33,11 +40,22 @@
 ##ALT=<ID=DEL,Description="Deletion">
 ##ALT=<ID=INS,Description="Insertion">
 ##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1_N	sample1_T
-chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse1_N	mouse1_T
+"""
+class TestToBedpe:
+    #manta_path = os.path.join(HERE, 'data/manta1.inv.vcf')
+    #result = viola.read_vcf(manta_path)
+    body = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
 chr1	22814216	test2	T	<INV>	.	MinSomaticScore	END=92581131;SVTYPE=INV;SVLEN=69766915;IMPRECISE;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
 chr1	60567906	test3	T	<DEL>	.	MinSomaticScore	END=60675940;SVTYPE=DEL;SVLEN=-108034;CIPOS=-44,44;CIEND=-38,39;SOMATIC;SOMATICSCORE=18	PR	23,0	44,6
 chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE;CIPOS=-123,123;CIEND=-135,136;SOMATIC;SOMATICSCORE=47	PR	21,0	20,12
-chr11	104534877	test5	C	<DEL>	.	PASS	END=104536573;SVTYPE=DEL;SVLEN=-1696;IMPRECISE;CIPOS=-68,69;CIEND=-51,52;SOMATIC;SOMATICSCORE=38	PR	22,0	57,14
-chr11	111134697	test6	T	T[chr17:26470495[	.	MinSomaticScore	SVTYPE=BND;MATEID=test7;IMPRECISE;CIPOS=-118,118;SOMATIC;SOMATICSCORE=24;BND_DEPTH=56;MATE_BND_DEPTH=35	PR	12,0	45,5
-chr17	26470495	test7	T	]chr11:111134697]T	.	MinSomaticScore	SVTYPE=BND;MATEID=test6;IMPRECISE;CIPOS=-81,82;SOMATIC;SOMATICSCORE=24;BND_DEPTH=35;MATE_BND_DEPTH=56	PR	12,0	45,5
+"""
+    b = StringIO(HEADER + body)
+    result = viola.read_vcf(b)
+    def test_to_bedpe_like(self):
+        self.result.to_bedpe(os.path.join(HERE, 'data/out.bedpe'))
+        assert filecmp.cmp(os.path.join(HERE, 'data/out.bedpe'), os.path.join(HERE, 'data/expected.bedpe'))
+
+    def test_to_bedpe_like_with_info(self):
+        self.result.to_bedpe(os.path.join(HERE, 'data/out.svlen.bedpe'), custom_infonames=['svlen'])
+        assert filecmp.cmp(os.path.join(HERE, 'data/out.svlen.bedpe'), os.path.join(HERE, 'data/expected.svlen.bedpe'))

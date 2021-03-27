@@ -14,9 +14,9 @@ This is a short example how to manage VCF files.
 After you have read this page, you can
 
 * Import Viola package to your script.
-* Read VCF files to create Viola.Vcf object.
+* Read VCF files to create viola.Vcf object.
 * Convert VCF files into BEDPE files, with any features you wish, such as INFO fields and FORMAT fields.
-* Filter SV records by any features, including genomic positions, INFO fields, and FORMAT fields.
+* Filter SV records by any features, including genomic positions, INFO fields, FILTER fields, and FORMAT fields.
 
 See Also:
 
@@ -24,6 +24,9 @@ See Also:
 *  :ref:`API Reference<api_reference>`
 
 
+In this tutorial, we will only deal with the viola.Vcf class, but many of the features available in this class are also available in the Bedpe, MultiBedpe and MultiVcf classes.
+
+Individual tutorials for classes not covered here are currently under development.
 
 ---------------------------
 Import Viola to your script
@@ -37,21 +40,19 @@ Import Viola to your script
 -------------------------------------
 Create Vcf object from VCF file.
 -------------------------------------
-In order to use PySgt's features, you must first run :doc:`read_vcf<reference/api/viola.io.parser.read_vcf>` to create an :ref:`Vcf<vcf>` object.
+In order to use Viola's features, you must first run :doc:`read_vcf<reference/api/viola.read_vcf>` to create an :ref:`viola.Vcf<vcf>` object.
 
 .. ipython:: python
-   :okexcept:
 
-   #url = 'https://dermasugita.github.io/PySgtDocs/docs/html/_static/tutorial.vcf'
-   #sgt_object = sgt.read_vcf(url) # filepath, url, and file-like object are acceptable.
+   vcf = viola.read_vcf('_static/tutorial.manta.vcf', variant_caller='manta') # filepath, url, and file-like object are acceptable.
 
-Now you're ready to perform a number of functions that the PySgt package has.
+Now you're ready to perform a number of functions that the Viola package has.
 
-To learn detail data structure of Vcf object, see :ref:`PySgt's Data Structure<data_structure>`.
+To learn detail data structure of viola.Vcf object, see :ref:`Viola's Data Structure<data_structure>`.
 
---------------------------------------
-Viewing the contents of Vcf object
---------------------------------------
+-------------------------------------------
+Viewing the contents of viola.Vcf object
+-------------------------------------------
 You may want to view the content of Vcf objects after creating them.
 To do so, you have three options.
 
@@ -63,58 +64,65 @@ To do so, you have three options.
    :okexcept:
 
    # The column name 'be' stands for 'breakend'.
-   #print(sgt_object)
+   print(vcf)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2) Generate BEDPE like pandas.DataFrame.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. ipython:: python
+   :okexcept:
    
-   #sgt_bedpe_like = sgt_object.to_bedpe_like()
-   #print(sgt_bedpe_like)
+   vcf_bedpe_like = vcf.to_bedpe_like()
+   print(vcf_bedpe_like)
 
 The way to add INFO, FILTER, and FORMAT to this bedpe-like DataFrame is explained :ref:`here<bedpe_generation>`.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3) Use the :doc:`get_table()<reference/api/viola.core.vcf.Vcf.get_table>` method to get individual tables composing the Vcf object.
+3) Use the :doc:`get_table()<reference/api/viola.Vcf.get_table>` method to get individual tables composing the Vcf object.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    
 .. ipython:: python
 
-   #sgt_object.get_table('positions')
+   # the returned value is pd.DataFrame
+   vcf.get_table('positions')
 
-The names of all the tables in ``sgt_object`` are stored in the :doc:`table_list<reference/api/viola.core.vcf.Vcf.table_list>` attribute:
+The names of all the tables in ``vcf`` are stored in the :doc:`table_list<reference/api/viola.Vcf.table_list>` attribute:
 
 .. ipython:: python
    
-   #sgt_object.table_list
+   vcf.table_list
 
 You can get any table you want.
 
 .. ipython:: python
 
-   #sgt_object.get_table('formats_meta') # get header information of FORMAT field
+   vcf.get_table('formats_meta') # get header information of FORMAT field
 
 ------------------------
 Export as VCF/BEDPE file
 ------------------------
 
-Under Programming
+You can export VCF/BEDPE files by ``to_vcf``/``to_bedpe`` method.
+
+.. code-block:: python
+
+   vcf.to_vcf('/path/to/the/output.vcf')
+   vcf.to_bedpe('/path/to/the/output.bedpe')
 
 ---------------------
 Filter Vcf object
 ---------------------
 
-Filtering vcf file is an essential step of bioinformatics study.
-Vcf object provides an intuitive way to filter SV in almost any item.
+Filtering VCF file is an essential step of bioinformatics study.
+viola.Vcf object provides an intuitive way to filter SV in almost any item.
 
 You have two options for filtering. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1) Filter with queries using filter method 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PySgt has a query system that is easy to understand.
+Viola has a query system that is easy to understand.
 
 First, let's look at a couple of examples.
 
@@ -122,6 +130,7 @@ First, let's look at a couple of examples.
 **a. Filter with SVTYPE of the INFO field.**
 ``syntax: "<INFO name> [<value indexer>] <operator> <value>"``
 
+- Please do not omit spaces.
 - <value indexer> is optional. 
 - The <value indexer> is a 0-origin indexer which allows you to specify which of the comma-separated INFOs, such as CIPOS, should be filtered.
 - The following syntax can also be used for other INFO.
@@ -129,8 +138,8 @@ First, let's look at a couple of examples.
 .. ipython:: python
    
    # filter with svtype.
-   #query1_1 = 'svtype == DEL'
-   #sgt_object.filter(query1_1)
+   query1_1 = 'svtype == DEL'
+   vcf.filter(query1_1)
 
 **b. Filter with genomic coordinates.**
 ``syntax: "<'be1'|'be2'> <chromosome>[:[<start position>]-[<end position>]]"``
@@ -143,9 +152,9 @@ First, let's look at a couple of examples.
    :okexcept:
 
    # filter with genomic coordinates.
-   #sgt_object.filter('be1 chr11')
-   #sgt_object.filter('be1 !chr1')
-   #sgt_object.filter('be2 chr1:69583189-')
+   vcf.filter('be1 chr11')
+   vcf.filter('be1 !chr1')
+   vcf.filter('be2 chr1:69583189-')
 
 **c. Filter with FORMAT table**
 ``syntax: "<sample name> <FORMAT name> [<FORMAT indexer>] <operator> <value>``
@@ -156,18 +165,52 @@ First, let's look at a couple of examples.
 .. ipython:: python
    :okexcept:
 
-   #sgt_object.filter('sample1_T PR 1 > 5').to_bedpe_like(add_formats=True)
+   vcf.filter('sample1_T PR 1 > 5').to_bedpe_like(add_formats=True)
+
+**c. Filter with FILTER table**
+``syntax: "[!]<FILTER name>"``
+
+- When "!" mark is prepended, the SV records excluding <FILTER name> are returned.
+
+.. ipython:: python
+   :okexcept:
+
+   vcf.filter('PASS').to_bedpe_like(add_filters=True)
+   vcf.filter('!PASS').to_bedpe_like(add_filters=True)
 
 **d. Query can be a list**
 
 .. ipython:: python
    
-   #query2_1 = 'svlen < -4000'
-   #query2_2 = 'svlen > -10000'
-   #sgt_object2 = sgt_object.filter([query2_1, query2_2], query_logic='and')
-   #result2 = sgt_object2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
-   #print(result2)
+   query2_1 = 'svlen < -4000'
+   query2_2 = 'svlen > -10000'
+   vcf2 = vcf.filter([query2_1, query2_2], query_logic='and')
+   result2 = vcf2.to_bedpe_like(custom_infonames=['svtype', 'svlen'])
+   print(result2)
+
+You can perform set operations by passing expressions to query_logic.
+
+.. ipython:: python
+   
+   query3_1 = 'svtype == DEL'
+   query3_2 = 'svtype == BND'
+   query3_3 = 'somaticscore > 20'
+
+   # (query3_1 or query3_2) and (query3_3)
+   vcf3 = vcf.filter([query3_1, query3_2, query3_3], query_logic='(0 | 1) & 2')
+   print(vcf3.to_bedpe_like(custom_infonames=['svtype', 'somaticscore']))
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2) Filter with SV ID using filter_by_id method 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``Vcf.filter`` is very useful, but in some situation, you may have to filter with much more complex criteria.
+In such cases we recommend to use :doc:`Vcf.filter_by_id<reference/api/viola.Vcf.filter_by_id>` method.
+
+Suppose you obtained the list of SV id, such as ``['test2', 'test4']``, as a result of quite complex criterion.
+In this case, your code should be:
+
+.. ipython:: python
+
+   vcf.filter_by_id(['test2', 'test4'])
+

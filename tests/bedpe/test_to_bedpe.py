@@ -25,3 +25,4 @@ def test_to_bedpe():
     bedpe.to_bedpe(os.path.join(HERE, 'data/output.bedpe'))
     bedpe.to_bedpe(os.path.join(HERE, 'data/output.svlen.bedpe'), custom_infonames=['svlen'])
     assert filecmp.cmp(os.path.join(HERE, 'data/output.bedpe'), os.path.join(HERE, 'data/bedpe_expected.bedpe'))
+    assert filecmp.cmp(os.path.join(HERE, 'data/output.svlen.bedpe'), os.path.join(HERE, 'data/output.svlen.expected.bedpe'))

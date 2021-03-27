@@ -225,8 +225,8 @@ class Vcf(Bedpe):
         drop_by_id(svid)
         Remove SV records specified in "svid" argument.
         
-        Paramters
-        ---------
+        Parameters
+        -----------
         svid: int or str or List[int or str]
             ID of SV record to be removed.
         inplace: bool, default False
@@ -343,7 +343,7 @@ class Vcf(Bedpe):
 
     def to_vcf(self, path_or_buf = None, onlyinfo=False) -> str:
         """
-        to_vcf()
+        to_vcf(path_or_buf)
         Return a vcf-formatted String. Header information will not be reflected.
         return csv file as str class.
 
@@ -483,7 +483,7 @@ class Vcf(Bedpe):
             A Dataframe in bedpe-like format.
             The columns include at least the following:  
             ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2',
-             'name', 'score', 'strand1', 'strand2']
+            'name', 'score', 'strand1', 'strand2']
         """
         df_out = super().to_bedpe_like(confidence_intervals=confidence_intervals)
         if len(custom_infonames) != 0:
@@ -568,6 +568,23 @@ class Vcf(Bedpe):
         return df        
 
     def append_formats(self, base_df, left_on='id'):
+        """
+        append_formats(base_df, left_on='id')
+        Append formats to the right of the base_df, based on the SV id columns.
+        If the name of the SV id column in base_df is not 'id', specify column name into left_on argument. 
+
+        Parameters
+        ---------------
+        base_df: DataFrame
+            The DataFrame to which the INFO tables are appended.
+        left_on: str, default 'id'
+            The name of SV id column of base_df
+        
+        Returns
+        ---------------
+        DataFrame
+            A DataFrame which the formats tables are added.
+        """
         df_format = self.get_table('formats')
         df_format['format_id'] = df_format['sample'] + '_' + df_format['format'] + '_' + df_format['value_idx'].astype(str) 
         df_format.drop(['sample', 'format', 'value_idx'], axis=1, inplace=True)
@@ -576,6 +593,24 @@ class Vcf(Bedpe):
         return df_out
 
     def append_filters(self, base_df, left_on='id'):
+        """
+        append_filters(base_df, left_on='id')
+        Append filters to the right of the base_df, based on the SV id columns.
+        If the name of the SV id column in base_df is not 'id', specify column name into left_on argument. 
+
+        Parameters
+        ---------------
+        base_df: DataFrame
+            The DataFrame to which the INFO tables are appended.
+        left_on: str, default 'id'
+            The name of SV id column of base_df
+        
+        Returns
+        ---------------
+        DataFrame
+            A DataFrame which the filters tables are added.
+        
+        """
         df_filters = self.get_table('filters')
         df_filters_expand = df_filters['filter'].str.get_dummies()
         df_be_appended = pd.concat([ df_filters['id'], df_filters_expand ], axis=1)
@@ -801,12 +836,12 @@ class Vcf(Bedpe):
     def breakend2breakpoint(self):
         """
         breakend2breakpoint()
-        Transforms SV records whose svtype are BND, infer the SV type, and return a breakpoint-based Vcf object. 
+        Converts a Vcf object into a breakpoint-based Vcf object by integrating the paired breakends (BND) and infering their SVTYPE. 
 
         Returns
         --------
         Vcf
-            SV records with svtype being BND were integrated into breakpoints, and svtype will be overwritten.
+            SV records with svtype being BND were integrated into breakpoints, and svtype INFO will be overwritten.
         """
         out = self.copy()
         if out._metadata['variantcaller'] == 'lumpy':
@@ -900,16 +935,30 @@ class Vcf(Bedpe):
         set_result_ids = set_all_ids - set_to_subtract
         return set_result_ids
 
-    def remove_duplicated_records(self):
-        if 'event' not in self._ls_infokeys:
-            return
-        print(self.get_table('event'))
 
     def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_series=True):
         """
-        classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
+        classify_manual_svtype(definitions, ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
         'manual_sv_type' will be created.
+
+        Parameters
+        ------------
+        definitions: path_or_buf, default None
+            Path to the file which specifies the definitions of custom SV classification. This argument is disabled when "ls_condition" is not None.
+        ls_conditions: List[callable] or List[str], default None
+            List of definitions of custom SV classification. The data type of the elements in the list can be callable or SV ID (str).
+            callable --> Functions that takes a self and returns a list of SV ID that satisfy the conditions of the SV class to be defined. 
+            SV ID --> Lists of SV ID that satisfy the conditions of the SV class to be defined.
+            This argument is disabled when "definitions" is not None.
+        ls_names: List[str], default None
+            List of the names of the custom SV class corresponding to the "ls_conditions". This argument is disabled when "definitions" is not None.
+        return_series: bool, default True
+            Return counts of each custom SV class as a pd.Series.
+        
+        Returns
+        ---------
+        pd.Series or None
         """
         set_ids_current = set(self.ids)
         obj = self

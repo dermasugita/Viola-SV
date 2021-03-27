@@ -4,7 +4,11 @@ import sys, os
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 class TestAppendInfos:
+<<<<<<< HEAD
     manta_path = os.path.join(HERE, 'data/test.manta.vcf')
+=======
+    manta_path = os.path.join(HERE, 'data/manta1.inv.vcf')
+>>>>>>> 5b88c4e09abac3da91babb308491bb51425a6705
     reader = viola.read_vcf(manta_path)
     positions = reader.get_table('positions')
 

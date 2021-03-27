@@ -75,14 +75,14 @@ Docker support is coming soon!
 How to Learn Viola
 ===================
 
-As a first step we recommend the :ref:`Quick Start<quickstart>` page where you can see the basic behaviour of Viola.
-A good second step is to read the :ref:`Signature Analysis Tutorial<signature_analysis>` page.
+As a first step we recommend the :ref:`Quick Start<https://dermasugita.github.io/ViolaDocs/docs/html/quickstart.html>` page where you can see the basic behaviour of Viola.
+A good second step is to read the :ref:`Signature Analysis Tutorial<https://dermasugita.github.io/ViolaDocs/docs/html/signature_analysis.html>` page.
 
 For command line interfaces, see CLI tutorial.
 
-If you want to get a deeper understanding of how Viola objects are structured, how filtering works and how merging works, please refer to the :ref:`User Guide<user_guide>`.
+If you want to get a deeper understanding of how Viola objects are structured, how filtering works and how merging works, please refer to the :ref:`User Guide<https://dermasugita.github.io/ViolaDocs/docs/html/userguide/index.html>`.
 
-Manuals for individual classes/methods/functions are available in the :ref:`API Reference<api_reference>`.
+Manuals for individual classes/methods/functions are available in the :ref:`API Reference<https://dermasugita.github.io/ViolaDocs/docs/html/reference/index.html>`.
 
 
 Documentation

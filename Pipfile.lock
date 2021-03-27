@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ea64925eb892ac8ab391952763fd96e6397ea34fce0851db51e758df6f7641b7"
+            "sha256": "759cd623e7593df557c5c3357e3432c70d077311e2d1461027bdbe172beb9b69"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -941,6 +941,20 @@
             "index": "pypi",
             "version": "==1.2.3"
         },
+        "pip-licenses": {
+            "hashes": [
+                "sha256:2836557dbceba1686b58443d823a623de75bb9922ec507288e3778cc617c00af",
+                "sha256:ec2a96fc180328f0b19586a000f77923645a6858c0340e9a06c81b77a6f6379f"
+            ],
+            "index": "pypi",
+            "version": "==3.3.1"
+        },
+        "ptable": {
+            "hashes": [
+                "sha256:aa7fc151cb40f2dabcd2275ba6f7fd0ff8577a86be3365cd3fb297cbe09cc292"
+            ],
+            "version": "==0.9.2"
+        },
         "python-dateutil": {
             "hashes": [
                 "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c",
@@ -1053,7 +1067,7 @@
         },
         "viola": {
             "path": ".",
-            "version": "==0.1"
+            "version": "==1.0.0.dev1"
         }
     }
 }

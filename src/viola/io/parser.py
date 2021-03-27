@@ -321,10 +321,10 @@ def read_bedpe(filepath,
             x['svlen'] = 0
             return x
         elif x.name == 'DEL':
-            x['svlen'] = x['pos1'] - x['pos2']
+            x['svlen'] = x['pos1'] - x['pos2'] + 1
             return x
         elif x.name == 'DUP':
-            x['svlen'] = x['pos2'] - x['pos1']
+            x['svlen'] = x['pos2'] - x['pos1'] + 1
             return x
         elif x.name == 'INV':
             x['svlen'] = x['pos2'] - x['pos1']

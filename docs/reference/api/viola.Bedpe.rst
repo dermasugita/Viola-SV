@@ -20,6 +20,7 @@ viola.Bedpe
       ~Bedpe.calculate_info
       ~Bedpe.change_repr_config
       ~Bedpe.classify_manual_svtype
+      ~Bedpe.copy
       ~Bedpe.filter
       ~Bedpe.filter_by_id
       ~Bedpe.get_feature_count_as_series
@@ -29,7 +30,9 @@ viola.Bedpe
       ~Bedpe.get_table
       ~Bedpe.is_reciprocal
       ~Bedpe.merge
+      ~Bedpe.remove_info_table
       ~Bedpe.replace_table
+      ~Bedpe.to_bedpe
       ~Bedpe.to_bedpe_like
       ~Bedpe.view
    

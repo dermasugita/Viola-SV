@@ -2,6 +2,8 @@
 Welcom to Viola Package!
 ************************
 
+Current version: 1.0.0.dev1
+
 .. image:: https://dermasugita.github.io/PySgtDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
 
 
@@ -82,9 +84,11 @@ If you want to get a deeper understanding of how Viola objects are structured, h
 
 Manuals for individual classes/methods/functions are available in the :ref:`API Reference<api_reference>`.
 
+
 Documentation
 =============
 
 - :ref:`Quick Start<quickstart>`
+- :ref:`Signature Analysis Tutorial<signature_analysis>`
 - :ref:`API Reference<api_reference>`
 

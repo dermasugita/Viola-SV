@@ -20,6 +20,7 @@ viola.MultiBedpe
       ~MultiBedpe.calculate_info
       ~MultiBedpe.change_repr_config
       ~MultiBedpe.classify_manual_svtype
+      ~MultiBedpe.copy
       ~MultiBedpe.filter
       ~MultiBedpe.filter_by_id
       ~MultiBedpe.get_feature_count_as_data_frame
@@ -30,7 +31,9 @@ viola.MultiBedpe
       ~MultiBedpe.get_table
       ~MultiBedpe.is_reciprocal
       ~MultiBedpe.merge
+      ~MultiBedpe.remove_info_table
       ~MultiBedpe.replace_table
+      ~MultiBedpe.to_bedpe
       ~MultiBedpe.to_bedpe_like
       ~MultiBedpe.view
    

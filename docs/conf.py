@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath('../src'))
 import sphinx_rtd_theme
 from viola.core.vcf import Vcf 
 from viola.core.bedpe import Bedpe
-
+exec(open("../src/viola/_version.py", "r").read())
 
 # -- Project information -----------------------------------------------------
 
@@ -25,7 +25,9 @@ copyright = '2021, Itsuki Sugita'
 author = 'Itsuki Sugita'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = __version__
+
+version = __version__
 
 
 # -- General configuration ---------------------------------------------------

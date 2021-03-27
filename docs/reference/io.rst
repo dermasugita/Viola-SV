@@ -13,6 +13,7 @@ VCF file
    :toctree: api/
 
    read_vcf
+   read_vcf_multi
 
 ----------
 BEDPE file

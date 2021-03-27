@@ -330,6 +330,27 @@ class Bedpe(Indexer):
             df_out = self.append_infos(df_out, custom_infonames)
         df_out.rename(columns={'id': 'name', 'qual': 'score'}, inplace=True)
         return df_out
+    
+    def to_bedpe(self,
+        path_or_buf: str, 
+        custom_infonames: Iterable[str] = [],
+        confidence_intervals: bool = False):
+        """
+        to_beddpe(path_or_buf, custom_infonames, confidence_intervals)
+
+        Parameters
+        ----------
+        path_or_buf: str, optional
+            File path to save the VCF file.
+        custom_infonames: list-like[str]
+            The table names of INFOs to append.
+        confidence_intervals: bool, default False
+            Whether or not to consider confidence intervals of the breakpoints.  
+            If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
+            Otherwise, breakpoints are represented by a single-nucleotide resolution.
+        """
+        df_bedpe = self.to_bedpe_like(custom_infonames=custom_infonames, confidence_intervals=confidence_intervals)
+        df_bedpe.to_csv(path_or_buf, index=None, sep='\t')
 
     def append_infos(self,
         base_df: pd.DataFrame,

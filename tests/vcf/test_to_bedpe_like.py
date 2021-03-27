@@ -60,8 +60,6 @@ chr1\t69583189\t69583190\tchr1\t69590947\t69590948\ttest4\t\t+\t-
     df_expected = pd.read_csv(StringIO(expected_data), sep='\t')
     df_expected['score'] = df_expected['score'].astype(object) # because score field is empty in this case
     bedpe = result.to_bedpe_like()
-    print(df_expected)
-    print(bedpe)
     pd.testing.assert_frame_equal(bedpe, df_expected, check_exact=True)
 
 def test_to_bedpe_like_with_info():

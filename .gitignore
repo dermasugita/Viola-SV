@@ -93,4 +93,4 @@ free_testing/
 test_signature.tsv
 output_merged.vcf
 !resources/demo/signature_analysis_demo.ipynb
-resources/demo/pcawg
+resources/demo/resources/pcawg/

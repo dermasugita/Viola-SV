@@ -1034,8 +1034,13 @@ class Bedpe(Indexer):
         originalid = multibedpe.get_table("global_id")["id"]
         df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
         
-        caller = multibedpe.get_table("global_id")["patients"]
+        ############## Edited by Sugita ##################
+        df_id = multibedpe.get_table("global_id")
+        df_patients = multibedpe.get_table("patients")
+        df_id_patients = df_id.merge(df_patients, left_on="patient_id", right_on="id")
+        caller = df_id_patients["patients"]
         df_caller = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "caller":caller})
+        ############## /Edited by Sugita #################
 
         df_svpos = multibedpe._df_svpos
         odict_df_info = multibedpe._odict_df_info

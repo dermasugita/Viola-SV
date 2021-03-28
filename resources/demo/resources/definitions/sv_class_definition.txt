@@ -1,0 +1,140 @@
+# This is the custom SV-class definition file for the Viola publication.
+
+name 'At fragile site DEL'
+0 fragileleft == True
+1 fragileright == True
+2 svtype == DEL
+logic (0 | 1) & 2
+
+name 'At fragile site DUP'
+0 fragileleft == True
+1 fragileright == True
+2 svtype == DUP
+logic (0 | 1) & 2
+
+name '<50 kb early DEL'
+0 svlen > -50000
+1 timing > 66.65
+2 svtype == DEL
+logic 0 & 1 & 2
+
+name '<50 kb mid DEL'
+0 svlen > -50000
+1 timing > 33.35
+2 svtype == DEL
+logic 0 & 1 & 2
+
+name '<50 kb late DEL'
+0 svlen > -50000
+1 svtype == DEL
+logic 0 & 1
+
+name '<500 kb early DEL'
+0 svlen > -500000
+1 timing > 66.65
+2 svtype == DEL
+logic 0 & 1 & 2
+
+name '<500 kb mid DEL'
+0 svlen > -500000
+1 timing > 33.35
+2 svtype == DEL
+logic 0 & 1 & 2
+
+name '<500 kb late DEL'
+0 svlen > -500000
+1 svtype == DEL
+logic 0 & 1
+
+name '<5 Mb early DEL'
+0 svlen > -5000000
+1 timing > 66.65
+2 svtype == DEL
+logic 0 & 1 & 2
+
+name '<5 Mb mid DEL'
+0 svlen > -5000000
+1 timing > 33.35
+2 svtype == DEL
+logic 0 & 1 & 2
+
+name '<5 Mb late DEL'
+0 svlen > -5000000
+1 svtype == DEL
+logic 0 & 1
+
+name '>5 Mb DEL'
+0 svlen <= -5000000
+1 svtype == DEL
+logic 0 & 1
+
+name '<50 kb early DUP'
+0 svlen < 50000
+1 timing > 66.65
+2 svtype == DUP
+logic 0 & 1 & 2
+
+name '<50 kb mid DUP'
+0 svlen < 50000
+1 timing > 33.35
+2 svtype == DUP
+logic 0 & 1 & 2
+
+name '<50 kb late DUP'
+0 svlen < 50000
+1 svtype == DUP
+logic 0 & 1 
+
+name '<500 kb early DUP'
+0 svlen < 500000
+1 timing > 66.65
+2 svtype == DUP
+logic 0 & 1 & 2
+
+name '<500 kb mid DUP'
+0 svlen < 500000
+1 timing > 33.35
+2 svtype == DUP
+logic 0 & 1 & 2
+
+name '<500 kb late DUP'
+0 svlen < 500000
+1 svtype == DUP
+logic 0 & 1 
+
+name '<5 Mb early DUP'
+0 svlen < 5000000
+1 timing > 66.65
+2 svtype == DUP
+logic 0 & 1 & 2
+
+name '<5 Mb mid DUP'
+0 svlen < 5000000
+1 timing > 33.35
+2 svtype == DUP
+logic 0 & 1 & 2
+
+name '<5 Mb late DUP'
+0 svlen < 5000000
+1 svtype == DUP
+logic 0 & 1 
+
+name '>5 Mb DUP'
+0 svlen >= 5000000
+1 svtype == DUP
+logic 0 & 1
+
+name 'translocation'
+0 svtype == TRA
+logic 0
+
+name '<100 kb INV'
+0 svtype == t2tINV
+1 svtype == h2hINV
+2 svlen < 100000
+logic (0 | 1) & 2
+
+name '>100 kb INV'
+0 svtype == t2tINV
+1 svtype == h2hINV
+logic 0 | 1

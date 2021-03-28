@@ -17,6 +17,8 @@ chr2	10	11	chr2	40	41	test10	60	+	+
 chr2	10	11	chr5	20	21	test11	60	+	-
 chr3	10	11	chr4	20	21	test12	60	-	-
 """
+data_empty = """chrom1	start1	end1	chrom2	start2	end2	name	score	strand1	strand2
+"""
 data_expected = """bedpe1_test1	0	small_del
 bedpe2_test1	0	small_del
 bedpe1_test2	0	small_del
@@ -98,6 +100,50 @@ def test_classify_manual_svtype():
     pd.testing.assert_frame_equal(manual_sv_type, manual_sv_type_expected, check_like=True)
 
     result_expected = pd.DataFrame([[2, 3, 1, 0, 2, 2, 2],[2, 3, 1, 0, 2, 2, 2]])
+    result_expected.columns = ls_names + ['others']
+    result_expected.columns.name = 'manual_sv_type'
+    result_expected.index = ['bedpe1', 'bedpe2']
+    result_expected.index.name = 'patients'
+    pd.testing.assert_frame_equal(result, result_expected)
+
+def test_classify_manual_svtype_with_empty():
+    bedpe1 = viola.read_bedpe(StringIO(data))
+    bedpe2 = viola.read_bedpe(StringIO(data))
+    empty1 = viola.read_bedpe(StringIO(data_empty))
+    empty2 = viola.read_bedpe(StringIO(data_empty))
+    ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
+    ls_names = ['small_del', 'large_del', 'small_dup', 'large_dup', 'small_inv', 'tra']
+    multibedpe = viola.MultiBedpe([bedpe1, empty1, bedpe2, empty2], ['bedpe1', 'empty1', 'bedpe2', 'empty2'])
+    result = multibedpe.classify_manual_svtype(ls_conditions=ls_conditions, ls_names=ls_names, exclude_empty_cases=False)
+    manual_sv_type = multibedpe.manual_sv_type
+    manual_sv_type.set_index('id', inplace=True)
+    manual_sv_type_expected = pd.read_csv(StringIO(data_expected), sep='\t', names=('id', 'value_idx', 'manual_sv_type'))
+    manual_sv_type_expected.set_index('id', inplace=True)
+    pd.testing.assert_frame_equal(manual_sv_type, manual_sv_type_expected, check_like=True)
+
+    result_expected = pd.DataFrame([[2, 3, 1, 0, 2, 2, 2], [0, 0, 0, 0, 0, 0, 0], [2, 3, 1, 0, 2, 2, 2], [0, 0, 0, 0, 0, 0, 0]])
+    result_expected.columns = ls_names + ['others']
+    result_expected.columns.name = 'manual_sv_type'
+    result_expected.index = ['bedpe1', 'empty1', 'bedpe2', 'empty2']
+    result_expected.index.name = 'patients'
+    pd.testing.assert_frame_equal(result, result_expected)
+
+def test_classify_manual_svtype_exclude_empty():
+    bedpe1 = viola.read_bedpe(StringIO(data))
+    bedpe2 = viola.read_bedpe(StringIO(data))
+    empty1 = viola.read_bedpe(StringIO(data_empty))
+    empty2 = viola.read_bedpe(StringIO(data_empty))
+    ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
+    ls_names = ['small_del', 'large_del', 'small_dup', 'large_dup', 'small_inv', 'tra']
+    multibedpe = viola.MultiBedpe([bedpe1, empty1, bedpe2, empty2], ['bedpe1', 'empty1', 'bedpe2', 'empty2'])
+    result = multibedpe.classify_manual_svtype(ls_conditions=ls_conditions, ls_names=ls_names, exclude_empty_cases=True)
+    manual_sv_type = multibedpe.manual_sv_type
+    manual_sv_type.set_index('id', inplace=True)
+    manual_sv_type_expected = pd.read_csv(StringIO(data_expected), sep='\t', names=('id', 'value_idx', 'manual_sv_type'))
+    manual_sv_type_expected.set_index('id', inplace=True)
+    pd.testing.assert_frame_equal(manual_sv_type, manual_sv_type_expected, check_like=True)
+
+    result_expected = pd.DataFrame([[2, 3, 1, 0, 2, 2, 2], [2, 3, 1, 0, 2, 2, 2]])
     result_expected.columns = ls_names + ['others']
     result_expected.columns.name = 'manual_sv_type'
     result_expected.index = ['bedpe1', 'bedpe2']

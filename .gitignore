@@ -92,3 +92,4 @@ free_testing/
 #custom
 test_signature.tsv
 output_merged.vcf
+!resources/demo/

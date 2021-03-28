@@ -1084,8 +1084,13 @@ class Vcf(Bedpe):
         originalid = multivcf.get_table("global_id")["id"]
         df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
         
-        caller = multivcf.get_table("global_id")["patients"]
+        ############## Edited by Sugita ##################
+        df_id = multivcf.get_table("global_id")
+        df_patients = multivcf.get_table("patients")
+        df_id_patients = df_id.merge(df_patients, left_on="patient_id", right_on="id")
+        caller = df_id_patients["patients"]
         df_caller = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "caller":caller})
+        ############## /Edited by Sugita #################
 
         df_pos = multivcf._df_svpos
         df_filters = multivcf._df_filters

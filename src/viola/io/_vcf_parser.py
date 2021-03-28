@@ -158,7 +158,7 @@ def read_vcf_manta(vcf_reader):
         ####/FORMAT
 
     ###FILTER
-    df_filters = pd.DataFrame(ls_filters)
+    df_filters = pd.DataFrame(ls_filters, columns=['id', 'filter'])
     ###/FILTER
     
     ###INFO
@@ -174,13 +174,19 @@ def read_vcf_manta(vcf_reader):
 
     ###POS
     df_pos = pd.DataFrame(ls_pos)
-    df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
+    if df_pos.empty:
+        df_pos = pd.DataFrame([], columns=['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype'])
+    else:
+        df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
     ###/POS
 
     ###FORMAT
-    df_formats = pd.concat(ls_df_formats, ignore_index=True)
-    columns = ['id', 'sample', 'format', 'value_idx', 'value']
-    df_formats.columns = columns
+    if len(ls_df_formats) == 0:
+        df_formats = pd.DataFrame([], columns=['id', 'sample', 'format', 'value_idx', 'value'])
+    else:
+        df_formats = pd.concat(ls_df_formats, ignore_index=True)
+        columns = ['id', 'sample', 'format', 'value_idx', 'value']
+        df_formats.columns = columns
     ###/FORMAT
    
     args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
@@ -372,7 +378,7 @@ def read_vcf_delly(vcf_reader):
         ####/FORMAT
 
     ###FILTER
-    df_filters = pd.DataFrame(ls_filters)
+    df_filters = pd.DataFrame(ls_filters, columns=['id', 'filter'])
     ###/FILTER
     
     ###INFO
@@ -388,13 +394,19 @@ def read_vcf_delly(vcf_reader):
 
     ###POS
     df_pos = pd.DataFrame(ls_pos)
-    df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
+    if df_pos.empty:
+        df_pos = pd.DataFrame([], columns=['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype'])
+    else:
+        df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
     ###/POS
 
     ###FORMAT
-    df_formats = pd.concat(ls_df_formats, ignore_index=True)
-    columns = ['id', 'sample', 'format', 'value_idx', 'value']
-    df_formats.columns = columns
+    if len(ls_df_formats) == 0:
+        df_formats = pd.DataFrame([], columns=['id', 'sample', 'format', 'value_idx', 'value'])
+    else:
+        df_formats = pd.concat(ls_df_formats, ignore_index=True)
+        columns = ['id', 'sample', 'format', 'value_idx', 'value']
+        df_formats.columns = columns
     ###/FORMAT
    
     args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
@@ -616,7 +628,7 @@ def read_vcf_lumpy(vcf_reader):
         ####/FORMAT
 
     ###FILTER
-    df_filters = pd.DataFrame(ls_filters)
+    df_filters = pd.DataFrame(ls_filters, columns=['id', 'filter'])
     ###/FILTER
     
     ###INFO
@@ -632,13 +644,19 @@ def read_vcf_lumpy(vcf_reader):
 
     ###POS
     df_pos = pd.DataFrame(ls_pos)
-    df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
+    if df_pos.empty:
+        df_pos = pd.DataFrame([], columns=['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype'])
+    else:
+        df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
     ###/POS
 
     ###FORMAT
-    df_formats = pd.concat(ls_df_formats, ignore_index=True)
-    columns = ['id', 'sample', 'format', 'value_idx', 'value']
-    df_formats.columns = columns
+    if len(ls_df_formats) == 0:
+        df_formats = pd.DataFrame([], columns=['id', 'sample', 'format', 'value_idx', 'value'])
+    else:
+        df_formats = pd.concat(ls_df_formats, ignore_index=True)
+        columns = ['id', 'sample', 'format', 'value_idx', 'value']
+        df_formats.columns = columns
     ###/FORMAT
 
     ############## Generate contigs_meta ####################
@@ -809,7 +827,7 @@ def read_vcf_gridss(vcf_reader):
         ####/FORMAT
 
     ###FILTER
-    df_filters = pd.DataFrame(ls_filters)
+    df_filters = pd.DataFrame(ls_filters, columns=['id', 'filter'])
     ###/FILTER
     
     ###INFO
@@ -825,13 +843,19 @@ def read_vcf_gridss(vcf_reader):
 
     ###POS
     df_pos = pd.DataFrame(ls_pos)
-    df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
+    if df_pos.empty:
+        df_pos = pd.DataFrame([], columns=['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype'])
+    else:
+        df_pos = df_pos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
     ###/POS
 
     ###FORMAT
-    df_formats = pd.concat(ls_df_formats, ignore_index=True)
-    columns = ['id', 'sample', 'format', 'value_idx', 'value']
-    df_formats.columns = columns
+    if len(ls_df_formats) == 0:
+        df_formats = pd.DataFrame([], columns=['id', 'sample', 'format', 'value_idx', 'value'])
+    else:
+        df_formats = pd.concat(ls_df_formats, ignore_index=True)
+        columns = ['id', 'sample', 'format', 'value_idx', 'value']
+        df_formats.columns = columns
     ###/FORMAT
    
     args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]

@@ -43,9 +43,11 @@ def merge(ls_input, ls_caller_names=None, threshold=100, integration=False):
 class TmpVcfForMerge(MultiVcf):
     _internal_attrs = [
         "_df_id",
+        "_df_patients",
         "_df_svpos",
         "_odict_df_info",
         "_ls_infokeys",
+        "_ls_patients",
         "_odict_alltables",
         "_repr_config",
         "_sig_criteria"
@@ -67,8 +69,8 @@ class TmpVcfForMerge(MultiVcf):
         direct_tables: Optional[List[pd.DataFrame]] = None
         ):
         if direct_tables is None:
-            df_id, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers  = self.__init__from_ls_vcf(ls_vcf, ls_patient_names)
-            self.__init__common(df_id, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers)
+            df_id, df_patients, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers  = self.__init__from_ls_vcf(ls_vcf, ls_patient_names)
+            self.__init__common(df_id, df_patients, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers)
         else:
             self.__init__common(*direct_tables)
 
@@ -146,14 +148,16 @@ class TmpVcfForMerge(MultiVcf):
 
         # /Header Integration
 
-        for vcf, patient_name in zip(ls_vcf, ls_patient_names):
+        ls_patient_id = [i for i in range(len(ls_patient_names))]
+        df_patients = pd.DataFrame({'id': ls_patient_id, 'patients': ls_patient_names})
+        for vcf, patient_id, patient_name in zip(ls_vcf, ls_patient_id, ls_patient_names):
             df_svpos = vcf.get_table('positions')
             df_filters = vcf.get_table('filters')
             df_formats = vcf.get_table('formats')
             df_id = df_svpos[['id']].copy()
-            df_id['patients'] = patient_name
+            df_id['patient_id'] = patient_id
             df_id['global_id'] = str(patient_name) + '_' + df_id['id'].astype(str)
-            df_id = df_id[['global_id', 'patients', 'id']]
+            df_id = df_id[['global_id', 'patient_id', 'id']]
             ls_df_id.append(df_id)
 
             df_svpos['id'] = str(patient_name) + '_' + df_svpos['id'].astype(str)
@@ -189,19 +193,21 @@ class TmpVcfForMerge(MultiVcf):
             odict_df_info[key] = pd.concat(value)
         
         
-        return (df_concat_id, df_concat_svpos, df_concat_filters, odict_df_info, df_concat_formats, odict_df_headers)
+        return (df_concat_id, df_patients, df_concat_svpos, df_concat_filters, odict_df_info, df_concat_formats, odict_df_headers)
 
-    def __init__common(self, df_id, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
+    def __init__common(self, df_id, df_patients, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
         self._df_id = df_id
+        self._df_patients = df_patients
         self._df_svpos = df_svpos
         self._df_filters = df_filters
         self._odict_df_info = odict_df_info
         self._df_formats = df_formats
         self._odict_df_headers = odict_df_headers
+        self._ls_patients = df_patients['patients'].to_list()
         self._ls_infokeys = list(odict_df_info.keys())
-        ls_keys = ['global_id', 'positions', 'filters'] + self._ls_infokeys + ['formats'] + \
+        ls_keys = ['global_id', 'patients', 'positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(odict_df_headers.keys())
-        ls_values = [df_id, df_svpos, df_filters] + list(odict_df_info.values()) + [df_formats] + list(odict_df_headers.values())
+        ls_values = [df_id, df_patients, df_svpos, df_filters] + list(odict_df_info.values()) + [df_formats] + list(odict_df_headers.values())
         self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,

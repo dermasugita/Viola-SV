@@ -49,7 +49,7 @@ Name of the table: "filters"
 ======= ==========================
 id(FK)  Identifiers of SV records
 ------- --------------------------
-filters Filters assigned to the id
+filter  Filters assigned to the id
 ======= ==========================
 ======= ==========================
 
@@ -88,7 +88,7 @@ id(FK)       Identifiers of SV records
 ------------ --------------------------
 sample(FK)   Sample name
 ------------ --------------------------
-formats(FK)  Name of the FORMAT
+format(FK)   Name of the FORMAT
 ------------ --------------------------
 value_idx    0 origin index 
 ============ ==========================

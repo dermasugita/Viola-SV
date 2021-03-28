@@ -2,7 +2,7 @@
 Welcom to Viola Package!
 ************************
 
-Current version: 1.0.0.dev1
+Current version: 1.0.0.dev3
 
 .. image:: https://dermasugita.github.io/ViolaDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
 
@@ -13,7 +13,6 @@ We provide following tools for SV signature analysis:
 * Custom SV classification tool
 * Feature matrix generator 
 * SV signature extractor (NMF) with stability evaluation system.
-* Signature attributer for given sample
 
 In addition to these, Viola offers a number of other useful utilities, including:
 

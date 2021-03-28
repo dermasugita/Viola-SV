@@ -73,7 +73,7 @@ Now let's look at what each line means!
    import viola
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1. Reading BEDPE files into viola.MultiBedpe object
+2. Reading BEDPE files into viola.MultiBedpe object
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -85,7 +85,7 @@ Because the BEDPE files created by PCAWG have the ``svclass`` columns, we passed
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2. Reading BED/BEDGRAPH files for annotation
+3. Reading BED/BEDGRAPH files for annotation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -103,7 +103,7 @@ These files were built according to the `PCAWG paper`_.
 .. _PCAWG paper: https://www.nature.com/articles/s41586-019-1913-9#Sec20
 
 ~~~~~~~~~~~~~~~~~~~~~
-3. Annotating SV
+4. Annotating SV
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -118,7 +118,7 @@ When ``how='flag'``, annotate True/False according wether each breakend is in th
 When ``how='value'``, annotate the value of 4th column of Bed if the breakends hit.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4. Get Average values of Replication Timing
+5. Get Average values of Replication Timing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
 
@@ -128,7 +128,7 @@ To get representative values of replication timing for each SV breakpoints, we d
 This code adds new INFO named 'timing' by calculating mean values of 'timingleft' and 'timingright'.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5. Classify SV and Generate Feature Matrix
+6. Classify SV and Generate Feature Matrix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python

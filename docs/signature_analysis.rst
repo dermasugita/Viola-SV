@@ -90,7 +90,7 @@ Because the BEDPE files created by PCAWG have the ``svclass`` columns, we passed
 
 .. code-block:: python
 
-   bed_fragile = viola.read_bed('./resources/annotation/fragile_site.hg19.bedgraph')
+   bed_fragile = viola.read_bed('./resources/annotation/fragile_site.hg19.bed')
    bed_timing = viola.read_bed('./resources/annotation/replication_timing.bedgraph')
 
 Reading BED and BEDGRAPH files required for custom SV classification. At the moment we do not make a clear distinction between BED files and BEDGRAPH files. This is because only the first four columns of these files are used for annotation purposes in the first place.

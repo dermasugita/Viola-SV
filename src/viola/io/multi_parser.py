@@ -5,6 +5,7 @@ from viola.core.cohort import MultiBedpe, MultiVcf
 def read_vcf_multi(dir_path: str,
     variant_caller: str = 'manta',
     as_breakpoint: bool = False,
+    exclude_empty_cases: bool = False,
     file_extension: str = 'vcf',
     escape_dot_files: bool = True):
     """
@@ -20,6 +21,8 @@ def read_vcf_multi(dir_path: str,
         Only "manta" is supported for now.
     as_breakpoint: bool, default False
         Convert SVTYPE=BND record into breakpoint-wise SV. The SVTYPE is predicted and can be DEL, DUP, INV, INS, TRA or BND.
+    exclude_empty_cases: bool, default False
+        If True, skip reading empty VCF files.
     file_extension: str or None, default 'vcf'
         File extension of BEDPE files. If you want to load files with no extension, specify None.
     escape_dot_files: bool, default True
@@ -32,6 +35,8 @@ def read_vcf_multi(dir_path: str,
         if (file_extension is not None) and (f.split('.')[-1] != file_extension): continue
         abspath = os.path.abspath(os.path.join(dir_path, f))
         vcf = read_vcf(abspath, variant_caller=variant_caller)
+        if exclude_empty_cases & (vcf.sv_count == 0):
+            continue
         if as_breakpoint:
             vcf = vcf.breakend2breakpoint()
         ls_vcf.append(vcf)

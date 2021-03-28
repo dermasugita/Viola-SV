@@ -13,7 +13,6 @@ We provide following tools for SV signature analysis:
 * Custom SV classification tool
 * Feature matrix generator 
 * SV signature extractor (NMF) with stability evaluation system.
-* Signature attributer for given sample
 
 In addition to these, Viola offers a number of other useful utilities, including:
 

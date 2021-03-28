@@ -16,8 +16,10 @@ class MultiBedpe(Bedpe):
     """
     _internal_attrs = [
         "_df_id",
+        "_df_patients",
         "_df_svpos",
         "_odict_df_info",
+        "_ls_patients",
         "_ls_infokeys",
         "_odict_alltables",
         "_repr_config",
@@ -40,8 +42,8 @@ class MultiBedpe(Bedpe):
         direct_tables: Optional[List[pd.DataFrame]] = None
         ):
         if direct_tables is None:
-            df_id, df_svpos, odict_df_info = self.__init__from_ls_bedpe(ls_bedpe, ls_patient_names)
-            self.__init__common(df_id, df_svpos, odict_df_info)
+            df_id, df_patients, df_svpos, odict_df_info = self.__init__from_ls_bedpe(ls_bedpe, ls_patient_names)
+            self.__init__common(df_id, df_patients, df_svpos, odict_df_info)
         else:
             self.__init__common(*direct_tables)
     
@@ -49,12 +51,14 @@ class MultiBedpe(Bedpe):
         ls_df_id = []
         ls_df_svpos = []
         dict_ls_df_info = dict() 
-        for bedpe, patient_name in zip(ls_bedpe, ls_patient_names):
+        ls_patient_id = [i for i in range(len(ls_patient_names))]
+        df_patients = pd.DataFrame({'id': ls_patient_id, 'patients': ls_patient_names})
+        for bedpe, patient_id, patient_name in zip(ls_bedpe, ls_patient_id, ls_patient_names):
             df_svpos = bedpe.get_table('positions')
             df_id = df_svpos[['id']].copy()
-            df_id['patients'] = patient_name
+            df_id['patient_id'] = patient_id
             df_id['global_id'] = str(patient_name) + '_' + df_id['id'].astype(str)
-            df_id = df_id[['global_id', 'patients', 'id']]
+            df_id = df_id[['global_id', 'patient_id', 'id']]
             ls_df_id.append(df_id)
 
             df_svpos['id'] = str(patient_name) + '_' + df_svpos['id'].astype(str)
@@ -73,15 +77,17 @@ class MultiBedpe(Bedpe):
         for key, value in dict_ls_df_info.items():
             odict_df_info[key] = pd.concat(value)
         
-        return (df_concat_id, df_concat_svpos, odict_df_info)
+        return (df_concat_id, df_patients, df_concat_svpos, odict_df_info)
     
-    def __init__common(self, df_id, df_svpos, odict_df_info):
+    def __init__common(self, df_id, df_patients, df_svpos, odict_df_info):
         self._df_id = df_id
+        self._df_patients = df_patients
+        self._ls_patients = df_patients['patients'].to_list()
         self._df_svpos = df_svpos 
         self._odict_df_info = odict_df_info
         self._ls_infokeys = [x.lower() for x in odict_df_info.keys()]
-        ls_keys = ['global_id', 'positions'] + self._ls_infokeys
-        ls_values = [df_id, df_svpos] + list(odict_df_info.values())
+        ls_keys = ['global_id', 'patients', 'positions'] + self._ls_infokeys
+        ls_values = [df_id, df_patients, df_svpos] + list(odict_df_info.values())
         self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,
@@ -108,12 +114,13 @@ class MultiBedpe(Bedpe):
         """
         df_global_id = self.get_table('global_id')
         out_global_id = df_global_id.loc[df_global_id['global_id'].isin(arrlike_id)].reset_index(drop=True)
+        out_patients = self.get_table('patients')
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
-        return MultiBedpe(direct_tables=[out_global_id, out_svpos, out_odict_df_info])
+        return MultiBedpe(direct_tables=[out_global_id, out_patients, out_svpos, out_odict_df_info])
     
 
-    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True):
+    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True, exclude_empty_cases=False):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
@@ -149,14 +156,18 @@ class MultiBedpe(Bedpe):
                 pd_ind_reindex = pd.Index(ls_names + ['others'])
             else:
                 pd_ind_reindex = pd.Index(ls_order)
-            df_feature_counts = self.get_feature_count_as_data_frame(ls_order=pd_ind_reindex)
+            df_feature_counts = self.get_feature_count_as_data_frame(ls_order=pd_ind_reindex, exclude_empty_cases=exclude_empty_cases)
             return df_feature_counts
     
-    def get_feature_count_as_data_frame(self, feature='manual_sv_type', ls_order=None):
+    def get_feature_count_as_data_frame(self, feature='manual_sv_type', ls_order=None, exclude_empty_cases=False):
         df_feature = self.get_table(feature)
         df_id = self.get_table('global_id')
+        df_patients = self.get_table('patients')
         df_merged = pd.merge(df_feature, df_id, left_on='id', right_on='global_id')
+        df_merged = df_merged.merge(df_patients, left_on='patient_id', right_on='id')
         df_feature_counts = df_merged.pivot_table('global_id', index='patients', columns=feature, aggfunc='count', fill_value=0)
+        if not exclude_empty_cases:
+            df_feature_counts = df_feature_counts.reindex(self._ls_patients, fill_value=0)
         if ls_order is not None:
             pd_ind_reindex = pd.Index(ls_order, name=feature)
             df_feature_counts = df_feature_counts.reindex(columns=pd_ind_reindex, fill_value=0)
@@ -171,8 +182,10 @@ class MultiVcf(Vcf):
     """
     _internal_attrs = [
         "_df_id",
+        "_df_patients",
         "_df_svpos",
         "_odict_df_info",
+        "_ls_patients",
         "_ls_infokeys",
         "_odict_alltables",
         "_repr_config",
@@ -195,8 +208,8 @@ class MultiVcf(Vcf):
         direct_tables: Optional[List[pd.DataFrame]] = None
         ):
         if direct_tables is None:
-            df_id, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers  = self.__init__from_ls_vcf(ls_vcf, ls_patient_names)
-            self.__init__common(df_id, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers)
+            df_id, df_patients, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers  = self.__init__from_ls_vcf(ls_vcf, ls_patient_names)
+            self.__init__common(df_id, df_patients, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers)
         else:
             self.__init__common(*direct_tables)
     
@@ -229,14 +242,16 @@ class MultiVcf(Vcf):
             odict_df_headers[key] = df_merged
         # /Header Integration
 
-        for vcf, patient_name in zip(ls_vcf, ls_patient_names):
+        ls_patient_id = [i for i in range(len(ls_patient_names))]
+        df_patients = pd.DataFrame({'id': ls_patient_id, 'patients': ls_patient_names})
+        for vcf, patient_id, patient_name in zip(ls_vcf, ls_patient_id, ls_patient_names):
             df_svpos = vcf.get_table('positions')
             df_filters = vcf.get_table('filters')
             df_formats = vcf.get_table('formats')
             df_id = df_svpos[['id']].copy()
-            df_id['patients'] = patient_name
+            df_id['patient_id'] = patient_id
             df_id['global_id'] = str(patient_name) + '_' + df_id['id'].astype(str)
-            df_id = df_id[['global_id', 'patients', 'id']]
+            df_id = df_id[['global_id', 'patient_id', 'id']]
             ls_df_id.append(df_id)
 
             df_svpos['id'] = str(patient_name) + '_' + df_svpos['id'].astype(str)
@@ -270,20 +285,22 @@ class MultiVcf(Vcf):
         for key, value in odict_ls_df_info.items():
             odict_df_info[key] = pd.concat(value)
         
-        return (df_concat_id, df_concat_svpos, df_concat_filters, odict_df_info, df_concat_formats, odict_df_headers)
+        return (df_concat_id, df_patients, df_concat_svpos, df_concat_filters, odict_df_info, df_concat_formats, odict_df_headers)
 
     
-    def __init__common(self, df_id, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
+    def __init__common(self, df_id, df_patients, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}):
         self._df_id = df_id
+        self._df_patients = df_patients
         self._df_svpos = df_svpos
         self._df_filters = df_filters
         self._odict_df_info = odict_df_info
         self._df_formats = df_formats
         self._odict_df_headers = odict_df_headers
+        self._ls_patients = df_patients['patients'].to_list()
         self._ls_infokeys = [ x.lower() for x in odict_df_headers['infos_meta']['id'].tolist()]
-        ls_keys = ['global_id', 'positions', 'filters'] + self._ls_infokeys + ['formats'] + \
+        ls_keys = ['global_id', 'patients', 'positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(odict_df_headers.keys())
-        ls_values = [df_id, df_svpos, df_filters] + list(odict_df_info.values()) + [df_formats] + list(odict_df_headers.values())
+        ls_values = [df_id, df_patients, df_svpos, df_filters] + list(odict_df_info.values()) + [df_formats] + list(odict_df_headers.values())
         self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
         self._repr_config = {
             'info': None,
@@ -310,15 +327,16 @@ class MultiVcf(Vcf):
         """
         df_global_id = self.get_table('global_id')
         out_global_id = df_global_id.loc[df_global_id['global_id'].isin(arrlike_id)].reset_index(drop=True)
+        out_patients = self.get_table('patients')
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_filters = self._filter_by_id('filters', arrlike_id)
         out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
         out_formats = self._filter_by_id('formats', arrlike_id)
         out_odict_df_headers = self._odict_df_headers.copy()
-        return MultiVcf(direct_tables=[out_global_id, out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers])
+        return MultiVcf(direct_tables=[out_global_id, out_patients, out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers])
     
 
-    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True):
+    def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True, exclude_empty_cases=False):
         """
         classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
@@ -354,14 +372,18 @@ class MultiVcf(Vcf):
                 pd_ind_reindex = pd.Index(ls_names + ['others'])
             else:
                 pd_ind_reindex = pd.Index(ls_order)
-            df_feature_counts = self.get_feature_count_as_data_frame(ls_order=pd_ind_reindex)
+            df_feature_counts = self.get_feature_count_as_data_frame(ls_order=pd_ind_reindex, exclude_empty_cases=exclude_empty_cases)
             return df_feature_counts
     
-    def get_feature_count_as_data_frame(self, feature='manual_sv_type', ls_order=None):
+    def get_feature_count_as_data_frame(self, feature='manual_sv_type', ls_order=None, exclude_empty_cases=False):
         df_feature = self.get_table(feature)
         df_id = self.get_table('global_id')
+        df_patients = self.get_table('patients')
         df_merged = pd.merge(df_feature, df_id, left_on='id', right_on='global_id')
+        df_merged = df_merged.merge(df_patients, left_on='patient_id', right_on='id')
         df_feature_counts = df_merged.pivot_table('global_id', index='patients', columns=feature, aggfunc='count', fill_value=0)
+        if not exclude_empty_cases:
+            df_feature_counts = df_feature_counts.reindex(self._ls_patients, fill_value=0)
         if ls_order is not None:
             pd_ind_reindex = pd.Index(ls_order, name=feature)
             df_feature_counts = df_feature_counts.reindex(columns=pd_ind_reindex, fill_value=0)

@@ -91,6 +91,33 @@ def test_classify_manual_svtype():
     result_expected.index.name = 'patients'
     pd.testing.assert_frame_equal(result, result_expected)
 
+"""
+def test_classify_manual_svtype_empty():
+    vcf = viola.read_vcf(os.path.join(HERE, 'data/manta1.vcf'))
+    vcf_empty = viola.read_vcf(os.path.join(HERE, 'data/manta1_empty.vcf'))
+    vcf2 =  vcf.copy()
+    vcf_empty2 = vcf_empty.copy()
+    vcf = vcf.breakend2breakpoint()
+    vcf2 = vcf2.breakend2breakpoint()
+    multi_vcf = viola.MultiVcf([vcf, vcf_empty, vcf2, vcf_empty2], ['vcf1', 'empty1', 'vcf2', 'empty2'])
+    ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
+    ls_names = ['small_del', 'large_del', 'small_dup', 'large_dup', 'small_inv', 'tra']
+    result = multi_vcf.classify_manual_svtype(ls_conditions=ls_conditions, ls_names=ls_names)
+
+    manual_sv_type = multi_vcf.manual_sv_type
+    manual_sv_type.set_index('id', inplace=True)
+    manual_sv_type_expected = pd.read_csv(StringIO(data_expected), sep='\t', names=('id', 'value_idx', 'manual_sv_type'))
+    manual_sv_type_expected.set_index('id', inplace=True)
+    pd.testing.assert_frame_equal(manual_sv_type, manual_sv_type_expected, check_like=True)
+
+    result_expected = pd.DataFrame([[2, 3, 1, 0, 2, 2, 1], [0, 0, 0, 0, 0, 0, 0], [2, 3, 1, 0, 2, 2, 1], [0, 0, 0, 0, 0, 0, 0]])
+    result_expected.columns = ls_names + ['others']
+    result_expected.columns.name = 'manual_sv_type'
+    result_expected.index = ['vcf1', 'empty1', 'vcf2', 'empty2']
+    result_expected.index.name = 'patients'
+    pd.testing.assert_frame_equal(result, result_expected)
+"""
+
 def test_classify_manual_svtype_from_definitions():
     vcf = viola.read_vcf(os.path.join(HERE, 'data/manta1.vcf'))
     vcf2 =  vcf.copy()

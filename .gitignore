@@ -94,3 +94,4 @@ test_signature.tsv
 output_merged.vcf
 !resources/demo/signature_analysis_demo.ipynb
 resources/demo/resources/pcawg/
+resources/demo/resources/annotation/replication_timing.bedgraph

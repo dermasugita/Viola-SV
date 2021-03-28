@@ -2,7 +2,7 @@
 Welcom to Viola Package!
 ************************
 
-Current version: 1.0.0.dev1
+Current version: 1.0.0.dev2
 
 .. image:: https://dermasugita.github.io/ViolaDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
 

@@ -4,6 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+viola = {path = "."}
+pip-licenses = "*"
+twine = "*"
+wheel = "*"
+viola-sv = "==1.0.0.dev2"
+jupyter = "*"
+jupyterlab = "*"
 
 [packages]
 pytest = "*"

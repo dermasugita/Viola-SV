@@ -37,3 +37,4 @@ from viola.utils.api import (
 import viola.testing
 import viola._typing
 import viola._exceptions
+from viola._version import __version__

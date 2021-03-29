@@ -175,7 +175,16 @@ class Bedpe(Indexer):
         self._odict_alltables[table_name] = df
         self._odict_df_info[table_name] = df
 
-    def remove_info_table(self, table_name):
+    def remove_info_table(self, table_name: str):
+        """
+        remove_info_table(table_name)
+        Remove an INFO table from self.
+
+        Parameters
+        -----------
+        table_name: str
+            The name of the INFO table to be removed.
+        """
         del self._odict_df_info[table_name]
         del self._odict_alltables[table_name]
         self._ls_infokeys.remove(table_name)
@@ -216,7 +225,7 @@ class Bedpe(Indexer):
         str_infokeys = ','.join(list(self._ls_infokeys))
         desc_info = 'INFO='
         desc_doc = 'Documentation of Bedpe object ==> '
-        doc_link = 'https://dermasugita.github.io/PySgtDocs/docs/html/reference/bedpe.html'
+        doc_link = 'https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html'
         out = desc_info + str_infokeys + '\n' + desc_doc + doc_link + '\n' + str_df_out
         if return_as_dataframe:
             return df_out
@@ -330,6 +339,28 @@ class Bedpe(Indexer):
             df_out = self.append_infos(df_out, custom_infonames)
         df_out.rename(columns={'id': 'name', 'qual': 'score'}, inplace=True)
         return df_out
+    
+    def to_bedpe(self,
+        path_or_buf: str, 
+        custom_infonames: Iterable[str] = [],
+        confidence_intervals: bool = False):
+        """
+        to_beddpe(path_or_buf, custom_infonames, confidence_intervals)
+        Return a BEDPE file.
+
+        Parameters
+        ----------
+        path_or_buf: str, optional
+            File path to save the BEDPE file.
+        custom_infonames: list-like[str]
+            The table names of INFOs to append.
+        confidence_intervals: bool, default False
+            Whether or not to consider confidence intervals of the breakpoints.  
+            If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
+            Otherwise, breakpoints are represented by a single-nucleotide resolution.
+        """
+        df_bedpe = self.to_bedpe_like(custom_infonames=custom_infonames, confidence_intervals=confidence_intervals)
+        df_bedpe.to_csv(path_or_buf, index=None, sep='\t')
 
     def append_infos(self,
         base_df: pd.DataFrame,
@@ -355,11 +386,6 @@ class Bedpe(Indexer):
         DataFrame
             A DataFrame which the INFO tables are added.
         
-        Note
-        ----
-        This function seems to have a bug when a value is 
-        passed to the ls_tablenames argument.
-        Can someone please fix it?
         """
         df = base_df.copy()
         for tablename in ls_tablenames:
@@ -783,6 +809,17 @@ class Bedpe(Indexer):
             return ser_feature_counts
     
     def get_feature_count_as_series(self, feature='manual_sv_type', ls_order=None):
+        """
+        get_feature_count_as_series(feature, ls_order)
+        Return counts of unique values as a pd.Series for the INFO specified in the "feature" argument.
+
+        Parameters
+        -----------
+        feature: str, default 'manual_sv_type'
+            The name of INFO to be counted
+        ls_order: List[str], default None
+            Order of the index (unique feature values) of the output Series.
+        """
         ser_feature_counts = self.get_table(feature)[feature].value_counts()
         if ls_order is not None:
             pd_ind_reindex = pd.Index(ls_order)
@@ -997,8 +1034,13 @@ class Bedpe(Indexer):
         originalid = multibedpe.get_table("global_id")["id"]
         df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
         
-        caller = multibedpe.get_table("global_id")["patients"]
+        ############## Edited by Sugita ##################
+        df_id = multibedpe.get_table("global_id")
+        df_patients = multibedpe.get_table("patients")
+        df_id_patients = df_id.merge(df_patients, left_on="patient_id", right_on="id")
+        caller = df_id_patients["patients"]
         df_caller = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "caller":caller})
+        ############## /Edited by Sugita #################
 
         df_svpos = multibedpe._df_svpos
         odict_df_info = multibedpe._odict_df_info

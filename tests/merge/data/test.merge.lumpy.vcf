@@ -30,7 +30,7 @@
 ##FORMAT=<ID=PE,Number=1,Type=Integer,Description="Number of paired-end reads supporting the variant">
 ##FORMAT=<ID=SR,Number=1,Type=Integer,Description="Number of split reads supporting the variant">
 ##FORMAT=<ID=BD,Number=1,Type=Integer,Description="Amount of BED evidence supporting the variant">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	1T	1N
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse01_T	mouse01_T
 chr1	10000	L1	N	<DEL>	.	.	SVTYPE=DEL;STRANDS=+-:8;SVLEN=-100;END=10100;CIPOS=-9,8;CIEND=-9,8;CIPOS95=0,0;CIEND95=0,0;SU=8;PE=0;SR=8	GT:SU:PE:SR	./.:8:0:8	./.:0:0:0
 chr1	300020	ML1	N	<DEL>	.	.	SVTYPE=DEL;STRANDS=+-:8;SVLEN=-99984;END=400004;CIPOS=-9,8;CIEND=-9,8;CIPOS95=0,0;CIEND95=0,0;SU=8;PE=0;SR=8	GT:SU:PE:SR	./.:8:0:8	./.:0:0:0
 chr1	1000020	DL1	N	<DEL>	.	.	SVTYPE=DEL;STRANDS=+-:8;SVLEN=-1000010;END=2000030;CIPOS=-9,8;CIEND=-9,8;CIPOS95=0,0;CIEND95=0,0;SU=8;PE=0;SR=8	GT:SU:PE:SR	./.:8:0:8	./.:0:0:0

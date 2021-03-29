@@ -1,2 +1,0 @@
-chrom1	start1	end1	chrom2	start2	end2	sv_id	pe_support	strand1	strand2	svclass	svmethod
-18	4128225	4128226	18	4142155	4142156	SVMERGE1	5	-	+	DUP	dRANGER_DELLY

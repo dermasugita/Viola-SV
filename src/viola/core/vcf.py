@@ -160,7 +160,7 @@ class Vcf(Bedpe):
         str_infokeys = ','.join(list(self._ls_infokeys))
         desc_info = 'INFO='
         desc_doc = 'Documentation of Vcf object ==> '
-        doc_link = 'https://dermasugita.github.io/PySgtDocs/docs/html/reference/vcf.html'
+        doc_link = 'https://dermasugita.github.io/ViolaDocs/docs/html/reference/vcf.html'
         out = desc_info + str_infokeys + '\n' + desc_doc + doc_link + '\n' + str_df_out
         if return_as_dataframe:
             return df_out
@@ -225,8 +225,8 @@ class Vcf(Bedpe):
         drop_by_id(svid)
         Remove SV records specified in "svid" argument.
         
-        Paramters
-        ---------
+        Parameters
+        -----------
         svid: int or str or List[int or str]
             ID of SV record to be removed.
         inplace: bool, default False
@@ -343,7 +343,7 @@ class Vcf(Bedpe):
 
     def to_vcf(self, path_or_buf = None, onlyinfo=False) -> str:
         """
-        to_vcf()
+        to_vcf(path_or_buf)
         Return a vcf-formatted String. Header information will not be reflected.
         return csv file as str class.
 
@@ -458,7 +458,6 @@ class Vcf(Bedpe):
         add_filters: bool = False,
         add_formats: bool = False, 
         confidence_intervals: bool = False,
-        unique_events: bool = False
     ) -> pd.DataFrame:
         """
         to_bedpe_like(custom_infonames=[], add_filters, add_formats, confidence_intervals: bool=False)
@@ -477,7 +476,6 @@ class Vcf(Bedpe):
             Whether or not to consider confidence intervals of the breakpoints.  
             If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
             Otherwise, breakpoints are represented by a single-nucleotide resolution.
-        unique_events: bool, default False
         
         Returns 
         ---------------
@@ -485,7 +483,7 @@ class Vcf(Bedpe):
             A Dataframe in bedpe-like format.
             The columns include at least the following:  
             ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2',
-             'name', 'score', 'strand1', 'strand2']
+            'name', 'score', 'strand1', 'strand2']
         """
         df_out = super().to_bedpe_like(confidence_intervals=confidence_intervals)
         if len(custom_infonames) != 0:
@@ -494,13 +492,37 @@ class Vcf(Bedpe):
             df_out = self.append_filters(df_out, left_on='name')
         if add_formats:
             df_out = self.append_formats(df_out, left_on='name')
-        if unique_events:
-            # deprecated for now
-            set_unique_ids = self._get_unique_events_ids()
-            df_out.set_index('name', inplace=True)
-            df_out = df_out.loc[set_unique_ids]
-            df_out.reset_index(inplace=True)
         return df_out
+
+    def to_bedpe(
+        self,
+        file_or_buf: str,
+        custom_infonames: Iterable[str] = [],
+        add_filters: bool = False,
+        add_formats: bool = False, 
+        confidence_intervals: bool = False,
+    ):
+        """
+        to_bedpe_like(file_or_buf, custom_infonames=[], add_filters, add_formats, confidence_intervals: bool=False)
+        Return a BEDPE file.
+
+        Parameters
+        ---------------
+        file_or_buf: str
+            File path to save the VCF file.
+        custom_infonames: list-like[str]
+            The table names of INFOs to append.
+        add_filters: bool, default False
+            sth
+        add_formats: bool, default False
+            sth
+        confidence_intervals: bool, default False
+            Whether or not to consider confidence intervals of the breakpoints.  
+            If True, confidence intervals for each breakpoint are represented by [start1, end1) and [start2, end2), respectively.
+            Otherwise, breakpoints are represented by a single-nucleotide resolution.
+        """
+        bedpe = self.to_bedpe_like(custom_infonames=custom_infonames, add_filters=add_filters, add_formats=add_formats, confidence_intervals=confidence_intervals)
+        bedpe.to_csv(file_or_buf, index=None, sep='\t')
 
     def append_infos(self, base_df,
         ls_tablenames,
@@ -546,6 +568,23 @@ class Vcf(Bedpe):
         return df        
 
     def append_formats(self, base_df, left_on='id'):
+        """
+        append_formats(base_df, left_on='id')
+        Append formats to the right of the base_df, based on the SV id columns.
+        If the name of the SV id column in base_df is not 'id', specify column name into left_on argument. 
+
+        Parameters
+        ---------------
+        base_df: DataFrame
+            The DataFrame to which the INFO tables are appended.
+        left_on: str, default 'id'
+            The name of SV id column of base_df
+        
+        Returns
+        ---------------
+        DataFrame
+            A DataFrame which the formats tables are added.
+        """
         df_format = self.get_table('formats')
         df_format['format_id'] = df_format['sample'] + '_' + df_format['format'] + '_' + df_format['value_idx'].astype(str) 
         df_format.drop(['sample', 'format', 'value_idx'], axis=1, inplace=True)
@@ -554,6 +593,24 @@ class Vcf(Bedpe):
         return df_out
 
     def append_filters(self, base_df, left_on='id'):
+        """
+        append_filters(base_df, left_on='id')
+        Append filters to the right of the base_df, based on the SV id columns.
+        If the name of the SV id column in base_df is not 'id', specify column name into left_on argument. 
+
+        Parameters
+        ---------------
+        base_df: DataFrame
+            The DataFrame to which the INFO tables are appended.
+        left_on: str, default 'id'
+            The name of SV id column of base_df
+        
+        Returns
+        ---------------
+        DataFrame
+            A DataFrame which the filters tables are added.
+        
+        """
         df_filters = self.get_table('filters')
         df_filters_expand = df_filters['filter'].str.get_dummies()
         df_be_appended = pd.concat([ df_filters['id'], df_filters_expand ], axis=1)
@@ -779,12 +836,12 @@ class Vcf(Bedpe):
     def breakend2breakpoint(self):
         """
         breakend2breakpoint()
-        Transforms SV records whose svtype are BND, infer the SV type, and return a breakpoint-based Vcf object. 
+        Converts a Vcf object into a breakpoint-based Vcf object by integrating the paired breakends (BND) and infering their SVTYPE. 
 
         Returns
         --------
         Vcf
-            SV records with svtype being BND were integrated into breakpoints, and svtype will be overwritten.
+            SV records with svtype being BND were integrated into breakpoints, and svtype INFO will be overwritten.
         """
         out = self.copy()
         if out._metadata['variantcaller'] == 'lumpy':
@@ -878,16 +935,30 @@ class Vcf(Bedpe):
         set_result_ids = set_all_ids - set_to_subtract
         return set_result_ids
 
-    def remove_duplicated_records(self):
-        if 'event' not in self._ls_infokeys:
-            return
-        print(self.get_table('event'))
 
     def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_series=True):
         """
-        classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
+        classify_manual_svtype(definitions, ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
         'manual_sv_type' will be created.
+
+        Parameters
+        ------------
+        definitions: path_or_buf, default None
+            Path to the file which specifies the definitions of custom SV classification. This argument is disabled when "ls_condition" is not None.
+        ls_conditions: List[callable] or List[str], default None
+            List of definitions of custom SV classification. The data type of the elements in the list can be callable or SV ID (str).
+            callable --> Functions that takes a self and returns a list of SV ID that satisfy the conditions of the SV class to be defined. 
+            SV ID --> Lists of SV ID that satisfy the conditions of the SV class to be defined.
+            This argument is disabled when "definitions" is not None.
+        ls_names: List[str], default None
+            List of the names of the custom SV class corresponding to the "ls_conditions". This argument is disabled when "definitions" is not None.
+        return_series: bool, default True
+            Return counts of each custom SV class as a pd.Series.
+        
+        Returns
+        ---------
+        pd.Series or None
         """
         set_ids_current = set(self.ids)
         obj = self
@@ -1013,8 +1084,13 @@ class Vcf(Bedpe):
         originalid = multivcf.get_table("global_id")["id"]
         df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
         
-        caller = multivcf.get_table("global_id")["patients"]
+        ############## Edited by Sugita ##################
+        df_id = multivcf.get_table("global_id")
+        df_patients = multivcf.get_table("patients")
+        df_id_patients = df_id.merge(df_patients, left_on="patient_id", right_on="id")
+        caller = df_id_patients["patients"]
         df_caller = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "caller":caller})
+        ############## /Edited by Sugita #################
 
         df_pos = multivcf._df_svpos
         df_filters = multivcf._df_filters

@@ -2,7 +2,9 @@
 Welcom to Viola Package!
 ************************
 
-.. image:: https://dermasugita.github.io/PySgtDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
+Current version: 1.0.0.dev3
+
+.. image:: https://dermasugita.github.io/ViolaDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
 
 
 Viola is a flexible and powerful python package designed specifically for analysis of genomic structural variant (SV) signatures.
@@ -11,7 +13,6 @@ We provide following tools for SV signature analysis:
 * Custom SV classification tool
 * Feature matrix generator 
 * SV signature extractor (NMF) with stability evaluation system.
-* Signature attributer for given sample
 
 In addition to these, Viola offers a number of other useful utilities, including:
 
@@ -40,7 +41,7 @@ The package can be installed with ``pip``:
 
    $ pip install viola-sv
 
-To import PySgt in your script, simply run below:
+To import Viola in your script, simply run below:
 
 .. code:: python
    
@@ -73,18 +74,23 @@ Docker support is coming soon!
 How to Learn Viola
 ===================
 
-As a first step we recommend the :ref:`Quick Start<quickstart>` page where you can see the basic behaviour of Viola.
-A good second step is to read the :ref:`Signature Analysis Tutorial<signature_analysis>` page.
+As a first step we recommend the `Quick Start`_ page where you can see the basic behaviour of Viola.
+A good second step is to read the `Signature Analysis Tutorial`_ page.
 
 For command line interfaces, see CLI tutorial.
 
-If you want to get a deeper understanding of how Viola objects are structured, how filtering works and how merging works, please refer to the :ref:`User Guide<user_guide>`.
+If you want to get a deeper understanding of how Viola objects are structured, how filtering works and how merging works, please refer to the `User Guide`_.
 
-Manuals for individual classes/methods/functions are available in the :ref:`API Reference<api_reference>`.
+Manuals for individual classes/methods/functions are available in the `API Reference`_.
 
 Documentation
 =============
 
-- :ref:`Quick Start<quickstart>`
-- :ref:`API Reference<api_reference>`
+- `Quick Start`_
+- `Signature Analysis Tutorial`_
+- `API Reference`_
 
+.. _Quick Start: https://dermasugita.github.io/ViolaDocs/docs/html/quickstart.html
+.. _Signature Analysis Tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/signature_analysis.html
+.. _API Reference: https://dermasugita.github.io/ViolaDocs/docs/html/reference/index.html
+.. _User Guide: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/index.html

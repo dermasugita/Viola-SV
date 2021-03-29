@@ -8,37 +8,39 @@ from typing import (
     List,
     Optional
 )
-def merge(ls_input, ls_caller_names=None, threshold=100, integration=False):
+def merge(ls_inputs, ls_caller_names=None, threshold=100, integration=False):
     """
-    merge(ls_input:list, ls_caller_names:list, threshold=100, integration=None)
+    merge(ls_inputs:list, ls_caller_names:list, threshold=100, integration=False)
     merge and integrate Vcf objects or Bedpe objects
     Return a merged Vcf or Bedpe
 
     Parameters
     ----------
-    ls_input:list
+    ls_inputs:list
         A list of Vcf or Bedpe objects to be merged
     ls_caller_names:list
-        A list of caller names(int).
+        A list of names of callers(str).
         Only needed for Bedpes.
     threshold:int, default 100
         Two SVs of mutual distance is under 
         this threshold are cosidered to be identical.
     integration:bool, default False
-        If true, Vcf objects will be integrated
-        For now it only works for Vcf 
-
+        If true, Vcf objects will be integrated.
+        The caller priority of integration is the same as 
+        the order of callers in ls_inputs.
+        For now it only works for Vcf.
+        
     Returns
     ----------
     Vcf or Bedpe
     """
-    first_object = ls_input[0]
+    first_object = ls_inputs[0]
+    
     if isinstance(first_object, Vcf):
-        return first_object.merge(ls_vcf = ls_input, integration = integration, threshold = threshold)
+        return first_object.merge(ls_vcf = ls_inputs, integration = integration, threshold = threshold)
 
     if isinstance(first_object, Bedpe):
-        return first_object.merge(ls_bedpe = ls_input, ls_caller_names = ls_caller_names, threshold = threshold)
-        
+        return first_object.merge(ls_bedpe = ls_inputs, ls_caller_names = ls_caller_names, threshold = threshold)        
 
 class TmpVcfForMerge(MultiVcf):
     _internal_attrs = [

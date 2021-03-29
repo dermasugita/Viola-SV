@@ -1066,7 +1066,9 @@ class Vcf(Bedpe):
         
         id_set = set()
         array_dict = {}
-        info_list = ["supportedid", "supportedcaller"]
+        info_str_lst = ["supportedid", "supportedcaller"]
+        info_int_lst = ["supportedidcount", "supportedcallercount"]
+        info_list = info_str_lst + info_int_lst
         for info in info_list:
             array_dict[info] = np.empty((0, 3))
         
@@ -1077,6 +1079,8 @@ class Vcf(Bedpe):
             info_dict = {}
             info_dict["supportedid"] = bp[1]["supportedid"].values.reshape(-1,1)
             info_dict["supportedcaller"] = np.array(list(set(bp[1]["supportedcaller"].values))).reshape(-1,1)
+            info_dict["supportedidcount"] = np.array(len(bp[1]["supportedid"].values)).reshape(-1,1)
+            info_dict["supportedcallercount"] = np.array(len(set(bp[1]["supportedcaller"].values))).reshape(-1,1)
             for info in info_list:
                 N = info_dict[info].shape[0]
                 block = np.concatenate([np.array([id]*N).reshape(-1,1), np.arange(0, N, dtype=int).reshape(-1,1), info_dict[info]], axis=1)
@@ -1085,12 +1089,18 @@ class Vcf(Bedpe):
         df = {}
         for info in info_list:
             df[info] = pd.DataFrame(data=array_dict[info], columns=["id", "value_idx", info]).astype({'value_idx': int})
+        for info in info_int_lst:
+            df[info] = df[info].astype({info:int})
 
         integrated_vcf = vcf.drop_by_id(list(set(globalid) - id_set))
         integrated_vcf.add_info_table(table_name="supportedid", table=df["supportedid"], number=None, 
                                     type_="String", description="IDs of original SV records supporting the merged SV record.")
         integrated_vcf.add_info_table(table_name="supportedcaller", table=df["supportedcaller"], number=None, 
                                     type_="String", description="SV callers supporting the variant.")
+        integrated_vcf.add_info_table(table_name="supportedidcount", table=df["supportedidcount"], number=1, 
+                                    type_="Integer", description="Number of original SV records supporting the merged SV record.")
+        integrated_vcf.add_info_table(table_name="supportedcallercount", table=df["supportedcallercount"], number=1, 
+                                    type_="Integer", description="Count of SV callers supporting the variant.")
         return integrated_vcf
         
         

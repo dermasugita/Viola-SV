@@ -1174,29 +1174,10 @@ class Vcf(Bedpe):
                                     type_="String", description="IDs of original SV records supporting the merged SV record.")
         integrated_vcf.add_info_table(table_name="supportedcaller", table=df["supportedcaller"], number=None, 
                                     type_="String", description="SV callers supporting the variant.")
-<<<<<<< HEAD
         integrated_vcf.add_info_table(table_name="supportedidcount", table=df["supportedidcount"], number=1, 
                                     type_="Integer", description="Number of original SV records supporting the merged SV record.")
         integrated_vcf.add_info_table(table_name="supportedcallercount", table=df["supportedcallercount"], number=1, 
                                     type_="Integer", description="Count of SV callers supporting the variant.")
-=======
-        
-        ############## Edited by Sugita ##################
-        df_supportedid = df['supportedid']
-        df_supportedidcount = df_supportedid['id'].value_counts().reset_index(name='supportedidcount').rename({'index': 'id'}, axis=1)
-        df_supportedidcount['value_idx'] = 0
-        df_supportedidcount = df_supportedidcount[['id', 'value_idx', 'supportedidcount']]
-        df_supportedcaller = df['supportedcaller']
-        df_supportedcallercount = df_supportedcaller['id'].value_counts().reset_index(name='supportedcallercount').rename({'index': 'id'}, axis=1)
-        df_supportedcallercount['value_idx'] = 0
-        df_supportedcallercount = df_supportedcallercount[['id', 'value_idx', 'supportedcallercount']]
-
-        integrated_vcf.add_info_table(table_name="supportedidcount", table=df_supportedidcount, number=1, 
-                                    type_="Integer", description="Counts of original SV records supporting the merged SV record.")
-        integrated_vcf.add_info_table(table_name="supportedcallercount", table=df_supportedcallercount, number=1, 
-                                    type_="Integer", description="Number of SV callers supporting the variant.")
-        ############## /Edited by Sugita #################
->>>>>>> sugita/1.0.x
         return integrated_vcf
         
         

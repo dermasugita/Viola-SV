@@ -1,10 +1,5 @@
 .. _user_guide:
 
-.. meta::
-   :robots: noindex
-   
-.. meta::
-   :robots: nofollow
 
 User Guide
 =============
@@ -15,3 +10,4 @@ User Guide
    data_structure
    filtering
    bedpe_generation
+   sv_position_specification

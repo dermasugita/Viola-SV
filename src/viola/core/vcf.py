@@ -275,9 +275,10 @@ class Vcf(Bedpe):
                 return x
             elif svtype == 'INV':
                 # if strand1 == '-', subtract 1 from pos1, otherwise subtract 0.
-                arr_strand1 = x['strand1'].values 
-                arr_num_of_subtraction = np.where(arr_strand1 == '+', 0, 1)
-                x['pos1'] = x['pos1'] - arr_num_of_subtraction
+                if self._metadata.get('variantcaller', None) != 'delly':
+                    arr_strand1 = x['strand1'].values 
+                    arr_num_of_subtraction = np.where(arr_strand1 == '+', 0, 1)
+                    x['pos1'] = x['pos1'] - arr_num_of_subtraction
                 return x
             else:
                 return x

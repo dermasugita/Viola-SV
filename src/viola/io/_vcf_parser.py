@@ -322,8 +322,6 @@ def read_vcf_delly(vcf_reader):
             if row_INFO['CT'] == '3to3':
                 row_STRANDs = '+'
             else:
-                row_POS1 += 1
-                row_POS2 += 1
                 row_STRANDs = '-'
             # /delly
             row_STRAND1, row_STRAND2 = row_STRANDs, row_STRANDs

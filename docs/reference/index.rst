@@ -1,10 +1,5 @@
 .. _api_reference:
 
-.. meta::
-   :robots: noindex
-   
-.. meta::
-   :robots: nofollow
 
 API Reference
 =============

@@ -1,11 +1,5 @@
 .. _bedpe_generation:
 
-.. meta::
-   :robots: noindex
-   
-.. meta::
-   :robots: nofollow
-
 Flexible BEDPE generation
 =========================
 

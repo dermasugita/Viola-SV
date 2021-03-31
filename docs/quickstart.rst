@@ -1,11 +1,5 @@
 .. _quickstart:
 
-.. meta::
-   :robots: noindex
-
-.. meta::
-   :robots: nofollow
-
 ===========
 Quick Start
 ===========

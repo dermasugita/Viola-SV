@@ -4,7 +4,6 @@
    :maxdepth: 1
    :caption: Contents:
 
-   install
    quickstart
    signature_analysis
    reference/index

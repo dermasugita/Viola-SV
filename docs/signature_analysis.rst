@@ -92,7 +92,7 @@ Now let's look at what each line means!
 
 This code reads all BEDPE files in the ``./resources/pcawg`` directory into MultiBedpe class (See :doc:`MultiBedpe<reference/api/viola.MultiBedpe>`).
 Because the BEDPE files created by PCAWG have the ``svclass`` columns, we passed it to the ``svtype_col_name`` argument
-Some BEDPE files did not have any SV records. This time we will exclude these by setting ``exclued_empty_cases=True``.
+Some BEDPE files did not have any SV records. This time we will exclude these by setting ``exclude_empty_cases=True``.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 3. Reading BED/BEDGRAPH files for annotation

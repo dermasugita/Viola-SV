@@ -92,7 +92,8 @@ free_testing/
 #custom
 test_signature.tsv
 output_merged.vcf
-!examples/demo/signature_analysis_demo.ipynb
-examples/demo/resources/pcawg/
-!examples/demo/resources/pcawg/.gitignore
-examples/demo/resources/annotation/replication_timing.bedgraph
+
+!examples/demo_sig/signature_analysis_demo.ipynb
+!examples/demo_sig/resources/pcawg/.gitignore
+examples/demo_sig/resources/pcawg/*.bedpe
+examples/demo_sig/resources/annotation/replication_timing.bedgraph

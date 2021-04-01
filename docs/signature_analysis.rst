@@ -12,7 +12,7 @@ Requirements
 If you are new to the Viola package, please refer to the :ref:`Quick Start<quickstart>` first. :ref:`Quick Start<quickstart>` explains basic usage of :doc:`Vcf<reference/api/viola.Vcf>` class, which shares a lot of methods with :doc:`MultiBedpe<reference/api/viola.MultiBedpe>` class.
 
 In this tutorial, we use BEDPE files provided by `ICGC Data Portal`_.
-Before proceeding to the next step, download these files and decompress them as follows.
+Detailed instruction of data preparation is described below.
 
 .. _ICGC Data Portal: https://dcc.icgc.org/releases/PCAWG/consensus_sv
 
@@ -20,7 +20,7 @@ Before proceeding to the next step, download these files and decompress them as 
 PCAWG data preparation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Create new directory named "resources" (Of cource you can name it otherwise) and run ``cd resources``.
+1. Create new directory named "resources" (Of cource you can name it otherwise) in your working directory and run ``cd resources``.
 2. Download ``final_consensus_sv_bedpe_passonly.icgc.public.tgz`` and ``final_consensus_sv_bedpe_passonly.tcga.public.tgz`` to the "resources" directory.
 3. Run ``tar zxvf final_consensus_sv_bedpe_passonly.icgc.public.tgz`` and ``tar zxvf final_consensus_sv_bedpe_passonly.icgc.public.tgz``
 4. Now you've got the ``icgc/`` directory and the ``tcga/`` directory.
@@ -28,6 +28,21 @@ PCAWG data preparation
 6. Run ``mv icgc/open/*.gz pcawg`` and ``mv tcga/open/*.gz pcawg``
 7. Run ``cd pcawg``, then run ``gunzip *.gz``
 8. Now you've got decompressed BEDPE files in the "pcawg" directory.
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+Other files preparation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Go back to the "resources" directory.
+2. Visit `here`_ and prepare same directories and files (You've already prepared pcawg files by above instruction).
+3. Decompress ``replication_timing.bedgraph.gz`` by running ``gunzip replication_timing.bedpe.gz``
+4. Go back to your working directory and create new Jupyter Notebook file (You can also use the `ipynb file`_ uploaded on GitHub.).
+
+.. note::
+   Example `ipynb file`_ is available on GitHub!
+
+.. _here: https://github.com/dermasugita/Viola-SV/tree/master/examples/demo_sig/resources
+.. _ipynb file: https://github.com/dermasugita/Viola-SV/tree/master/examples/demo_sig
 
 .. warning::
    Due to the very large amount of data in PCAWG, the code described below will also take long time (around 50 min on Google Colab). If you want to try it in a shorter time, reduce the number of files in the directory.

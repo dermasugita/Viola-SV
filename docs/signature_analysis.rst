@@ -64,7 +64,7 @@ The actual code is shown below.
 .. code-block:: python
 
    import viola
-   pcawg_bedpe=viola.read_bedpe_multi('./resources/pcawg/')
+   pcawg_bedpe=viola.read_bedpe_multi('./resources/pcawg/', exclude_empty_cases=True)
    bed_fragile = viola.read_bed('./resources/annotation/fragile_site.hg19.bed')
    bedgraph_timing = viola.read_bed('./resources/annotation/replication_timing.bedgraph')
    pcawg_bedpe.annotate_bed(bed=bed_fragile, annotation='fragile', how='flag')
@@ -88,11 +88,11 @@ Now let's look at what each line means!
 
 .. code-block:: python
 
-   pcawg_bedpe=viola.read_bedpe_multi('./resources/pcawg/')
+   pcawg_bedpe=viola.read_bedpe_multi('./resources/pcawg/', exclude_empty_cases=True)
 
 This code reads all BEDPE files in the ``./resources/pcawg`` directory into MultiBedpe class (See :doc:`MultiBedpe<reference/api/viola.MultiBedpe>`).
-Because the BEDPE files created by PCAWG have the ``svclass`` columns, we passed it to the ``svtype_col_name`` argument.
-
+Because the BEDPE files created by PCAWG have the ``svclass`` columns, we passed it to the ``svtype_col_name`` argument
+Some BEDPE files did not have any SV records. This time we will exclude these by setting ``exclued_empty_cases=True``.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 3. Reading BED/BEDGRAPH files for annotation

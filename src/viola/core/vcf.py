@@ -1001,9 +1001,9 @@ class Vcf(Bedpe):
             ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value=0)
         return ser_feature_counts
     
-    def merge(self, ls_vcf = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing = True, integration = False):
+    def merge(self, ls_vcf = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing = True, integration = True):
         """
-        merge(ls_vcf:list, ls_caller_names:list, threshold:float, linkage = "complete", str_missing=True, integration=False)
+        merge(ls_vcf:list, ls_caller_names:list, threshold:float, linkage = "complete", str_missing=True, integration=True)
         Return a merged or integrated vcf object from mulitple  caller's bedpe objects in ls_bedpe
 
         Parameters
@@ -1020,7 +1020,7 @@ class Vcf(Bedpe):
             "complete" is recommended.
         str_missing:bool, default True
             If True, all the missing strands are considered to be the same with the others.
-        integration:bool, default False
+        integration:bool, default True 
             If True, vcf objects in ls_vcf will be merged and integrated with priority as ls_caller_names.
 
         Returns
@@ -1068,19 +1068,19 @@ class Vcf(Bedpe):
         hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
         labels = hcl_clustering_model.fit_predict(X = distance_matrix)
         
-        bpid_dict = {labels[0]:0}
-        ls_bpid = []
+        mergedid_dict = {labels[0]:0}
+        ls_mergedid = []
         idx_head = 0
         for label in labels:
-            if label in bpid_dict:
-                ls_bpid.append(bpid_dict[label])
+            if label in mergedid_dict:
+                ls_mergedid.append(mergedid_dict[label])
             else:
                 idx_head += 1
-                bpid_dict[label] = idx_head
-                ls_bpid.append(bpid_dict[label])
+                mergedid_dict[label] = idx_head
+                ls_mergedid.append(mergedid_dict[label])
 
         value_idx = pd.Series(np.zeros(N, dtype=int))
-        df_bpid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "bpid":pd.Series(ls_bpid)})
+        df_mergedid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "mergedid":pd.Series(ls_mergedid)})
         
         originalid = multivcf.get_table("global_id")["id"]
         df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
@@ -1102,7 +1102,7 @@ class Vcf(Bedpe):
         args = [df_pos, df_filters, odict_df_info, df_formats, odict_df_headers, metadata] # edited by sugita
         merged_vcf = viola.Vcf(*args)
     
-        merged_vcf.add_info_table(table_name="bpid", table=df_bpid, number=1, type_="String", description="ID of breakpoints.")
+        merged_vcf.add_info_table(table_name="mergedid", table=df_mergedid, number=1, type_="String", description="ID of breakpoints.")
         merged_vcf.add_info_table(table_name="originalid", table=df_originalid, number=1, type_="String", description="The SV-caller-derived ID before merging.")
         merged_vcf.add_info_table(table_name="caller", table=df_caller, number=1, type_="String", description="The name of SV caller which identified the SV record.")
 
@@ -1124,7 +1124,7 @@ class Vcf(Bedpe):
             A Vcf object to be integrated
         priority:list
             Have caller names in list, 
-            and shows the priority at which id is adopted in a bpid cluster.
+            and shows the priority at which id is adopted in a mergedid cluster.
 
         Returns
         ----------
@@ -1135,30 +1135,30 @@ class Vcf(Bedpe):
         prior_dict = {}
         for i, c in enumerate(priority):
             prior_dict[c] = i
-        bpid = vcf.get_table("bpid")["bpid"]
+        mergedid = vcf.get_table("mergedid")["mergedid"]
         globalid = vcf.get_table("positions")["id"]
         caller = vcf.get_table("caller")["caller"]
         priority_num = [prior_dict[c] for c in caller]
-        intg_df = pd.DataFrame({"bpid":bpid, "supportedid":globalid, "supportedcaller":caller, "priority":priority_num}, 
-                                columns=['bpid', 'supportedid', 'supportedcaller', "priority"])
+        intg_df = pd.DataFrame({"mergedid":mergedid, "supportingid":globalid, "supportingcaller":caller, "priority":priority_num}, 
+                                columns=['mergedid', 'supportingid', 'supportingcaller', "priority"])
         
         id_set = set()
         array_dict = {}
-        info_str_lst = ["supportedid", "supportedcaller"]
-        info_int_lst = ["supportedidcount", "supportedcallercount"]
+        info_str_lst = ["supportingid", "supportingcaller"]
+        info_int_lst = ["supportingidcount", "supportingcallercount"]
         info_list = info_str_lst + info_int_lst
         for info in info_list:
             array_dict[info] = np.empty((0, 3))
         
-        for bp in intg_df.groupby("bpid"):
+        for bp in intg_df.groupby("mergedid"):
             priority_block = next(iter(bp[1].groupby("priority")))[1]
-            id = priority_block.at[priority_block.index[0], "supportedid"]
+            id = priority_block.at[priority_block.index[0], "supportingid"]
             id_set.add(id)
             info_dict = {}
-            info_dict["supportedid"] = bp[1]["supportedid"].values.reshape(-1,1)
-            info_dict["supportedcaller"] = np.array(list(set(bp[1]["supportedcaller"].values))).reshape(-1,1)
-            info_dict["supportedidcount"] = np.array(len(bp[1]["supportedid"].values)).reshape(-1,1)
-            info_dict["supportedcallercount"] = np.array(len(set(bp[1]["supportedcaller"].values))).reshape(-1,1)
+            info_dict["supportingid"] = bp[1]["supportingid"].values.reshape(-1,1)
+            info_dict["supportingcaller"] = np.array(list(set(bp[1]["supportingcaller"].values))).reshape(-1,1)
+            info_dict["supportingidcount"] = np.array(len(bp[1]["supportingid"].values)).reshape(-1,1)
+            info_dict["supportingcallercount"] = np.array(len(set(bp[1]["supportingcaller"].values))).reshape(-1,1)
             for info in info_list:
                 N = info_dict[info].shape[0]
                 block = np.concatenate([np.array([id]*N).reshape(-1,1), np.arange(0, N, dtype=int).reshape(-1,1), info_dict[info]], axis=1)
@@ -1171,13 +1171,13 @@ class Vcf(Bedpe):
             df[info] = df[info].astype({info:int})
 
         integrated_vcf = vcf.drop_by_id(list(set(globalid) - id_set))
-        integrated_vcf.add_info_table(table_name="supportedid", table=df["supportedid"], number=None, 
+        integrated_vcf.add_info_table(table_name="supportingid", table=df["supportingid"], number=None, 
                                     type_="String", description="IDs of original SV records supporting the merged SV record.")
-        integrated_vcf.add_info_table(table_name="supportedcaller", table=df["supportedcaller"], number=None, 
+        integrated_vcf.add_info_table(table_name="supportingcaller", table=df["supportingcaller"], number=None, 
                                     type_="String", description="SV callers supporting the variant.")
-        integrated_vcf.add_info_table(table_name="supportedidcount", table=df["supportedidcount"], number=1, 
+        integrated_vcf.add_info_table(table_name="supportingidcount", table=df["supportingidcount"], number=1, 
                                     type_="Integer", description="Number of original SV records supporting the merged SV record.")
-        integrated_vcf.add_info_table(table_name="supportedcallercount", table=df["supportedcallercount"], number=1, 
+        integrated_vcf.add_info_table(table_name="supportingcallercount", table=df["supportingcallercount"], number=1, 
                                     type_="Integer", description="Count of SV callers supporting the variant.")
         return integrated_vcf
         

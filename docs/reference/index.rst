@@ -11,3 +11,4 @@ API Reference
    bedpe
    multi_bedpe
    vcf
+   utilities

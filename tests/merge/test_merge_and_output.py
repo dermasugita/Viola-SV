@@ -9,5 +9,5 @@ lumpy = viola.read_vcf(os.path.join(HERE, 'data', "test.merge.lumpy.vcf"), varia
 
 def test_merge_to_vcf_like():
     merged = viola.merge([manta, gridss, delly, lumpy], integration=True)
-    merged = merged.filter('supportedcallercount > 1')
+    merged = merged.filter('supportingcallercount > 1')
     merged.to_vcf(os.path.join(HERE, 'data/output_merged.vcf'))

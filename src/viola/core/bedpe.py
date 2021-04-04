@@ -1017,19 +1017,19 @@ class Bedpe(Indexer):
         hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
         labels = hcl_clustering_model.fit_predict(X = distance_matrix)
         
-        bpid_dict = {labels[0]:0}
-        ls_bpid = []
+        mergedid_dict = {labels[0]:0}
+        ls_mergedid = []
         idx_head = 0
         for label in labels:
-            if label in bpid_dict:
-                ls_bpid.append(bpid_dict[label])
+            if label in mergedid_dict:
+                ls_mergedid.append(mergedid_dict[label])
             else:
                 idx_head += 1
-                bpid_dict[label] = idx_head
-                ls_bpid.append(bpid_dict[label])
+                mergedid_dict[label] = idx_head
+                ls_mergedid.append(mergedid_dict[label])
 
         value_idx = pd.Series(np.zeros(N, dtype=int))
-        df_bpid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "bpid":pd.Series(ls_bpid)})
+        df_mergedid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "mergedid":pd.Series(ls_mergedid)})
         
         originalid = multibedpe.get_table("global_id")["id"]
         df_originalid = pd.DataFrame({"id":positions_table["id"], "value_idx":value_idx, "originalid":originalid})
@@ -1046,7 +1046,7 @@ class Bedpe(Indexer):
         odict_df_info = multibedpe._odict_df_info
     
         merged_bedpe = viola.Bedpe(df_svpos=df_svpos, odict_df_info=odict_df_info)
-        merged_bedpe.add_info_table(table_name="bpid", df=df_bpid)
+        merged_bedpe.add_info_table(table_name="mergedid", df=df_mergedid)
         merged_bedpe.add_info_table(table_name="originalid", df=df_originalid)
         merged_bedpe.add_info_table(table_name="caller", df=df_caller)
         

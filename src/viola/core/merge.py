@@ -8,10 +8,10 @@ from typing import (
     List,
     Optional
 )
-def merge(ls_inputs, ls_caller_names=None, threshold=100, integration=False):
+def merge(ls_inputs, ls_caller_names=None, threshold=100, integration=True):
     """
     merge(ls_inputs:list, ls_caller_names:list, threshold=100, integration=False)
-    merge and integrate Vcf objects or Bedpe objects
+    merge Vcf objects or Bedpe objects
     Return a merged Vcf or Bedpe
 
     Parameters
@@ -24,15 +24,21 @@ def merge(ls_inputs, ls_caller_names=None, threshold=100, integration=False):
     threshold:int, default 100
         Two SVs of mutual distance is under 
         this threshold are cosidered to be identical.
-    integration:bool, default False
-        If true, Vcf objects will be integrated.
+    integration:bool, default True
+        If true, only the results from one caller will be retained  for each SV event that is predicted to be identical, according to the caller priority. 
+        Otherwise, all SV records in the input VCF file are retained and the "mergedid" INFO is added.
         The caller priority of integration is the same as 
         the order of callers in ls_inputs.
         For now it only works for Vcf.
+        Detail explanation is described in the User Guide :ref:`"VCF Merging"<merge>`.
         
     Returns
     ----------
     Vcf or Bedpe
+
+    See Also
+    ----------
+    :ref:`VCF Merging<merge>`
     """
     first_object = ls_inputs[0]
     

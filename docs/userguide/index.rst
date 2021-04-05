@@ -12,3 +12,4 @@ User Guide
    bedpe_generation
    sv_position_specification
    merge
+   cli

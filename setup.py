@@ -30,7 +30,7 @@ setuptools.setup(
     package_dir={'': 'src'},
     entry_points={
         "console_scripts":[
-            "vcf2bedpe=viola.cli.viola:main",
+            "viola=viola.cli.viola:viola",
         ]
     },
     classifiers=[

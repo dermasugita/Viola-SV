@@ -70,3 +70,27 @@ INFO relating to VCF Merging
 * supportingcaller: SV callers supporting the variant.
 * supportingidcount: Number of SV records supporting the merged SV record.
 * supportingcallercount: Count of SV callers supporting the variant.
+
+As examples, 'mergedid' and 'supportingcallercount' are shown below.
+
+.. ipython:: python
+
+    print(merged_vcf.view(custom_infonames=['mergedid', 'supportingcallercount']))
+
+Now, in order to increase the accuracy of SV detection, let's get SVs detected by more than one SV caller.
+To do this, just select the ones with 'supportingcallercount' greater than or equal to 2.
+
+.. ipython:: python
+
+    filtered_vcf = merged_vcf.filter('supportingcallercount >= 2')
+    print(filtered_vcf.view(custom_infonames=['mergedid', 'supportingcallercount']))
+
+-----------------------
+Export VCF file
+-----------------------
+
+Finally, let's export the Vcf object filtered by 'supportingcallercount' as a VCF file.
+
+.. code-block:: python
+
+    filtered_vcf.to_vcf('/path/to/the/output.vcf')

@@ -9,6 +9,7 @@ DEPENDENCIES = ["pandas",
                 "intervaltree",
                 "biopython",
                 "scikit-learn",
+                "scipy",
                 "click",]
 
 with open("README.rst", "r") as fh:

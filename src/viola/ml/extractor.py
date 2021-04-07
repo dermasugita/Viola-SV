@@ -2,6 +2,7 @@ import random
 import collections
 import numpy as np
 import pandas as pd
+import scipy
 from sklearn.decomposition import NMF, non_negative_factorization
 from typing import List
 from sklearn.metrics import silhouette_score

@@ -206,3 +206,37 @@ Each SV class is defined by a syntax like the following:
 .. note::
 
    The order of the SV class definition is very important. The ``classify_manual_svtype`` method reads the definition file in order from the top, so that the SV class definitions written higher up in the file take precedence. Thus, in above example, Deletions that both satisfy 'At fragile site DEL' and '<50 kb early DEL' criteria, they are classified as 'At fragile site DEL', not '<50 kb early DEL'.
+
+
+---------------------------
+Signature Extraction
+---------------------------
+
+Viola offers the function, :doc:`viola.SV_signature_extractor<reference/api/viola.SV_signature_extractor>` which performs non-negative matrix factorization (NMF) and cluster stability evaluation at the same time.
+
+Before diving into the details of :doc:`viola.SV_signature_extractor<reference/api/viola.SV_signature_extractor>`, let's look at an example usage.
+
+.. code-block:: python
+
+   result_silhouette, result_metrics, exposure_matrix, signature_matrix = viola.SV_signature_extractor(
+   feature_matrix, n_iter=10, name='testRun', n_components=2, init='nndsvda', solver='mu', beta_loss='kullback-leibler', max_iter=10000, random_state=1
+   )
+
+   ######## STDOUT ######## 
+   # testRun: finished NMF
+   # testRun: finished kmeans clustering
+   # testRun: finished all steps
+   # Silhouette Score: 0.9994384609504113, kullback-leibler: 98899.5489109343
+
+   # ==================
+
+:doc:`viola.SV_signature_extractor<reference/api/viola.SV_signature_extractor>` outputs four returns. We will explain them one by one.
+
+* result_silhouette:
+   This is the score that indicates the stability (reproducibility) of the SV signature. Detailed explanations are given below.
+* result_metrics: 
+   An error between the original matrix and the product of the factored matrice.
+* exposure_matrix: 
+   An exposure matrix with (n_samples × n_signatures).
+* signature_matrix: 
+   A result SV signature matrix with (n_signatures × n_features). Here, ``n_features`` means "the number of custom SV class"

@@ -11,6 +11,8 @@ Requirements
 --------------
 If you are new to the Viola package, please refer to the :ref:`Quick Start<quickstart>` first. :ref:`Quick Start<quickstart>` explains basic usage of :doc:`Vcf<reference/api/viola.Vcf>` class, which shares a lot of methods with :doc:`MultiBedpe<reference/api/viola.MultiBedpe>` class.
 
+Installing "matplotlib" to your python environment is recommended.
+
 In this tutorial, we use BEDPE files provided by `ICGC Data Portal`_.
 Detailed instruction of data preparation is described below.
 
@@ -218,6 +220,8 @@ Before diving into the details of :doc:`viola.SV_signature_extractor<reference/a
 
 .. code-block:: python
 
+   feature_matrix.drop('others', axis=1, inplace=True) # remove "others" column
+
    result_silhouette, result_metrics, exposure_matrix, signature_matrix = viola.SV_signature_extractor(
    feature_matrix, n_iter=10, name='testRun', n_components=2, init='nndsvda', solver='mu', beta_loss='kullback-leibler', max_iter=10000, random_state=1
    )
@@ -226,8 +230,8 @@ Before diving into the details of :doc:`viola.SV_signature_extractor<reference/a
    # testRun: finished NMF
    # testRun: finished kmeans clustering
    # testRun: finished all steps
-   # Silhouette Score: 0.9994384609504113, kullback-leibler: 98899.5489109343
-
+   # Silhouette Score: 0.9997561882187715, kullback-leibler: 98901.64510245458 
+   #
    # ==================
 
 :doc:`viola.SV_signature_extractor<reference/api/viola.SV_signature_extractor>` outputs four returns. We will explain them one by one.
@@ -240,3 +244,113 @@ Before diving into the details of :doc:`viola.SV_signature_extractor<reference/a
    An exposure matrix with (n_samples × n_signatures).
 * signature_matrix: 
    A result SV signature matrix with (n_signatures × n_features). Here, ``n_features`` means "the number of custom SV class"
+
+Viola employs `NMF class of Scikit Learn`_ for signature extraction. 
+So, :doc:`viola.SV_signature_extractor<reference/api/viola.SV_signature_extractor>` receives completely the same arguments of `sklearn-decomposition.NMF<NMF class of Scikit Learn>`_ except the first three, which are the original arguments of Viola.
+
+Here are the explanations for Viola original arguments of :doc:`viola.SV_signature_extractor<reference/api/viola.SV_signature_extractor>`
+
+* X:
+   A (n_sample, n_features) shaped ndarray or DataFrame. Each column represents each SV class.
+* n_iter:
+   Number of bootstrap resampling from X. The higher this number, the more reliable the result.
+* name:
+   Name of this run.
+
+.. _NMF class of Scikit Learn: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.NMF.html
+
+
+------------------------------
+Hyperparameter Tuning
+------------------------------
+
+For signature analysis, hyperparameters such as the number of signatures and the loss function need to be determined.
+
+Here is an example of the hyperparameter tuning.
+
+.. code-block:: python
+
+   ls_silhouette = []
+   ls_metrics = []
+   ls_exposure = []
+   ls_signature = []
+   for num_signature in range(2, 15):
+      print('Number of Signature: ' + str(num_signature))
+      result_silhouette, result_metrics, exposure_matrix, signature_matrix = viola.SV_signature_extractor(
+         feature_matrix, 
+         n_iter=10, 
+         name='testRun', 
+         n_components=num_signature, 
+         init='nndsvda', 
+         solver='mu', 
+         beta_loss='kullback-leibler', 
+         max_iter=10000, 
+         random_state=1
+      )
+
+    ls_silhouette.append(result_silhouette)
+    ls_metrics.append(result_metrics)
+    ls_exposure.append(exposure_matrix)
+    ls_signature.append(signature_matrix)
+
+   ######## STDOUT ######## 
+   # Number of Signature: 2
+   # testRun: finished NMF
+   # testRun: finished kmeans clustering
+   # testRun: finished all steps
+   # Silhouette Score: 0.9995314504820613, kullback-leibler: 98898.80582214911
+
+   # ==================
+
+   # Number of Signature: 3
+   # testRun: finished NMF
+   # testRun: finished kmeans clustering
+   # testRun: finished all steps
+   # Silhouette Score: 0.9996664503915801, kullback-leibler: 75815.89695274398
+
+   # ==================
+
+   # Number of Signature: 4
+   # testRun: finished NMF
+   # testRun: finished kmeans clustering
+   # testRun: finished all steps
+   # Silhouette Score: 0.9219878473698799, kullback-leibler: 65871.09184405269
+
+   # ==================
+
+   # ...
+
+In order to determine the number of signatures based on the balance between the silhouette score and the Kullback-Leibler distance, let's visualise the data.
+
+.. code-block:: python
+
+   %matplotlib inline
+   import matplotlib.pyplot as plt
+
+   fig = plt.figure()
+   ax1 = fig.add_subplot(111)
+
+   x = [i+2 for i in range(len(ls_silhouette))]
+
+   ln1 = ax1.plot(x, ls_silhouette,'C0', label="silhouette score")
+   ax2 = ax1.twinx()
+   ln2 = ax2.plot(x, ls_metrics,'C1', label="KL Divergence")
+   h1, l1 = ax1.get_legend_handles_labels()
+   h2, l2 = ax2.get_legend_handles_labels()
+   ax1.legend(h1+h2, l1+l2, loc='upper right')
+   ax1.set_title('Silhouette Score vs KL Divergence')
+   ax1.xaxis.set_major_locator(plt.MultipleLocator(1))
+   ax1.xaxis.grid(True)
+   ax1.set_xlabel('Number of Signatures')
+
+.. image:: _static/silhouette_vs_kld.png
+
+Now we can have a discussion that the number of signatures should be around 7-9.
+
+The biological consideration is needed to determine the most appropreate number (Not the main topic here).
+
+-------------------------------------
+What does this function do?
+-------------------------------------
+
+Editing in progress...

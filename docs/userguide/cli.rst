@@ -23,7 +23,9 @@ Before going to the next step, download these files in your working directory.
 .. code-block:: console
 
     $ curl -O 'https://raw.githubusercontent.com/dermasugita/ViolaDocs/main/docs/html/_static/tutorial.manta.vcf'
-
+    $ mkdir -p signature_analysis/vcf
+    $ curl -o signature_analysis/definitions.txt 'https://raw.githubusercontent.com/dermasugita/ViolaDocs/main/docs/html/_static/signature_analysis/definitions.txt'
+    $ for i in $(seq 1 3); do curl -o signature_analysis/vcf/manta${i}.vcf 'https://raw.githubusercontent.com/dermasugita/ViolaDocs/main/docs/html/_static/signature_analysis/vcf/manta${i}.vcf'; done
 
 -------------------
 Overview

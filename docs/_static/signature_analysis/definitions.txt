@@ -1,0 +1,30 @@
+name "smaller DEL"
+0 SVTYPE == DEL
+1 SVLEN > -100
+logic 0 & 1
+
+name "larger DEL"
+0 SVTYPE == DEL
+logic 0
+
+name "smaller DUP"
+0 SVTYPE == DUP
+1 SVLEN < 100
+logic 0 & 1
+
+name "larger DUP"
+0 SVTYPE == DUP
+logic 0
+
+name "smaller INV"
+0 SVTYPE == INV
+1 SVLEN < 100
+logic 0 & 1
+
+name "larger INV"
+0 SVTYPE == INV
+logic 0
+
+name "translocation"
+0 SVTYPE == TRA
+logic 0

@@ -80,7 +80,7 @@ How to Learn Viola
 As a first step we recommend the `Quick Start`_ page where you can see the basic behaviour of Viola.
 A good second step is to read the `Signature Analysis Tutorial`_ page.
 
-For command line interfaces, see CLI tutorial.
+For command line interfaces, see `CLI tutorial`_.
 
 If you want to get a deeper understanding of how Viola objects are structured, how filtering works and how merging works, please refer to the `User Guide`_.
 
@@ -97,3 +97,4 @@ Documentation
 .. _Signature Analysis Tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/signature_analysis.html
 .. _API Reference: https://dermasugita.github.io/ViolaDocs/docs/html/reference/index.html
 .. _User Guide: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/index.html
+.. _CLI tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/cli.html

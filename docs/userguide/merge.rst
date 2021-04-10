@@ -10,10 +10,10 @@ First of all, let's load the four VCF files from the different SV callers.
 
 .. ipython:: python
 
-    manta = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/Viola-SV/master/examples/merging/test.merge.manta.vcf', variant_caller='manta')
-    delly = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/Viola-SV/master/examples/merging/test.merge.delly.vcf', variant_caller='delly')
-    lumpy = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/Viola-SV/master/examples/merging/test.merge.lumpy.vcf', variant_caller='lumpy')
-    gridss = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/Viola-SV/master/examples/merging/test.merge.gridss.vcf', variant_caller='gridss')
+    manta = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/Viola-SV/master/examples/demo_merge/test.merge.manta.vcf', variant_caller='manta')
+    delly = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/Viola-SV/master/examples/demo_merge/test.merge.delly.vcf', variant_caller='delly')
+    lumpy = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/Viola-SV/master/examples/demo_merge/test.merge.lumpy.vcf', variant_caller='lumpy')
+    gridss = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/Viola-SV/master/examples/demo_merge/test.merge.gridss.vcf', variant_caller='gridss')
 
 These are synthetic files that we have created to briefly test the functionality of :doc:`viola.merge<../reference/api/viola.merge>`, and they share some SVs.
 

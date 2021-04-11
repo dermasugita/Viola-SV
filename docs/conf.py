@@ -45,6 +45,7 @@ extensions = [
     'IPython.sphinxext.ipython_directive',
 ]
 add_module_names = False
+autosectionlabel_prefix_document = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

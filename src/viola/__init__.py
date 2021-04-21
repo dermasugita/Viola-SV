@@ -2,6 +2,7 @@ import pandas
 import vcf
 from viola.io.api import (
     read_vcf,
+    read_vcf2,
     read_bedpe,
     read_bed,
     read_vcf_multi,

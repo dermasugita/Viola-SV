@@ -23,6 +23,35 @@ pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
 
+def read_vcf2(filepath_or_buffer, variant_caller=None):
+    if isinstance(filepath_or_buffer, str) and is_url(filepath_or_buffer):
+        b = StringIO(urllib.request.urlopen(filepath_or_buffer).read().decode('utf-8'))
+    elif isinstance(filepath_or_buffer, str):
+        b = open(filepath_or_buffer, 'r')
+    elif isinstance(filepath_or_buffer, StringIO):
+        b = filepath_or_buffer
+    else:
+        b = filepath_or_buffer
+    
+    pat_contig = re.compile(r'##contig=<ID=([^,]+),length=([^,]*)>$')
+    pat_info = re.compile(r'##INFO=<ID=([^,]+),Number=([^,]*),Type=([^,]*),Description="(.*)"(?:,Source=(.*))?(?:,Version=(.*))?>$')
+    ls_contig_header = []
+    ls_info_header = []
+
+    for line in b:
+        if line.startswith('##'):
+            if line.startswith('##contig'):
+                ls_contig_header.append(pat_contig.findall(line)[0])
+            elif line.startswith('##INFO'):
+                ls_info_header.append(pat_info.findall(line))
+
+    
+    print(ls_info_header)
+
+    b.close()
+
+
+
 
 def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "manta"):
     """

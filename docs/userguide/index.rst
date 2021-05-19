@@ -13,3 +13,4 @@ User Guide
    sv_position_specification
    merge
    cli
+   annotation

@@ -1,0 +1,21 @@
+##fileformat=VCFv4.1
+##fileDate=20210101
+##source=GenerateSVCandidates 1.6.0
+##contig=<ID=chr8,length=129401213>
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Confidence interval around POS">
+##INFO=<ID=CIEND,Number=2,Type=Integer,Description="Confidence interval around END">
+##INFO=<ID=HOMLEN,Number=.,Type=Integer,Description="Length of base pair identical homology at event breakpoints">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical homology at event breakpoints">
+##INFO=<ID=BND_DEPTH,Number=1,Type=Integer,Description="Read depth at local translocation breakend">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
+##INFO=<ID=SOMATICSCORE,Number=1,Type=Integer,Description="Somatic variant quality score">
+##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
+##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1_N	sample2_T
+chr8	32969125	test1	G	<DUP:TANDEM>	.	PASS	END=114940363;SVTYPE=DUP;SVLEN=81971238;CIPOS=0,4;CIEND=0,4;HOMLEN=4;HOMSEQ=ATGT;SOMATIC;SOMATICSCORE=34	PR:SR	24,0:45,0	69,2:148,3
+chr8	45711504	test2	T	<DEL>	.	PASS	END=45829249;SVTYPE=DEL;SVLEN=-117745;CIPOS=0,5;CIEND=0,5;HOMLEN=5;HOMSEQ=CTGCC;SOMATIC;SOMATICSCORE=37	PR:SR	22,0:46,0	60,5:145,5

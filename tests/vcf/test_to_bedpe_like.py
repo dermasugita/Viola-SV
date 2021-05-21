@@ -62,6 +62,18 @@ chr1\t69583189\t69583190\tchr1\t69590947\t69590948\ttest4\t\t+\t-
     bedpe = result.to_bedpe_like()
     pd.testing.assert_frame_equal(bedpe, df_expected, check_exact=True)
 
+def test_to_bedpe_like_with_ci():
+    expected_data = """chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tscore\tstrand1\tstrand2
+chr1\t82550409\t82550513\tchr1\t82554174\t82554278\ttest1\t\t+\t-
+chr1\t22814165\t22814268\tchr1\t92581042\t92581222\ttest2\t\t-\t-
+chr1\t60567861\t60567950\tchr1\t60675902\t60675980\ttest3\t\t+\t-
+chr1\t69583066\t69583313\tchr1\t69590812\t69591084\ttest4\t\t+\t-
+"""
+    df_expected = pd.read_csv(StringIO(expected_data), sep='\t')
+    df_expected['score'] = df_expected['score'].astype(object) # because score field is empty in this case
+    bedpe = result.to_bedpe_like(confidence_intervals=True)
+    pd.testing.assert_frame_equal(bedpe, df_expected, check_exact=True)
+
 def test_to_bedpe_like_with_info():
     expected_data = """chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tname\tscore\tstrand1\tstrand2\tsvlen_0
 chr1\t82550460\t82550461\tchr1\t82554225\t82554226\ttest1\t\t+\t-\t-3764

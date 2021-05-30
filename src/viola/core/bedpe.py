@@ -323,9 +323,9 @@ class Bedpe(Indexer):
         if confidence_intervals:
             if 'cipos' in self.table_list and 'ciend' in self.table_list:
                 df_svpos = self.append_infos(df_svpos, ['cipos', 'ciend'])
-                df_svpos['start1'] = df_svpos['pos1'] - df_svpos['cipos_0'] - 1
+                df_svpos['start1'] = df_svpos['pos1'] + df_svpos['cipos_0'] - 1
                 df_svpos['end1'] = df_svpos['pos1'] + df_svpos['cipos_1']
-                df_svpos['start2'] = df_svpos['pos2'] - df_svpos['ciend_0'] - 1
+                df_svpos['start2'] = df_svpos['pos2'] + df_svpos['ciend_0'] - 1
                 df_svpos['end2'] = df_svpos['pos2'] + df_svpos['ciend_1']
             else:
                 pass # raise some exception

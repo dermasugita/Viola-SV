@@ -19,6 +19,7 @@ from viola.io._vcf_parser import (
     read_vcf_lumpy,
     read_vcf_gridss,
 )
+from viola._exceptions import VcfParseError
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
@@ -35,18 +36,42 @@ def read_vcf2(filepath_or_buffer, variant_caller=None):
     
     pat_contig = re.compile(r'##contig=<ID=([^,]+),length=([^,]*)>$')
     pat_info = re.compile(r'##INFO=<ID=([^,]+),Number=([^,]*),Type=([^,]*),Description="(.*)"(?:,Source=(.*))?(?:,Version=(.*))?>$')
+    pat_format = re.compile(r'##FORMAT=<ID=([^,]+),Number=([^,]*),Type=([^,]*),Description="(.*)"(?:,Source=(.*))?(?:,Version=(.*))?>$')
+    pat_filter = re.compile(r'##FILTER=<ID=([^,]+),Description="(.*)">$')
+    pat_alt = re.compile(r'##ALT=<ID=([^,]+),Description="(.*)">$')
     ls_contig_header = []
     ls_info_header = []
+    ls_format_header = []
+    ls_filter_header = []
+    ls_alt_header = []
+    metadata = OrderedDict()
 
     for line in b:
         if line.startswith('##'):
             if line.startswith('##contig'):
                 ls_contig_header.append(pat_contig.findall(line)[0])
             elif line.startswith('##INFO'):
-                ls_info_header.append(pat_info.findall(line))
-
+                ls_info_header.append(pat_info.findall(line)[0])
+            elif line.startswith('##FORMAT'):
+                ls_format_header.append(pat_format.findall(line)[0])
+            elif line.startswith('##FILTER'):
+                ls_filter_header.append(pat_filter.findall(line)[0])
+            elif line.startswith('##ALT'):
+                ls_alt_header.append(pat_alt.findall(line)[0])
+            else:
+                spline = line[2:].strip().split('=')
+                metadata[spline[0]] = spline[1]
+        elif line.startswith('#'):
+            colnames = line[1:].strip().split('\t')
+            if colnames[:9] != ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT']:
+                raise VcfParseError('Is the input file in VCF format? The column names do not seem to follow the VCF specification.')
+            ls_samples = colnames[9:]
+            
     
-    print(ls_info_header)
+    print(pd.DataFrame(ls_alt_header, columns=['id', 'description']))
+    print(metadata)
+    print(colnames)
+    print(ls_samples)
 
     b.close()
 

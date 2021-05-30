@@ -6,3 +6,6 @@ class InfoNotFoundError(KeyError):
 
 class ContigNotFoundError(KeyError):
     pass
+
+class VcfParseError(Exception):
+    pass

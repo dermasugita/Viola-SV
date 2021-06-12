@@ -133,8 +133,16 @@ First, let's look at a couple of examples.
 .. ipython:: python
    
    # filter with svtype.
-   query1_1 = 'svtype == DEL'
-   vcf.filter(query1_1)
+   vcf.filter('svtype == DEL')
+
+.. ipython:: python
+
+   # example of filtering using <value indexer>
+   # The code below means that if the right value of CIPOS (e.g. the value "20" of CIPOS=-10,20) is 
+   # lower than 60, the SV record will be output.
+   using_value_idx = vcf.filter('cipos 1 < 60').to_vcf_like()
+   print(using_value_idx)
+   print(using_value_idx['info'].values)
 
 **b. Filter with genomic coordinates.**
 ``syntax: "<'be1'|'be2'> <chromosome>[:[<start position>]-[<end position>]]"``
@@ -160,6 +168,9 @@ First, let's look at a couple of examples.
 .. ipython:: python
    :okexcept:
 
+   # The meaning of this code is that if the right value of the PR of sample1_T
+   # in the FORMAT field (e.g. the value "3" in PR:SR 6:7,8:9  1,3:5,2) is greater than 5,
+   # the SV records will be returned.
    vcf.filter('sample1_T PR 1 > 5').to_bedpe_like(add_formats=True)
 
 **c. Filter with FILTER table**

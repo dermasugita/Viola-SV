@@ -1012,7 +1012,7 @@ class Vcf(Bedpe):
             A list of vcf objects to be merged, which are the same order with ls_caller_names
         ls_caller_names:list
             A list of names of bedpe objects to be merged, which should have self's name as the first element
-        threshold:float, deefault 100
+        threshold:float, default 100
             Two SVs whose diference of positions is under this threshold are cosidered to be identical.
         linkage:{‘complete’, ‘average’, ‘single’}, default ’complete’
             The linkage of hierarchical clustering.

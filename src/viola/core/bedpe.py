@@ -2,6 +2,7 @@ import os,sys
 import numpy as np
 import pandas as pd
 import re
+import pkgutil
 from functools import reduce
 from typing import (
     List,
@@ -764,14 +765,29 @@ class Bedpe(Indexer):
         
     def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_series=True):
         """
-        classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
+        classify_manual_svtype(definitions, ls_conditions, ls_names, ls_order=None)
         Classify SV records by user-defined criteria. A new INFO table named
         'manual_sv_type' will be created.
 
         Parameters
-        -----------
-        ls_conditions: list-like or callable
-            list of 
+        ------------
+        definitions: path_or_buf or str, default None
+            Path to the file which specifies the definitions of custom SV classification. This argument is disabled when "ls_condition" is not None.
+            If "default" is specified, the same definition file which was used in the Viola publication will be reflected.
+            Default definition file -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_definition.txt
+        ls_conditions: List[callable] or List[str], default None
+            List of definitions of custom SV classification. The data type of the elements in the list can be callable or SV ID (str).
+            callable --> Functions that takes a self and returns a list of SV ID that satisfy the conditions of the SV class to be defined. 
+            SV ID --> Lists of SV ID that satisfy the conditions of the SV class to be defined.
+            This argument is disabled when "definitions" is not None.
+        ls_names: List[str], default None
+            List of the names of the custom SV class corresponding to the "ls_conditions". This argument is disabled when "definitions" is not None.
+        return_series: bool, default True
+            Return counts of each custom SV class as a pd.Series.
+        
+        Returns
+        ---------
+        pd.Series or None
         """
         set_ids_current = set(self.ids)
         obj = self
@@ -780,7 +796,12 @@ class Bedpe(Indexer):
 
         if definitions is not None:
             if isinstance(definitions, str):
-                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                if definitions == "default":
+                    d = os.path.dirname(sys.modules["viola"].__file__)
+                    definitions = os.path.join(d, "data/sv_class_definition.txt")
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                else:
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
             else:
                 ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
 
@@ -953,42 +974,28 @@ class Bedpe(Indexer):
         proposition = proposition_chr and proposition_str
         return proposition
 
-
-    def merge(self, ls_bedpe = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing = True):
+    def _generate_distance_matrix_by_distance(self, multiobject, penalty_length=3e9, str_missing=True):
         """
+        _generate_distance_matrix_by_distance(multiobject, penalty_length=3e9)
+        Generate distance_matrix by simply calculating the distance between all conbinations of SV records.
         
-        merge(ls_bedpe:list, ls_caller_names:list, threshold:float, linkage = "complete", str_missing=True)
-        Return a merged bedpe object from mulitple  caller's bedpe objects in ls_bedpe
-
         Parameters
-        ----------
-        ls_bedpe:list
-            A list of bedpe objects to be merged, which are the same order with ls_caller_names
-        ls_caller_names:list
-            A list of names of bedpe objects to be merged, which should have self's name as the first element
-        threshold:float
-            Two SVs whose diference of positions is under this threshold are cosidered to be identical.
-        linkage:{‘complete’, ‘average’, ‘single’}, default=’complete’
-            The linkage of hierarchical clustering.
-            To keep the mutual distance of all SVs in each cluster below the threshold, 
-            "complete" is recommended.
-        str_missing:boolean, default="True"
-            If True, all the missing strands are considered to be identical to the others. 
-
+        -----------
+        multiobject: MultiBedpe or TmpVcfForMerge
+            Multi-something object which includes all the samples to be merged.
+        penalty_length: int or float, default 3e9
+            The value which virtually gives constraints to the clustering model not to merge
+            the certain pairs of SV records. 
+        str_missing: bool, default True
+            If True, all the missing strands are considered to be identical to the others.
+        
         Returns
-        ----------
-        A merged bedpe object
-            
+        --------
+        array
+            distance matrix.
         """
-        if self in ls_bedpe:
-            pass
-        else:
-            ls_bedpe = [self] + ls_bedpe
-
-        multibedpe = viola.MultiBedpe(ls_bedpe, ls_caller_names)
-        positions_table = multibedpe.get_table("positions")
+        positions_table = multiobject.get_table("positions")
         N = len(positions_table)
-        penalty_length = 3e9
         distance_matrix = np.full((N,N), penalty_length)
         columns = ["chrom1", "chrom2", "pos1", "pos2", "strand1", "strand2"]
         for h in range(N):
@@ -1013,10 +1020,43 @@ class Bedpe(Indexer):
                         distance_matrix[h, w] = penalty_length
                     else:
                         distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos2w"]), np.abs(param["pos2h"] - param["pos1w"]))
-        
+        return distance_matrix
+
+    def merge(self, ls_bedpe = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing = True):
+        """
+        merge(ls_bedpe:list, ls_caller_names:list, threshold:float, linkage = "complete", str_missing=True)
+        Return a merged bedpe object from mulitple  caller's bedpe objects in ls_bedpe
+
+        Parameters
+        ----------
+        ls_bedpe:list
+            A list of bedpe objects to be merged, which are the same order with ls_caller_names
+        ls_caller_names:list
+            A list of names of bedpe objects to be merged, which should have self's name as the first element
+        threshold:float
+            Two SVs whose diference of positions is under this threshold are cosidered to be identical.
+        linkage:{‘complete’, ‘average’, ‘single’}, default=’complete’
+            The linkage of hierarchical clustering.
+            To keep the mutual distance of all SVs in each cluster below the threshold, 
+            "complete" is recommended.
+        str_missing:boolean, default="True"
+            If True, all the missing strands are considered to be identical to the others. 
+
+        Returns
+        ----------
+        A merged bedpe object
+        """
+        if self in ls_bedpe:
+            pass
+        else:
+            ls_bedpe = [self] + ls_bedpe
+
+        multibedpe = viola.MultiBedpe(ls_bedpe, ls_caller_names)
+        distance_matrix = self._generate_distance_matrix_by_distance(multibedpe, penalty_length=3e9, str_missing=str_missing)
         hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
         labels = hcl_clustering_model.fit_predict(X = distance_matrix)
         
+        positions_table = multibedpe.get_table("positions")
         mergedid_dict = {labels[0]:0}
         ls_mergedid = []
         idx_head = 0
@@ -1028,6 +1068,7 @@ class Bedpe(Indexer):
                 mergedid_dict[label] = idx_head
                 ls_mergedid.append(mergedid_dict[label])
 
+        N = len(positions_table)
         value_idx = pd.Series(np.zeros(N, dtype=int))
         df_mergedid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "mergedid":pd.Series(ls_mergedid)})
         

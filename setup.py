@@ -29,6 +29,7 @@ setuptools.setup(
     url="https://github.com/dermasugita/Viola-SV",
     packages=PACKAGES,
     package_dir={'': 'src'},
+    include_package_data=True,
     entry_points={
         "console_scripts":[
             "viola=viola.cli.viola:viola",

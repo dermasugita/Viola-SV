@@ -2,7 +2,7 @@
 Welcom to Viola Package!
 ************************
 
-| Current version: 1.0.0.dev7
+| Current version: 1.0.0.dev8
 | Official Document --> `here`_.
 
 .. _here: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
@@ -98,3 +98,8 @@ Documentation
 .. _API Reference: https://dermasugita.github.io/ViolaDocs/docs/html/reference/index.html
 .. _User Guide: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/index.html
 .. _CLI tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/cli.html
+
+Publications
+=============
+
+https://www.biorxiv.org/content/10.1101/2021.03.31.437648v1.full

@@ -6,3 +6,5 @@ class InfoNotFoundError(KeyError):
 
 class ContigNotFoundError(KeyError):
     pass
+class IllegalArgumentError(ValueError):
+    pass

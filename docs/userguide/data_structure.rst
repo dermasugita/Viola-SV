@@ -1,11 +1,21 @@
 .. _data_structure:
 
-======================
-Viola's Data Structure
-======================
+==============================================
+Viola's Data Structure – Why tidy data?
+==============================================
 
-| Viola employs relational-database-like structure to enable flexible data proccessing.
-| Here, we explain the specific data structure of Bedpe and Vcf class.
+Viola breaks down the SV information into multiple tidy tables to enable flexible data proccessing.
+These tables follow the principles of tidy data, i.e., each SV record is a row, each variable is a column, and each type of observational unit is a table (See Also: `Wickham, 2014`_). 
+Consequently, storage of multiple values in one element is avoided, in contrast to the INFO and FORMAT columns of a VCF file.
+
+The most important benefit of this data structure is the extendibility of future functions.
+Software development always needs to be updated to keep up with trends. By breaking down the SV information into multiple tidy tables, even complex requirements can be implemented with realistic effort.
+
+These points are rather the developer side benefits than the user side ones. However, maintaining data structure that is easy to develop is an important part of keeping software healthy, and is ultimately passed on to the user. 
+
+Here, we explain the specific data structure of Bedpe and Vcf class.
+
+.. _`Wickham, 2014`: https://www.jstatsoft.org/article/view/v059i10
 
 -------------------------------
 Tables composing Vcf object

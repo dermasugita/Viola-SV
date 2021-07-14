@@ -12,6 +12,10 @@ def assert_bedpe_equal(left, right, check_like=True):
     for tablename in ls_left_table:
         df_left = left.get_table(tablename)
         df_right = right.get_table(tablename)
+        id_left = df_left.columns[0]
+        id_right = df_right.columns[0]
+        df_left.sort_values(id_left, inplace=True, ignore_index=True)
+        df_right.sort_values(id_right, inplace=True, ignore_index=True)
         if df_left.empty & df_right.empty:
             continue
         try:
@@ -29,6 +33,10 @@ def assert_vcf_equal(left, right, check_like=True):
     for tablename in ls_left_table:
         df_left = left.get_table(tablename)
         df_right = right.get_table(tablename)
+        id_left = df_left.columns[0]
+        id_right = df_right.columns[0]
+        df_left.sort_values(id_left, inplace=True, ignore_index=True)
+        df_right.sort_values(id_right, inplace=True, ignore_index=True)
         if df_left.empty & df_right.empty:
             continue
         try:

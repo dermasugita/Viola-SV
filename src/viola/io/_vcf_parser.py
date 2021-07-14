@@ -170,6 +170,18 @@ def read_vcf_manta(vcf_reader):
             df_a_info = pd.DataFrame(dict_infos[info])
         ls_df_infos.append(df_a_info)
     odict_df_infos = OrderedDict([(k, v) for k, v in zip(df_infos_meta.id, ls_df_infos)])
+
+    #### Generate CIEND table by merging MATEID and CIPOS
+    if 'MATEID' in odict_df_infos:
+        df_mateid = odict_df_infos['MATEID']
+        df_cipos = odict_df_infos['CIPOS']
+        df_merged = pd.merge(df_cipos, df_mateid, on='id')
+        df_merged = df_merged[['mateid', 'value_idx_x', 'cipos']]
+        df_merged.columns = ['id', 'value_idx', 'ciend']
+        df_ciend = odict_df_infos['CIEND']
+        odict_df_infos['CIEND'] = pd.concat([df_ciend, df_merged], ignore_index=True)
+    #### /Generate CIEND table by merging MATEID and CIPOS
+
     ###/INFO
 
     ###POS
@@ -837,6 +849,17 @@ def read_vcf_gridss(vcf_reader):
             df_a_info = pd.DataFrame(dict_infos[info])
         ls_df_infos.append(df_a_info)
     odict_df_infos = OrderedDict([(k, v) for k, v in zip(df_infos_meta.id, ls_df_infos)])
+
+    #### Generate CIEND table by merging MATEID and CIPOS
+    if 'MATEID' in odict_df_infos:
+        df_mateid = odict_df_infos['MATEID']
+        df_cipos = odict_df_infos['CIPOS']
+        df_merged = pd.merge(df_cipos, df_mateid, on='id')
+        df_merged = df_merged[['mateid', 'value_idx_x', 'cipos']]
+        df_merged.columns = ['id', 'value_idx', 'ciend']
+        odict_df_infos['CIEND'] = df_merged
+    #### /Generate CIEND table by merging MATEID and CIPOS
+    
     ###/INFO
 
     ###POS

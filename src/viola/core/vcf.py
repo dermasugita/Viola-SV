@@ -2,6 +2,7 @@ import os,sys
 import numpy as np
 import pandas as pd
 import re
+from intervaltree import Interval, IntervalTree
 from functools import reduce
 from typing import (
     List,
@@ -24,6 +25,7 @@ from viola._exceptions import (
     TableNotFoundError,
     InfoNotFoundError,
     ContigNotFoundError,
+    IllegalArgumentError,
 )
 
 from sklearn.cluster import AgglomerativeClustering
@@ -947,6 +949,8 @@ class Vcf(Bedpe):
         ------------
         definitions: path_or_buf, default None
             Path to the file which specifies the definitions of custom SV classification. This argument is disabled when "ls_condition" is not None.
+            If "default" is specified, the same definition file which was used in the Viola publication will be reflected.
+            Default definition file -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_definition.txt
         ls_conditions: List[callable] or List[str], default None
             List of definitions of custom SV classification. The data type of the elements in the list can be callable or SV ID (str).
             callable --> Functions that takes a self and returns a list of SV ID that satisfy the conditions of the SV class to be defined. 
@@ -967,7 +971,12 @@ class Vcf(Bedpe):
         ls_result_names = []
         if definitions is not None:
             if isinstance(definitions, str):
-                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                if definitions == "default":
+                    d = os.path.dirname(sys.modules["viola"].__file__)
+                    definitions = os.path.join(d, "data/sv_class_definition.txt")
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                else:
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
             else:
                 ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
         for cond, name in zip(ls_conditions, ls_names):
@@ -1000,8 +1009,57 @@ class Vcf(Bedpe):
             pd_ind_reindex = pd.Index(ls_order)
             ser_feature_counts = ser_feature_counts.reindex(index=pd_ind_reindex, fill_value=0)
         return ser_feature_counts
+
+    def _generate_distance_matrix_by_confidence_intervals(self, multiobject, penalty_length=3e9, str_missing=True):
+        positions_table = multiobject.get_table("positions")
+        N = len(positions_table)
+        distance_matrix = np.full((N,N), penalty_length)
+        df_cipos = multiobject.get_table('cipos').pivot(values='cipos', index='id', columns='value_idx').astype(int)
+        df_ciend = multiobject.get_table('ciend').pivot(values='ciend', index='id', columns='value_idx').astype(int)
+        positions_table.set_index('id', inplace=True)
+        ind = positions_table.index.to_list()
+        ser_pos1_chrom = positions_table['chrom1']
+        ser_pos1_left = positions_table['pos1'].add(df_cipos[0])
+        ser_pos1_right = positions_table['pos1'].add(df_cipos[1])
+        ser_pos1_strand = positions_table['strand1']
+        ser_pos2_chrom = positions_table['chrom2']
+        ser_pos2_left = positions_table['pos2'].add(df_ciend[0])
+        ser_pos2_right = positions_table['pos2'].add(df_ciend[1])
+        ser_pos2_strand = positions_table['strand2']
+        df_pos1_ci = pd.concat([ser_pos1_chrom, ser_pos1_left, ser_pos1_right, ser_pos1_strand], axis=1).loc[ind]
+        df_pos2_ci = pd.concat([ser_pos2_chrom, ser_pos2_left, ser_pos2_right, ser_pos2_strand], axis=1).loc[ind]
+        df_pos1_ci.columns = ['chrom', 'chromStart', 'chromEnd', 'strand']
+        df_pos2_ci.columns = ['chrom', 'chromStart', 'chromEnd', 'strand']
+        df_pos1_ci.reset_index(inplace=True)
+        df_pos2_ci.reset_index(inplace=True)
+        bed_pos1 = Bed(df_pos1_ci, 0)
+        bed_pos2 = Bed(df_pos2_ci, 0)
+        
+        id_int = 0
+        for idx in range(N):
+            chrom1 = df_pos1_ci.loc[idx, 'chrom']
+            start1 = df_pos1_ci.loc[idx, 'chromStart']
+            end1 = df_pos1_ci.loc[idx, 'chromEnd']
+            strand1 = df_pos1_ci.loc[idx, 'strand']
+            chrom2 = df_pos2_ci.loc[idx, 'chrom']
+            start2 = df_pos2_ci.loc[idx, 'chromStart']
+            end2 = df_pos2_ci.loc[idx, 'chromEnd']
+            strand2 = df_pos2_ci.loc[idx, 'strand']
+            hit1_f = set(bed_pos1.query(chrom1, start1, end1).query('strand == @strand1').index)
+            hit2_f = set(bed_pos2.query(chrom2, start2, end2).query('strand == @strand2').index)
+            hit1_r = set(bed_pos1.query(chrom2, start2, end2).query('strand == @strand2').index)
+            hit2_r = set(bed_pos2.query(chrom1, start1, end1).query('strand == @strand1').index)
+            hit_result_f = hit1_f & hit2_f
+            hit_result_r = hit1_r & hit2_r
+            hit_result = hit_result_f | hit_result_r
+            for j in hit_result:
+                distance_matrix[id_int, j] = 0
+                distance_matrix[j, id_int] = 0
+            id_int += 1
+        return distance_matrix
+
     
-    def merge(self, ls_vcf = [], ls_caller_names = None, threshold = 100, linkage = "complete", str_missing = True, integration = True):
+    def merge(self, ls_vcf = [], ls_caller_names = None, mode = 'distance', threshold = 100, linkage = "complete", str_missing = True, integration = True):
         """
         merge(ls_vcf:list, ls_caller_names:list, threshold:float, linkage = "complete", str_missing=True, integration=True)
         Return a merged or integrated vcf object from mulitple  caller's bedpe objects in ls_bedpe
@@ -1012,12 +1070,20 @@ class Vcf(Bedpe):
             A list of vcf objects to be merged, which are the same order with ls_caller_names
         ls_caller_names:list
             A list of names of bedpe objects to be merged, which should have self's name as the first element
+        mode: {'distance', 'confidence_intervals'}, default 'distance'
+            The mode of the merging strategy. 
+
+            * ``'distance'``: Merge SV records by representative SV positions, that is, coordinates of POS field or that of END in the INFO field. If multiple SV positions are within the distance specified in ``threshold`` each other, they will be merged.
+            * ``'confidence_intervals'``: Merge SV records according to the confidence intervals reported by SV callers. If confidence intervals of multiple SV records share their genomic coordinates at least 1bp, the will be merged.
+
         threshold:float, default 100
             Two SVs whose diference of positions is under this threshold are cosidered to be identical.
+            This argument is enabled only when ``mode='distance'``.
         linkage:{‘complete’, ‘average’, ‘single’}, default ’complete’
             The linkage of hierarchical clustering.
             To keep the mutual distance of all SVs in each cluster below the threshold, 
             "complete" is recommended.
+            This argument is enabled only when ``mode='distance'``.
         str_missing:bool, default True
             If True, all the missing strands are considered to be the same with the others.
         integration:bool, default True 
@@ -1025,7 +1091,8 @@ class Vcf(Bedpe):
 
         Returns
         ----------
-        A merged  vcf object or an integrated vcf object
+        Vcf
+            A merged  vcf object or an integrated vcf object
             
         """
         if self in ls_vcf:
@@ -1037,37 +1104,19 @@ class Vcf(Bedpe):
             ls_caller_names = [vcf._metadata["variantcaller"] for vcf in ls_vcf] 
 
         multivcf = viola.TmpVcfForMerge(ls_vcf, ls_caller_names)
+        if mode == 'distance':
+            distance_matrix = self._generate_distance_matrix_by_distance(multivcf, penalty_length=3e9, str_missing=str_missing)
+            hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
+            labels = hcl_clustering_model.fit_predict(X = distance_matrix)
+        elif mode == 'confidence_intervals':
+            distance_matrix = self._generate_distance_matrix_by_confidence_intervals(multivcf)
+            hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage='complete', distance_threshold=100)
+            labels = hcl_clustering_model.fit_predict(X = distance_matrix)
+        else:
+            raise IllegalArgumentError(mode)
+        
+        
         positions_table = multivcf.get_table("positions")
-        N = len(positions_table)
-        penalty_length = 3e9
-        distance_matrix = np.full((N,N), penalty_length)
-        columns = ["chrom1", "chrom2", "pos1", "pos2", "strand1", "strand2"]
-        for h in range(N):
-            for w in range(N):
-                param = {}
-                for col in columns:
-                    key_h = col[:3] + col[-1] + "h"
-                    value_h = positions_table.at[positions_table.index[h], col]
-                    key_w = col[:3] + col[-1] + "w"
-                    value_w = positions_table.at[positions_table.index[w], col]
-                    param[key_h] = value_h
-                    param[key_w] = value_w
-
-                if self._necessary_condition4merge(param = param, mode = "normal", str_missing = str_missing): 
-                    if self._nonoverlap(param = param):
-                        distance_matrix[h, w] = penalty_length
-                    else:
-                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos1w"]), np.abs(param["pos2h"] - param["pos2w"]))                          
-
-                elif self._necessary_condition4merge(param = param, mode = "reverse", str_missing = str_missing):
-                    if self._nonoverlap(param = param):
-                        distance_matrix[h, w] = penalty_length
-                    else:
-                        distance_matrix[h, w] = max(np.abs(param["pos1h"] - param["pos2w"]), np.abs(param["pos2h"] - param["pos1w"]))
-        
-        hcl_clustering_model = AgglomerativeClustering(n_clusters=None, affinity="precomputed", linkage=linkage, distance_threshold=threshold)
-        labels = hcl_clustering_model.fit_predict(X = distance_matrix)
-        
         mergedid_dict = {labels[0]:0}
         ls_mergedid = []
         idx_head = 0
@@ -1079,6 +1128,7 @@ class Vcf(Bedpe):
                 mergedid_dict[label] = idx_head
                 ls_mergedid.append(mergedid_dict[label])
 
+        N = len(positions_table)
         value_idx = pd.Series(np.zeros(N, dtype=int))
         df_mergedid = pd.DataFrame({"id":positions_table["id"],"value_idx":value_idx, "mergedid":pd.Series(ls_mergedid)})
         

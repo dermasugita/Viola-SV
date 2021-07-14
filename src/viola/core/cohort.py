@@ -1,4 +1,5 @@
 import pandas as pd
+import sys, os
 from collections import OrderedDict
 from viola.core.bedpe import Bedpe
 from viola.core.vcf import Vcf
@@ -66,7 +67,7 @@ class MultiBedpe(Bedpe):
 
             for key, value in bedpe._odict_df_info.items():
                 value = value.copy()
-                value['id'] = str(patient_name) + '_' + value.astype(str)
+                value['id'] = str(patient_name) + '_' + value['id'].astype(str)
                 if dict_ls_df_info.get(key) is None:
                     dict_ls_df_info[key] = [value]
                 else:
@@ -122,9 +123,31 @@ class MultiBedpe(Bedpe):
 
     def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True, exclude_empty_cases=False):
         """
-        classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
+        classify_manual_svtype(definitions, ls_conditions, ls_names, ls_order=None, exclude_empty_cases=False)
         Classify SV records by user-defined criteria. A new INFO table named
         'manual_sv_type' will be created.
+
+        Parameters
+        ------------
+        definitions: path_or_buf or str, default None
+            Path to the file which specifies the definitions of custom SV classification. This argument is disabled when "ls_condition" is not None.
+            If "default" is specified, the same definition file which was used in the Viola publication will be reflected.
+            Default definition file -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_definition.txt
+        ls_conditions: List[callable] or List[str], default None
+            List of definitions of custom SV classification. The data type of the elements in the list can be callable or SV ID (str).
+            callable --> Functions that takes a self and returns a list of SV ID that satisfy the conditions of the SV class to be defined. 
+            SV ID --> Lists of SV ID that satisfy the conditions of the SV class to be defined.
+            This argument is disabled when "definitions" is not None.
+        ls_names: List[str], default None
+            List of the names of the custom SV class corresponding to the "ls_conditions". This argument is disabled when "definitions" is not None.
+        return_series: bool, default True
+            Return counts of each custom SV class as a pd.Series.
+        exclude_empty_cases: bool, default False
+            If True, samples which have no SV record will be excluded.
+        
+        Returns
+        ---------
+        pd.DataFrame or None
         """
         set_ids_current = set(self.ids)
         obj = self
@@ -132,7 +155,12 @@ class MultiBedpe(Bedpe):
         ls_result_names = []
         if definitions is not None:
             if isinstance(definitions, str):
-                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                if definitions == "default":
+                    d = os.path.dirname(sys.modules["viola"].__file__)
+                    definitions = os.path.join(d, "data/sv_class_definition.txt")
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                else:
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
             else:
                 ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
         for cond, name in zip(ls_conditions, ls_names):
@@ -338,9 +366,31 @@ class MultiVcf(Vcf):
 
     def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True, exclude_empty_cases=False):
         """
-        classify_manual_svtype(ls_conditions, ls_names, ls_order=None)
+        classify_manual_svtype(definitions, ls_conditions, ls_names, ls_order=None, exclude_empty_cases=False)
         Classify SV records by user-defined criteria. A new INFO table named
         'manual_sv_type' will be created.
+
+        Parameters
+        ------------
+        definitions: path_or_buf or str, default None
+            Path to the file which specifies the definitions of custom SV classification. This argument is disabled when "ls_condition" is not None.
+            If "default" is specified, the same definition file which was used in the Viola publication will be reflected.
+            Default definition file -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_definition.txt
+        ls_conditions: List[callable] or List[str], default None
+            List of definitions of custom SV classification. The data type of the elements in the list can be callable or SV ID (str).
+            callable --> Functions that takes a self and returns a list of SV ID that satisfy the conditions of the SV class to be defined. 
+            SV ID --> Lists of SV ID that satisfy the conditions of the SV class to be defined.
+            This argument is disabled when "definitions" is not None.
+        ls_names: List[str], default None
+            List of the names of the custom SV class corresponding to the "ls_conditions". This argument is disabled when "definitions" is not None.
+        return_series: bool, default True
+            Return counts of each custom SV class as a pd.Series.
+        exclude_empty_cases: bool, default False
+            If True, samples which have no SV record will be excluded.
+        
+        Returns
+        ---------
+        pd.DataFrame or None
         """
         set_ids_current = set(self.ids)
         obj = self
@@ -348,7 +398,12 @@ class MultiVcf(Vcf):
         ls_result_names = []
         if definitions is not None:
             if isinstance(definitions, str):
-                ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                if definitions == "default":
+                    d = os.path.dirname(sys.modules["viola"].__file__)
+                    definitions = os.path.join(d, "data/sv_class_definition.txt")
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                else:
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
             else:
                 ls_conditions, ls_names = self._parse_signature_definition_file(definitions)
         for cond, name in zip(ls_conditions, ls_names):

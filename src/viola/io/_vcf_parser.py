@@ -757,6 +757,9 @@ def read_vcf_gridss(vcf_reader):
         for info in df_infos_meta.id:
             values = row_INFO.get(info, 'none')
             if values == 'none':
+                if info == 'CIPOS':
+                    dict_infos['CIPOS'].append({'id': row_ID, 'value_idx': 0, 'cipos': 0})
+                    dict_infos['CIPOS'].append({'id': row_ID, 'value_idx': 1, 'cipos': 0})
                 continue
             if not isinstance(values, list):
                 values = [values]

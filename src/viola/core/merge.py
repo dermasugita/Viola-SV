@@ -8,7 +8,7 @@ from typing import (
     List,
     Optional
 )
-def merge(ls_inputs, ls_caller_names=None, threshold=100, integration=True):
+def merge(ls_inputs, ls_caller_names=None, mode='distance', threshold=100, integration=True):
     """
     merge(ls_inputs:list, ls_caller_names:list, threshold=100, integration=False)
     merge Vcf objects or Bedpe objects
@@ -21,6 +21,12 @@ def merge(ls_inputs, ls_caller_names=None, threshold=100, integration=True):
     ls_caller_names:list
         A list of names of callers(str).
         Only needed for Bedpes.
+    mode: {'distance', 'confidence_intervals'}, default 'distance'
+        The mode of the merging strategy. 
+
+        * ``'distance'``: Merge SV records by representative SV positions, that is, coordinates of POS field or that of END in the INFO field. If multiple SV positions are within the distance specified in ``threshold`` each other, they will be merged.
+        * ``'confidence_intervals'``: Merge SV records according to the confidence intervals reported by SV callers. If confidence intervals of multiple SV records share their genomic coordinates at least 1bp, the will be merged.
+
     threshold:int, default 100
         Two SVs of mutual distance is under 
         this threshold are cosidered to be identical.
@@ -43,10 +49,10 @@ def merge(ls_inputs, ls_caller_names=None, threshold=100, integration=True):
     first_object = ls_inputs[0]
     
     if isinstance(first_object, Vcf):
-        return first_object.merge(ls_vcf = ls_inputs, integration = integration, threshold = threshold)
+        return first_object.merge(ls_vcf = ls_inputs, mode=mode, integration = integration, threshold = threshold)
 
     if isinstance(first_object, Bedpe):
-        return first_object.merge(ls_bedpe = ls_inputs, ls_caller_names = ls_caller_names, threshold = threshold)        
+        return first_object.merge(ls_bedpe = ls_inputs, ls_caller_names = ls_caller_names, mode=mode, threshold = threshold)        
 
 class TmpVcfForMerge(MultiVcf):
     _internal_attrs = [
@@ -212,7 +218,7 @@ class TmpVcfForMerge(MultiVcf):
         self._df_formats = df_formats
         self._odict_df_headers = odict_df_headers
         self._ls_patients = df_patients['patients'].to_list()
-        self._ls_infokeys = list(odict_df_info.keys())
+        self._ls_infokeys = [x.lower() for x in list(odict_df_info.keys())]
         ls_keys = ['global_id', 'patients', 'positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(odict_df_headers.keys())
         ls_values = [df_id, df_patients, df_svpos, df_filters] + list(odict_df_info.values()) + [df_formats] + list(odict_df_headers.values())

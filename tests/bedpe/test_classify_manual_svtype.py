@@ -103,6 +103,13 @@ def test_classify_manual_svtype_from_definitions():
     result_expected.name = 'manual_sv_type'
     pd.testing.assert_series_equal(result, result_expected)
 
+def test_classify_manual_svtype_from_default():
+    bedpe = viola.read_bedpe(StringIO(data))
+    try:
+        result = bedpe.classify_manual_svtype(definitions="default")
+    except TypeError:
+        pass
+
 def test_classify_manual_svtype_from_file():
     bedpe = viola.read_bedpe(StringIO(data))
     path = os.path.join(HERE, 'data/example_definition.txt')

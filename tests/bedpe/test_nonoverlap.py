@@ -108,7 +108,7 @@ def test_nonoverlap():
     assert viola.Bedpe._nonoverlap('self', test_param1) == True
     assert viola.Bedpe._nonoverlap('self', test_param2) == True
     assert viola.Bedpe._nonoverlap('self', test_param3) == True
-    assert viola.Bedpe._nonoverlap('self', test_param4) == True 
+    assert viola.Bedpe._nonoverlap('self', test_param4) == False
     assert viola.Bedpe._nonoverlap('self', test_param5) == False
     assert viola.Bedpe._nonoverlap('self', test_param6) == False
     assert viola.Bedpe._nonoverlap('self', test_param7) == False

@@ -20,7 +20,7 @@ class TestWriteVcf:
         # self.df.to_csv('path/to/csv')
         self.vcf_manta.to_vcf('tests/io/output/write_vcf_manta.vcf')
         #assert filecmp.cmp('tests/io/output/write_vcf.vcf', 'tests/io/data/manta1.inv.vcf')
-        assert filecmp.cmp('tests/io/output/write_vcf_manta.vcf', 'tests/io/data/test.manta.vcf')
+        assert filecmp.cmp('tests/io/output/write_vcf_manta.vcf', 'tests/io/data/test.manta.validation.vcf')
 
     def test_write_vcf_lumpy(self):
         # self.df.to_csv('path/to/csv')

@@ -23,5 +23,6 @@ from viola.core.indexing import (
 
 from viola.core.merge import (
     TmpVcfForMerge,
+    IntervalTreeForMerge,
     merge,
 )

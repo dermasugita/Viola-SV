@@ -19,6 +19,7 @@ from viola.core.api import (
     RootIndexer,
     SvIdIndexer,
     TmpVcfForMerge,
+    IntervalTreeForMerge,
     merge,
 )
 

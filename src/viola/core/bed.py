@@ -20,7 +20,7 @@ class Bed(object):
         for idx, row in df.iterrows():
             chrom = row['chrom']
             st = row['chromStart']
-            en = row['chromEnd']
+            en = row['chromEnd'] + 1
             if dict_tree.get(chrom) is None:
                 dict_tree[chrom] = IntervalTree()
             dict_tree[chrom][st:en] = row

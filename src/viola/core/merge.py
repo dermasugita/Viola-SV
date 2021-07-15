@@ -1,5 +1,6 @@
 import pandas as pd
 import viola
+from intervaltree import IntervalTree, Interval
 from viola.core.vcf import Vcf
 from viola.core.bedpe import Bedpe
 from viola.core.cohort import MultiVcf
@@ -226,3 +227,37 @@ class TmpVcfForMerge(MultiVcf):
         self._repr_config = {
             'info': None,
         }
+
+class IntervalTreeForMerge():
+    def __init__(self, df, header):
+        self._df = df
+        self._header = header
+        self._tree = self._intervaltree_init(df)
+    
+    def _intervaltree_init(self, df):
+        dict_tree = dict()
+        for row in df.itertuples():
+            chrom = getattr(row, 'chrom')
+            st = getattr(row, 'chromStart')
+            en = getattr(row, 'chromEnd') + 1
+            if dict_tree.get(chrom) is None:
+                dict_tree[chrom] = IntervalTree()
+            dict_tree[chrom][st:en] = row
+        
+        return dict_tree
+    
+    def query(self, chrom, st, en=None) -> pd.DataFrame:
+        if self._tree.get(chrom) is None:
+            return pd.DataFrame(columns = self._df.columns)
+        tree = self._tree[chrom]
+        if en is None:
+            set_out = tree[st]
+        else:
+            set_out = tree[st:en]
+        if len(set_out) == 0:
+            return pd.DataFrame(columns = self._df.columns)
+        ls_out = list(set_out)
+        ls_ser_out = [x.data for x in ls_out]
+        df_out = pd.DataFrame(ls_ser_out)
+        df_out.set_index('Index', inplace=True)
+        return df_out

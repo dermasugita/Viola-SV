@@ -43,7 +43,7 @@ DATA1 = """##fileformat=VCFv4.1
 ##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse01_N	mouse01_T
 chr1	100000	M1	N	<DEL>	.	MinSomaticScore	IMPRECISE;SVTYPE=DEL;SVLEN=-100000;END=200000;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
-chr1	200000	MD1	N	<DEL>	.	MinSomaticScore	IMPRECISE;SVTYPE=DEL;SVLEN=-100000;END=300000;CIPOS=-13,13;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
+chr1	200030	MD1	N	<DEL>	.	MinSomaticScore	IMPRECISE;SVTYPE=DEL;SVLEN=-100000;END=299920;CIPOS=-18,18;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
 chr1	200000	MDL1	N	<DUP:TANDEM>	.	MinSomaticScore	IMPRECISE;SVTYPE=DUP;SVLEN=100000;END=300000;CIPOS=-30,30;CIEND=-31,31;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
 """
 DATA2 = """##fileformat=VCFv4.2
@@ -106,11 +106,14 @@ def test_merge():
     lumpy = viola.read_vcf(os.path.join(HERE, 'data/test.merge.lumpy.vcf'), variant_caller='lumpy')
     gridss = viola.read_vcf(os.path.join(HERE, 'data/test.merge.gridss.vcf'), variant_caller='gridss')
 
-    #result = manta._generate_distance_matrix_by_confidence_intervals(viola.TmpVcfForMerge([manta, delly, gridss, lumpy], ['manta', 'delly', 'gridss', 'lumpy']))
+    result = manta._generate_distance_matrix_by_confidence_intervals(viola.TmpVcfForMerge([manta, delly, gridss, lumpy], ['manta', 'delly', 'gridss', 'lumpy']))
     result = viola.merge([manta, delly, lumpy, gridss], mode='confidence_intervals')
+    assert result.get_ids() == {'manta_M1', 'manta_MD1', 'manta_ML1', 'manta_MG1', 'manta_MDL1', 'manta_MDG1', 'manta_MLG1', 'manta_MDLG1o', 
+    'delly_D1', 'delly_DL1', 'delly_DG1', 'delly_DLG1', 'lumpy_L1', 'lumpy_LG1', 'gridss_G1o'}
 
 def test_merge2():
     manta = viola.read_vcf(StringIO(DATA1), variant_caller='manta')
     delly = viola.read_vcf(StringIO(DATA2), variant_caller='delly')
     result = viola.merge([manta, delly], mode='confidence_intervals', integration=True)
     assert result.sv_count == 4
+    assert result.get_ids() == {'manta_M1', 'manta_MD1', 'manta_MDL1', 'delly_D1'}

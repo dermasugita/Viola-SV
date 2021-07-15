@@ -1032,8 +1032,8 @@ class Vcf(Bedpe):
         df_pos2_ci.columns = ['chrom', 'chromStart', 'chromEnd', 'strand']
         df_pos1_ci.reset_index(inplace=True)
         df_pos2_ci.reset_index(inplace=True)
-        bed_pos1 = Bed(df_pos1_ci, 0)
-        bed_pos2 = Bed(df_pos2_ci, 0)
+        bed_pos1 = viola.IntervalTreeForMerge(df_pos1_ci, 0)
+        bed_pos2 = viola.IntervalTreeForMerge(df_pos2_ci, 0)
         
         id_int = 0
         for idx in range(N):

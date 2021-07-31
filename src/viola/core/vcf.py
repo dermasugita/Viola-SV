@@ -1039,11 +1039,11 @@ class Vcf(Bedpe):
         for idx in range(N):
             chrom1 = df_pos1_ci.loc[idx, 'chrom']
             start1 = df_pos1_ci.loc[idx, 'chromStart']
-            end1 = df_pos1_ci.loc[idx, 'chromEnd']
+            end1 = df_pos1_ci.loc[idx, 'chromEnd'] + 1
             strand1 = df_pos1_ci.loc[idx, 'strand']
             chrom2 = df_pos2_ci.loc[idx, 'chrom']
             start2 = df_pos2_ci.loc[idx, 'chromStart']
-            end2 = df_pos2_ci.loc[idx, 'chromEnd']
+            end2 = df_pos2_ci.loc[idx, 'chromEnd'] + 1
             strand2 = df_pos2_ci.loc[idx, 'strand']
             hit1_f = set(bed_pos1.query(chrom1, start1, end1).query('strand == @strand1').index)
             hit2_f = set(bed_pos2.query(chrom2, start2, end2).query('strand == @strand2').index)

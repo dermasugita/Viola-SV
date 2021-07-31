@@ -313,4 +313,3 @@ def test_breakend2breakpoint():
     vcf_expected = viola.read_vcf(StringIO(HEADER_expected + body_expected), variant_caller='gridss')
     vcf_result = vcf.breakend2breakpoint()
     assert_vcf_equal(vcf_result, vcf_expected)
-    print(vcf.positions)

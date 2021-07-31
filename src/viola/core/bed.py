@@ -34,6 +34,7 @@ class Bed(object):
         if en is None:
             set_out = tree[st]
         else:
+            en += 1
             set_out = tree[st:en]
         if len(set_out) == 0:
             return pd.DataFrame(columns = self._df.columns)

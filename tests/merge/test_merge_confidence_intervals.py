@@ -117,3 +117,10 @@ def test_merge2():
     result = viola.merge([manta, delly], mode='confidence_intervals', integration=True)
     assert result.sv_count == 4
     assert result.get_ids() == {'manta_M1', 'manta_MD1', 'manta_MDL1', 'delly_D1'}
+
+def test_merge3():
+    manta = viola.read_vcf(StringIO(DATA1), variant_caller='manta')
+    delly = viola.read_vcf(StringIO(DATA2), variant_caller='delly')
+    result = viola.merge([delly, manta], mode='confidence_intervals', integration=True)
+    assert result.sv_count == 4
+    assert result.get_ids() == {'manta_M1', 'delly_MD1', 'delly_MDL1', 'delly_D1'}

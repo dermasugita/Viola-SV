@@ -123,7 +123,7 @@ First, let's look at a couple of examples.
 
 
 **a. Filter with SVTYPE of the INFO field.**
-``syntax: "<INFO name> [<value indexer>] <operator> <value>"``
+``syntax: "<INFO name> [<value index>] <operator> <value>"``
 
 - Please do not omit spaces.
 - <value indexer> is optional. 
@@ -137,12 +137,34 @@ First, let's look at a couple of examples.
 
 .. ipython:: python
 
-   # example of filtering using <value indexer>
+   # example of filtering using <value index>
    # The code below means that if the right value of CIPOS (e.g. the value "20" of CIPOS=-10,20) is 
    # lower than 60, the SV record will be output.
    using_value_idx = vcf.filter('cipos 1 < 60').to_vcf_like()
    print(using_value_idx)
    print(using_value_idx['info'].values)
+
+.. note::
+   **What is <value index>?**
+
+   Some INFO and FORMAT entries are separated by comma to store more than one value.
+   For example, ``CIPOS`` and ``CIEND`` entries of INFO field always store two values:
+
+   .. code::
+
+      CIPOS=-1,1;CIEND=0,2
+
+   ``<value index>`` is assigned to such data with 0-origin manner as shown below:
+
+   .. image:: ./_static/quickstart/value_index.png
+      :width: 300
+   
+   |
+   For another example, the values in FORMAT field of Manta VCF are separated by comma.
+
+   .. image:: ./_static/quickstart/value_index2.png
+      :width: 350
+   
 
 **b. Filter with genomic coordinates.**
 ``syntax: "<'be1'|'be2'> <chromosome>[:[<start position>]-[<end position>]]"``
@@ -160,7 +182,7 @@ First, let's look at a couple of examples.
    vcf.filter('be2 chr1:69583189-')
 
 **c. Filter with FORMAT table**
-``syntax: "<sample name> <FORMAT name> [<FORMAT indexer>] <operator> <value>``
+``syntax: "<sample name> <FORMAT name> [<FORMAT index>] <operator> <value>``
 
 - FORMAT indexer is optional. It is not required when the FORMAT isn't separated by commas.
 - FORMAT indexer is 0-origin. Default value is 0.
@@ -169,7 +191,7 @@ First, let's look at a couple of examples.
    :okexcept:
 
    # The meaning of this code is that if the right value of the PR of sample1_T
-   # in the FORMAT field (e.g. the value "3" in PR:SR 6:7,8:9  1,3:5,2) is greater than 5,
+   # in the FORMAT field (e.g. the value "3" in PR:SR 6,7:8,9  1,3:5,2) is greater than 5,
    # the SV records will be returned.
    vcf.filter('sample1_T PR 1 > 5').to_bedpe_like(add_formats=True)
 
@@ -205,6 +227,7 @@ You can perform set operations by passing expressions to query_logic.
    # (query3_1 or query3_2) and (query3_3)
    vcf3 = vcf.filter([query3_1, query3_2, query3_3], query_logic='(0 | 1) & 2')
    print(vcf3.to_bedpe_like(custom_infonames=['svtype', 'somaticscore']))
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2) Filter with SV ID using filter_by_id method 

@@ -9,7 +9,7 @@ These tables follow the principles of tidy data, i.e., each SV record is a row, 
 Consequently, storage of multiple values in one element is avoided, in contrast to the INFO and FORMAT columns of a VCF file.
 
 The most important benefit of this data structure is the extendibility of future functions.
-Software development always needs to be updated to keep up with trends. By breaking down the SV information into multiple tidy tables, even complex requirements can be implemented with realistic effort.
+Software development always needs to be updated to keep up with trends. By breaking down the SV information into multiple tidy tables, even complex requirements can be implemented with a little effort.
 
 These points are rather the developer side benefits than the user side ones. However, maintaining data structure that is easy to develop is an important part of keeping software healthy, and is ultimately passed on to the user. 
 

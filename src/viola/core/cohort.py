@@ -131,8 +131,13 @@ class MultiBedpe(Bedpe):
         ------------
         definitions: path_or_buf or str, default None
             Path to the file which specifies the definitions of custom SV classification. This argument is disabled when "ls_condition" is not None.
-            If "default" is specified, the same definition file which was used in the Viola publication will be reflected.
-            Default definition file -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_definition.txt
+            If "default" is specified, the simple length-based SV classification will be employed.
+            If "article" is specified, the same definition file which was used in the Viola publication will be reflected.
+            Below is the links to each of definition file you can specify on this method.
+
+            "default" -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_default.txt
+
+            "article" -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_article.txt
         ls_conditions: List[callable] or List[str], default None
             List of definitions of custom SV classification. The data type of the elements in the list can be callable or SV ID (str).
             callable --> Functions that takes a self and returns a list of SV ID that satisfy the conditions of the SV class to be defined. 
@@ -157,7 +162,11 @@ class MultiBedpe(Bedpe):
             if isinstance(definitions, str):
                 if definitions == "default":
                     d = os.path.dirname(sys.modules["viola"].__file__)
-                    definitions = os.path.join(d, "data/sv_class_definition.txt")
+                    definitions = os.path.join(d, "data/sv_class_default.txt")
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                elif definitions == "article":
+                    d = os.path.dirname(sys.modules["viola"].__file__)
+                    definitions = os.path.join(d, "data/sv_class_article.txt")
                     ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
                 else:
                     ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
@@ -374,8 +383,13 @@ class MultiVcf(Vcf):
         ------------
         definitions: path_or_buf or str, default None
             Path to the file which specifies the definitions of custom SV classification. This argument is disabled when "ls_condition" is not None.
-            If "default" is specified, the same definition file which was used in the Viola publication will be reflected.
-            Default definition file -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_definition.txt
+            If "default" is specified, the simple length-based SV classification will be employed.
+            If "article" is specified, the same definition file which was used in the Viola publication will be reflected.
+            Below is the links to each of definition file you can specify on this method.
+
+            "default" -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_default.txt
+
+            "article" -> https://github.com/dermasugita/Viola-SV/blob/master/examples/demo_sig/resources/definitions/sv_class_article.txt
         ls_conditions: List[callable] or List[str], default None
             List of definitions of custom SV classification. The data type of the elements in the list can be callable or SV ID (str).
             callable --> Functions that takes a self and returns a list of SV ID that satisfy the conditions of the SV class to be defined. 
@@ -400,7 +414,11 @@ class MultiVcf(Vcf):
             if isinstance(definitions, str):
                 if definitions == "default":
                     d = os.path.dirname(sys.modules["viola"].__file__)
-                    definitions = os.path.join(d, "data/sv_class_definition.txt")
+                    definitions = os.path.join(d, "data/sv_class_default.txt")
+                    ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
+                elif definitions == "article":
+                    d = os.path.dirname(sys.modules["viola"].__file__)
+                    definitions = os.path.join(d, "data/sv_class_article.txt")
                     ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))
                 else:
                     ls_conditions, ls_names = self._parse_signature_definition_file(open(definitions, 'r'))

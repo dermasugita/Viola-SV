@@ -96,7 +96,7 @@ Manta outputs the start position as 20 and the end position as 25, regardless of
 
 .. image:: ../_static/sv_position_figures/inv_viola.png
 
-On the viola, in "Inversion", We were keen to express the SV position on a break-end basis.
+On the viola, in "Inversion", we were keen to express the SV position on a break-end basis.
 With regard to Lumpy, we have divided "Inversion" into two lines to fit our principles.
 
 .. image:: ../_static/sv_position_figures/inv_bedpe.png
@@ -107,4 +107,45 @@ For BEDPE output, the same method as for "Deletion" is also used here.
 Translocation
 --------------------
 
-Coming Soon.
+.. image:: ../_static/sv_position_figures/tra_image.png
+
+|
+In the SV callers supported by Viola (Manta, Delly, Lumpy, and Gridss), translocation is recorded in almost the same way, although Delly outputs only one row for one SV event while the others report two lines for one SV event (See figure below).
+
+.. image:: ../_static/sv_position_figures/tra_vcf.png
+
+|
+Below is the ``positions`` table and BEDPE output that correspond to the above VCF. Viola interprets the ``ALT`` field (in this case, ``A[chr2:15[``) into ``+`` or ``-`` symbols to represent the orientations of each breakend.
+
+.. image:: ../_static/sv_position_figures/tra_viola.png
+
+.. image:: ../_static/sv_position_figures/tra_bedpe.png
+
+--------------------
+Single Breakends
+--------------------
+
+Some breakends do not have mate breakends and are called "single breakends".
+
+.. image:: ../_static/sv_position_figures/bnd_image.png
+
+|
+According to the specification of VCFv4.2, single breakends are expressed as following figure.
+
+.. image:: ../_static/sv_position_figures/bnd_vcf.png
+
+|
+Viola only use ``chrom1``, ``pos1``, and ``strand1`` entries to define a single breakend event and fill "None" or "NaN" values at ``chrom2``, ``pos2``, and ``strand2`` entries that are not necessary.
+
+.. image:: ../_static/sv_position_figures/bnd_viola.png
+
+|
+In the BEDPE file created by Viola, this event will be output as the figure below.
+
+.. image:: ../_static/sv_position_figures/bnd_bedpe.png
+
+|
+The ``chrom2``, ``start2``, ``end2``, and ``strand2`` entries will be blank to keep compatibility with other tools.
+
+.. note::
+    The single breakends can be defined as the manual SV classification using :doc:`viola.Vcf.breakend2breakpoint<../reference/api/viola.Vcf.breakend2breakpoint>` function. This function converts breakend-based SV records into breakpoint-based ones and infers the SV type at the same time. If the BND SVs do not have mate BND, the inferred SV type remains “BND”, while the BND SVs with mate BND can be interpreted as either deletion, duplication, inversion, insertion, or translocation. As a result, the single breakends can be differentiated against other SV types by the infefred SV type.

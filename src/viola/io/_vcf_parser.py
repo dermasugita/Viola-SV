@@ -96,7 +96,10 @@ def read_vcf_manta(vcf_reader):
             row_CHROM2 = row_ALT.chr
             row_POS2 = row_ALT.pos
             row_STRAND1 = '-' if row_ALT.orientation else '+'
-            row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
+            if row_POS2 is None:
+                row_STRAND2 = None
+            else:
+                row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
         elif row_SVTYPE == 'INV': # manta-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
@@ -329,7 +332,10 @@ def read_vcf_delly(vcf_reader):
             row_CHROM2 = row_ALT.chr
             row_POS2 = row_ALT.pos
             row_STRAND1 = '-' if row_ALT.orientation else '+'
-            row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
+            if row_POS2 is None:
+                row_STRAND2 = None
+            else:
+                row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
         elif row_SVTYPE == 'INV': # delly-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
@@ -569,7 +575,10 @@ def read_vcf_lumpy(vcf_reader):
             row_CHROM2 = row_ALT.chr
             row_POS2 = row_ALT.pos
             row_STRAND1 = '-' if row_ALT.orientation else '+'
-            row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
+            if row_POS2 is None:
+                row_STRAND2 = None
+            else:
+                row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
         elif row_SVTYPE == 'INV': # manta-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']
@@ -778,7 +787,10 @@ def read_vcf_gridss(vcf_reader):
             row_CHROM2 = row_ALT.chr
             row_POS2 = row_ALT.pos
             row_STRAND1 = '-' if row_ALT.orientation else '+'
-            row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
+            if row_POS2 is None:
+                row_STRAND2 = None
+            else:
+                row_STRAND2 = '-' if row_ALT.remoteOrientation else '+'
         elif row_SVTYPE == 'INV': # manta-specific operation
             row_CHROM2 = row_CHROM1
             row_POS2 = row_INFO['END']

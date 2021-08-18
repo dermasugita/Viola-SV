@@ -1,0 +1,54 @@
+# This is the simple length-based definition file 
+
+name '<50 kb DEL'
+0 svlen > -50000
+1 svtype == DEL
+logic 0 & 1
+
+name '<500 kb DEL'
+0 svlen > -500000
+1 svtype == DEL
+logic 0 & 1
+
+name '<5 Mb DEL'
+0 svlen > -5000000
+1 svtype == DEL
+logic 0 & 1
+
+name '>5 Mb DEL'
+0 svlen <= -5000000
+1 svtype == DEL
+logic 0 & 1
+
+name '<50 kb DUP'
+0 svlen < 50000
+1 svtype == DUP
+logic 0 & 1
+
+name '<500 kb DUP'
+0 svlen < 500000
+1 svtype == DUP
+logic 0 & 1
+
+name '<5 Mb DUP'
+0 svlen < 5000000
+1 svtype == DUP
+logic 0 & 1
+
+name '>5 Mb DUP'
+0 svlen >= 5000000
+1 svtype == DUP
+logic 0 & 1
+
+name 'translocation'
+0 svtype == TRA
+logic 0
+
+name '<100 kb INV'
+0 svtype == INV
+1 svlen < 100000
+logic 0 & 1
+
+name '>100 kb INV'
+svtype == INV
+logic 0

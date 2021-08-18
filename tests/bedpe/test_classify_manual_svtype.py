@@ -110,6 +110,13 @@ def test_classify_manual_svtype_from_default():
     except TypeError:
         pass
 
+def test_classify_manual_svtype_from_article():
+    bedpe = viola.read_bedpe(StringIO(data))
+    try:
+        result = bedpe.classify_manual_svtype(definitions="article")
+    except TypeError:
+        pass
+
 def test_classify_manual_svtype_from_file():
     bedpe = viola.read_bedpe(StringIO(data))
     path = os.path.join(HERE, 'data/example_definition.txt')

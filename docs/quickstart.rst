@@ -147,8 +147,8 @@ First, let's look at a couple of examples.
 .. note::
    **What is <value index>?**
 
-   Some INFO and FORMAT entries are separated by comma to store more than one value.
-   For example, ``CIPOS`` and ``CIEND`` entries of INFO field always store two values:
+   Some INFO and FORMAT entries are separated by commas to store more than one value.
+   For example, the ``CIPOS`` and ``CIEND`` entries of INFO field always store two values:
 
    .. code::
 
@@ -160,7 +160,7 @@ First, let's look at a couple of examples.
       :width: 300
    
    |
-   For another example, the values in FORMAT field of Manta VCF are separated by comma.
+   As another example, the values in the FORMAT field of Manta VCF are separated by commas.
 
    .. image:: ./_static/quickstart/value_index2.png
       :width: 350

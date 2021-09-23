@@ -102,4 +102,4 @@ Documentation
 Publications
 =============
 
-https://www.biorxiv.org/content/10.1101/2021.03.31.437648v1.full
+Sugita, I., Matsuyama, S., Dobashi, H., Komura, D. & Ishikawa, S. Viola: a structural variant signature extractor with user-defined classifications. Bioinformatics (2021) doi:10.1093/bioinformatics/btab662.

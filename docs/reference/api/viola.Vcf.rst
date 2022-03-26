@@ -1,4 +1,4 @@
-viola.Vcf
+﻿viola.Vcf
 =========
 
 .. currentmodule:: viola
@@ -38,6 +38,7 @@ viola.Vcf
       ~Vcf.remove_info_table
       ~Vcf.replace_svid
       ~Vcf.replace_table
+      ~Vcf.set_value_for_info_by_id
       ~Vcf.to_bedpe
       ~Vcf.to_bedpe_like
       ~Vcf.to_vcf

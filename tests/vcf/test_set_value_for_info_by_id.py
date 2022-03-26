@@ -2,6 +2,7 @@ import viola
 from viola.testing import assert_vcf_equal
 from io import StringIO
 import os
+import pandas as pd
 HEADER = """##fileformat=VCFv4.1
 ##contig=<ID=chr1,length=195471971>
 ##contig=<ID=chr2,length=182113224>
@@ -51,4 +52,13 @@ chr11	30625198	test5	C	<DUP:TANDEM>	.	PASS	IMPRECISE;SVTYPE=DUP;SVLEN=575363;END
 
 def test_replace_svid():
     vcf = viola.read_vcf(StringIO(HEADER + body))
+    vcf.set_value_for_info_by_id("svlen", "test1", 0, -3)
     vcf.set_value_for_info_by_id("svlen", "test4_1", 0, 1100)
+    test_df = vcf.get_table('svlen')
+    expected_df = pd.read_csv(StringIO("""id;value_idx;svlen
+test1;0;-3
+test2;0;69766915
+test4_1;0;1100
+test3;0;61679
+test5;0;575363"""), sep=';')
+    pd.testing.assert_frame_equal(test_df.sort_values(by='id').reset_index(drop=True), expected_df.sort_values(by='id').reset_index(drop=True))

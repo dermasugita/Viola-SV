@@ -3,6 +3,8 @@ class TableNotFoundError(KeyError):
 
 class InfoNotFoundError(KeyError):
     pass
+class SVIDNotFoundError(KeyError):
+    pass
 
 class ContigNotFoundError(KeyError):
     pass

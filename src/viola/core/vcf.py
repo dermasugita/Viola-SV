@@ -26,6 +26,7 @@ from viola._exceptions import (
     InfoNotFoundError,
     ContigNotFoundError,
     IllegalArgumentError,
+    SVIDNotFoundError,
 )
 
 from sklearn.cluster import AgglomerativeClustering
@@ -220,6 +221,32 @@ class Vcf(Bedpe):
         self._odict_df_headers['infos_meta'] = df_replace
         self._odict_alltables['infos_meta'] = df_replace
         self._ls_infokeys.remove(table_name)
+
+    def set_value_for_info_by_id(self, table_name, sv_id, value_idx=0, value=None) -> None:
+        """
+        insert_entry_to_info_table(self, table_name, sv_id, value_idx, value)
+        Set value to the specified info table by sv_id. The value will be overwrited if it already exists.
+
+        Parameters
+        -------------
+        table_name: str
+            Name of the INFO table.
+        sv_id: str or int
+            Target SV ID
+        value_idx: int, default 0
+            0-origin index. This argument should be 0 in most cases unless multiple values are required such as CIPOS and CIEND.
+        value: int or str
+            INFO value to be set.
+        """
+        if table_name not in self._ls_infokeys:
+            raise InfoNotFoundError(table_name)
+        if sv_id not in self.ids:
+            raise SVIDNotFoundError(sv_id)
+        df = self.get_table(table_name) 
+        df.set_index('id' ,inplace=True)
+        df.loc[sv_id] = [value_idx, value]
+        df.reset_index(inplace=True)
+        self.replace_table(table_name, df)
         
     
     def drop_by_id(self, svid):

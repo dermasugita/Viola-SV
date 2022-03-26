@@ -1,5 +1,6 @@
 import viola    
 import numpy as np
+"""
 delly = viola.read_vcf("/shared_data/share/merge/test.merge.delly.vcf", variant_caller="delly")
 gridss = viola.read_vcf("/shared_data/share/merge/test.merge.gridss.vcf", variant_caller="gridss")
 lumpy = viola.read_vcf("/shared_data/share/merge/test.merge.lumpy.vcf", variant_caller="lumpy")
@@ -13,3 +14,4 @@ def test_merge():
         print(merged_all.get_table(i))
         print(merged_all.get_table(i).dtypes)
         print()
+"""

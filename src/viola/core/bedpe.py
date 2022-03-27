@@ -191,9 +191,9 @@ class Bedpe(Indexer):
         del self._odict_alltables[table_name]
         self._ls_infokeys.remove(table_name)
     
-    def set_value_for_info_by_id(self, table_name, sv_id, value_idx=0, value=None) -> None:
+    def set_value_for_info_by_id(self, table_name, sv_id, value_idx=0, value=None):
         """
-        insert_entry_to_info_table(self, table_name, sv_id, value_idx, value)
+        set_value_for_info_by_id(table_name, sv_id, value_idx, value)
         Set value to the specified info table by sv_id. The value will be overwrited if it already exists.
 
         Parameters

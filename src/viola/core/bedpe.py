@@ -205,7 +205,7 @@ class Bedpe(Indexer):
         value_idx: int, default 0
             0-origin index. This argument should be 0 in most cases unless multiple values are required such as CIPOS and CIEND.
         value: int or str
-            INFO value to be set.
+            INFO value to be set. 
         """
         if table_name not in self._ls_infokeys:
             raise InfoNotFoundError(table_name)
@@ -213,6 +213,9 @@ class Bedpe(Indexer):
             raise SVIDNotFoundError(sv_id)
         df = self.get_table(table_name) 
         df.set_index('id' ,inplace=True)
+        if df.empty:
+            # Python 3.6 and 3.7 do not infer dtypes of new values when the df is empty.
+            df = df.astype({'value_idx': int, table_name: type(value)})
         df.loc[sv_id] = [value_idx, value]
         df.reset_index(inplace=True)
         self.replace_table(table_name, df)

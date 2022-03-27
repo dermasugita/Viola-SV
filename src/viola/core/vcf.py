@@ -849,13 +849,16 @@ class Vcf(Bedpe):
             SV records with svtype being BND were integrated into breakpoints, and svtype INFO will be overwritten.
         """
         out = self.copy()
+        # Lumpy gives "secondary" flag to breakends instead of "mateid".
         if out._metadata['variantcaller'] == 'lumpy':
             ls_secondary = self.get_table('secondary')['id'].tolist()
             out = out.drop_by_id(ls_secondary)
             out.remove_info_table('secondary')
+        
         df_svpos = out.get_table('positions')
         df_svtype = out.get_table('svtype')
 
+        # Breakends of Delly don't have mates.
         if out._metadata['variantcaller'] == 'delly':
             df_svpos.loc[df_svpos['svtype'] == 'BND', 'svtype'] = 'TRA'
             df_svtype.loc[df_svtype['svtype'] == 'BND', 'svtype'] = 'TRA'
@@ -882,18 +885,27 @@ class Vcf(Bedpe):
                 continue
             if mateid is None:
                 svtype = 'BND'
+                svlen = 0
             elif row['chrom1'] != row['chrom2']:
                 svtype = 'TRA'
+                svlen = 0
             elif row['strand1'] == row['strand2']:
                 svtype = 'INV'
+                svlen = abs(row['pos2'] - row['pos1'])
             elif get_inslen_and_insseq_from_alt(row['alt'])[0] > abs(row['pos1'] - row['pos2']) * 0.5:
                 svtype = 'INS'
+                svlen = get_inslen_and_insseq_from_alt(row['alt'])[0]
             elif (row['pos1'] < row['pos2']) & (row['strand1'] == '-') & (row['strand2'] == '+'):
                 svtype = 'DUP'
+                svlen = abs(row['pos2'] - row['pos1'])
             elif (row['pos1'] > row['pos2']) & (row['strand1'] == '+') & (row['strand2'] == '-'):
                 svtype = 'DUP'
+                svlen = abs(row['pos2'] - row['pos1'])
             else:
                 svtype = 'DEL'
+                svlen = -abs(row['pos2'] - row['pos1'])
+            svlen = int(svlen)
+            out.set_value_for_info_by_id('svlen', svid, 0, value=svlen)
             
             arr_skip = np.append(arr_skip, mateid)
 
@@ -919,7 +931,8 @@ class Vcf(Bedpe):
         df_info_breakend_id = pd.DataFrame(ls_info_breakend_id, columns=('id', 'value_idx', 'orgbeid'))
         out.add_info_table('orgbeid', df_info_breakend_id, type_='String', number=2, description='Breakend ID which were in original VCF file.', source='Python package, Viola-SV.')
 
-        if out._metadata['variantcaller'] != 'lumpy':
+        if out._metadata['variantcaller'] != 'lumpy': # It is enough to exclude only Lumpy's data because Delly's output have been already returned.
+            # remove the SV records of mateid.
             out = out.drop_by_id(list(arr_skip))
 
         return out

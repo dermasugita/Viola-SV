@@ -42,7 +42,7 @@ HEADER = """##fileformat=VCFv4.1
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse1_N	mouse1_T
 """
 
-body = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	IMPRECISE;SVTYPE=DEL;SVLEN=-3764;END=82554225;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
+body = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	SVTYPE=DEL;SVLEN=-3764;END=82554225;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
 chr1	22814216	test2	T	<INV>	.	MinSomaticScore;MaxMQ0Frac	SVTYPE=INV;SVLEN=69766915;END=92581131;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
 chr8	69735694	test4_1	A	A[chr11:30018803[	.	MinSomaticScore	IMPRECISE;SVTYPE=BND;CIPOS=-100,100;MATEID=test4_2;BND_DEPTH=49;MATE_BND_DEPTH=35;SOMATIC;SOMATICSCORE=12	PR	30,1	68,9
 chr11	46689527	test3	C	<INV>	.	MinSomaticScore	IMPRECISE;SVTYPE=INV;SVLEN=61679;END=46751206;CIPOS=-64,64;CIEND=-65,65;SOMATIC;SOMATICSCORE=13;INV3	PR	17,1	55,19
@@ -54,11 +54,31 @@ def test_replace_svid():
     vcf = viola.read_vcf(StringIO(HEADER + body))
     vcf.set_value_for_info_by_id("svlen", "test1", 0, -3)
     vcf.set_value_for_info_by_id("svlen", "test4_1", 0, 1100)
+    vcf.set_value_for_info_by_id("svtype", "test4_1", 0, 'INV3')
+    vcf.set_value_for_info_by_id("imprecise", "test2", 0, True)
+    vcf.set_value_for_info_by_id("imprecise", "test4_1", 0, False)
+    vcf.set_value_for_info_by_id("imprecise", "test1", 0, False)
     test_df = vcf.get_table('svlen')
+    test_df2 = vcf.get_table('svtype')
+    test_df3 = vcf.get_table('imprecise')
     expected_df = pd.read_csv(StringIO("""id;value_idx;svlen
 test1;0;-3
 test2;0;69766915
 test4_1;0;1100
 test3;0;61679
 test5;0;575363"""), sep=';')
+    expected_df2 = pd.read_csv(StringIO("""id;value_idx;svtype
+test1;0;DEL
+test2;0;INV
+test4_1;0;INV3
+test4_2;0;BND
+test3;0;INV
+test5;0;DUP"""), sep=';')
+    expected_df3 = pd.read_csv(StringIO("""id;value_idx;imprecise
+test2;0;True
+test4_2;0;True
+test3;0;True
+test5;0;True"""), sep=';')
     pd.testing.assert_frame_equal(test_df.sort_values(by='id').reset_index(drop=True), expected_df.sort_values(by='id').reset_index(drop=True))
+    pd.testing.assert_frame_equal(test_df2.sort_values(by='id').reset_index(drop=True), expected_df2.sort_values(by='id').reset_index(drop=True))
+    pd.testing.assert_frame_equal(test_df3.sort_values(by='id').reset_index(drop=True), expected_df3.sort_values(by='id').reset_index(drop=True))

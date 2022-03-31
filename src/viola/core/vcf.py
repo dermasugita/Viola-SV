@@ -526,6 +526,12 @@ class Vcf(Bedpe):
         """
         bedpe = self.to_bedpe_like(custom_infonames=custom_infonames, add_filters=add_filters, add_formats=add_formats, confidence_intervals=confidence_intervals)
         bedpe.to_csv(file_or_buf, index=None, sep='\t')
+    
+    def as_bedpe(self):
+        df_svpos = self.get_table('posisions')
+        odict_df_info = self._odict_df_info
+        bedpe = Bedpe(df_svpos, odict_df_info)
+        return bedpe
 
     def append_infos(self, base_df,
         ls_tablenames,

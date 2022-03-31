@@ -75,6 +75,8 @@ Managing Tables
    Bedpe.get_table
    Bedpe.add_info_table
    Bedpe.remove_info_table
+   Bedpe.replace_table
+   Bedpe.set_value_for_info_by_id
 
 Merging
 ----------

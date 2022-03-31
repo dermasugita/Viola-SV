@@ -24,6 +24,7 @@ from viola._exceptions import (
     TableNotFoundError,
     InfoNotFoundError,
     ContigNotFoundError,
+    SVIDNotFoundError,
 )
 
 from sklearn.cluster import AgglomerativeClustering
@@ -190,6 +191,35 @@ class Bedpe(Indexer):
         del self._odict_alltables[table_name]
         self._ls_infokeys.remove(table_name)
     
+    def set_value_for_info_by_id(self, table_name, sv_id, value_idx=0, value=None):
+        """
+        set_value_for_info_by_id(table_name, sv_id, value_idx, value)
+        Set value to the specified info table by sv_id. The value will be overwrited if it already exists.
+
+        Parameters
+        -------------
+        table_name: str
+            Name of the INFO table.
+        sv_id: str or int
+            Target SV ID
+        value_idx: int, default 0
+            0-origin index. This argument should be 0 in most cases unless multiple values are required such as CIPOS and CIEND.
+        value: int or str
+            INFO value to be set. 
+        """
+        if table_name not in self._ls_infokeys:
+            raise InfoNotFoundError(table_name)
+        if sv_id not in self.ids:
+            raise SVIDNotFoundError(sv_id)
+        df = self.get_table(table_name) 
+        df.set_index('id' ,inplace=True)
+        if df.empty:
+            # Python 3.6 and 3.7 do not infer dtypes of new values when the df is empty.
+            df = df.astype({'value_idx': int, table_name: type(value)})
+        df.loc[sv_id] = [value_idx, value]
+        df.reset_index(inplace=True)
+        self.replace_table(table_name, df)
+
     def change_repr_config(self, key, value):
         self._repr_config[key] = value
 

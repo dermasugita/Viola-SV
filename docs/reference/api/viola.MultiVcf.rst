@@ -1,4 +1,4 @@
-viola.MultiVcf
+﻿viola.MultiVcf
 ==============
 
 .. currentmodule:: viola
@@ -39,6 +39,7 @@ viola.MultiVcf
       ~MultiVcf.remove_info_table
       ~MultiVcf.replace_svid
       ~MultiVcf.replace_table
+      ~MultiVcf.set_value_for_info_by_id
       ~MultiVcf.to_bedpe
       ~MultiVcf.to_bedpe_like
       ~MultiVcf.to_vcf

@@ -159,7 +159,7 @@ First, let's look at a couple of examples.
    .. image:: ./_static/quickstart/value_index.png
       :width: 300
    
-   |
+   | 
    As another example, the values in the FORMAT field of Manta VCF are separated by commas.
 
    .. image:: ./_static/quickstart/value_index2.png

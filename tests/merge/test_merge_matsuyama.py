@@ -1,9 +1,11 @@
 import viola    
 import numpy as np
-delly = viola.read_vcf("/shared_data/share/merge/test.merge.delly.vcf", variant_caller="delly")
-gridss = viola.read_vcf("/shared_data/share/merge/test.merge.gridss.vcf", variant_caller="gridss")
-lumpy = viola.read_vcf("/shared_data/share/merge/test.merge.lumpy.vcf", variant_caller="lumpy")
-manta = viola.read_vcf("/shared_data/share/merge/test.merge.manta.vcf", variant_caller="manta")
+import os
+HERE = os.path.abspath(os.path.dirname(__file__))
+manta = viola.read_vcf(os.path.join(HERE, 'data/test.merge.manta.vcf'), variant_caller='manta')
+delly = viola.read_vcf(os.path.join(HERE, 'data/test.merge.delly.vcf'), variant_caller='delly')
+lumpy = viola.read_vcf(os.path.join(HERE, 'data/test.merge.lumpy.vcf'), variant_caller='lumpy')
+gridss = viola.read_vcf(os.path.join(HERE, 'data/test.merge.gridss.vcf'), variant_caller='gridss')
 
 def test_merge():
     merged_all = viola.merge(ls_inputs=[delly, gridss, lumpy, manta], integration=True)

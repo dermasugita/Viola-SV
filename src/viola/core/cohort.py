@@ -372,6 +372,11 @@ class MultiVcf(Vcf):
         out_odict_df_headers = self._odict_df_headers.copy()
         return MultiVcf(direct_tables=[out_global_id, out_patients, out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers])
     
+    def concat(self, bedpe1, bedpe2):
+        """
+        concat(bedpe1, bedpe2)
+        """
+        pass
 
     def classify_manual_svtype(self, definitions=None, ls_conditions=None, ls_names=None, ls_order=None, return_data_frame=True, exclude_empty_cases=False):
         """

@@ -26,6 +26,7 @@ from viola._exceptions import (
     InfoNotFoundError,
     ContigNotFoundError,
     IllegalArgumentError,
+    SVIDNotFoundError,
 )
 
 from sklearn.cluster import AgglomerativeClustering
@@ -220,6 +221,47 @@ class Vcf(Bedpe):
         self._odict_df_headers['infos_meta'] = df_replace
         self._odict_alltables['infos_meta'] = df_replace
         self._ls_infokeys.remove(table_name)
+
+    def set_value_for_info_by_id(self, table_name, sv_id, value_idx=0, value=None):
+        """
+        set_value_for_info_by_id(table_name, sv_id, value_idx, value)
+        Set value to the specified info table by sv_id. The value will be overwrited if it already exists.
+
+        Parameters
+        -------------
+        table_name: str
+            Name of the INFO table.
+        sv_id: str or int
+            Target SV ID
+        value_idx: int, default 0
+            0-origin index. This argument should be 0 in most cases unless multiple values are required such as CIPOS and CIEND.
+        value: int or str or bool
+            INFO value to be set. For boolean INFO, set True or False. 
+        """
+        if table_name not in self._ls_infokeys:
+            raise InfoNotFoundError(table_name)
+        if sv_id not in self.ids:
+            raise SVIDNotFoundError(sv_id)
+        df = self.get_table(table_name) 
+        df.set_index('id' ,inplace=True)
+
+        info_dtype = self.infos_meta.set_index('id').at[table_name.upper(), 'type']
+        if df.empty:
+            # Python 3.6 and 3.7 do not infer dtypes of new values when the df is empty.
+            df = df.astype({'value_idx': int, table_name: type(value)})
+        if info_dtype == 'Flag' and not value:
+            if df.empty:
+                pass
+            elif sv_id not in df.index:
+                pass
+            else:
+                df.drop(sv_id, inplace=True)
+        else:
+            df.loc[sv_id] = [value_idx, value]
+
+        df.reset_index(inplace=True)
+        self.replace_table(table_name, df)
+
         
     
     def drop_by_id(self, svid):
@@ -847,13 +889,16 @@ class Vcf(Bedpe):
             SV records with svtype being BND were integrated into breakpoints, and svtype INFO will be overwritten.
         """
         out = self.copy()
+        # Lumpy gives "secondary" flag to breakends instead of "mateid".
         if out._metadata['variantcaller'] == 'lumpy':
             ls_secondary = self.get_table('secondary')['id'].tolist()
             out = out.drop_by_id(ls_secondary)
             out.remove_info_table('secondary')
+        
         df_svpos = out.get_table('positions')
         df_svtype = out.get_table('svtype')
 
+        # Breakends of Delly don't have mates.
         if out._metadata['variantcaller'] == 'delly':
             df_svpos.loc[df_svpos['svtype'] == 'BND', 'svtype'] = 'TRA'
             df_svtype.loc[df_svtype['svtype'] == 'BND', 'svtype'] = 'TRA'
@@ -880,18 +925,27 @@ class Vcf(Bedpe):
                 continue
             if mateid is None:
                 svtype = 'BND'
+                svlen = 0
             elif row['chrom1'] != row['chrom2']:
                 svtype = 'TRA'
+                svlen = 0
             elif row['strand1'] == row['strand2']:
                 svtype = 'INV'
+                svlen = abs(row['pos2'] - row['pos1'])
             elif get_inslen_and_insseq_from_alt(row['alt'])[0] > abs(row['pos1'] - row['pos2']) * 0.5:
                 svtype = 'INS'
+                svlen = get_inslen_and_insseq_from_alt(row['alt'])[0]
             elif (row['pos1'] < row['pos2']) & (row['strand1'] == '-') & (row['strand2'] == '+'):
                 svtype = 'DUP'
+                svlen = abs(row['pos2'] - row['pos1'])
             elif (row['pos1'] > row['pos2']) & (row['strand1'] == '+') & (row['strand2'] == '-'):
                 svtype = 'DUP'
+                svlen = abs(row['pos2'] - row['pos1'])
             else:
                 svtype = 'DEL'
+                svlen = -abs(row['pos2'] - row['pos1'])
+            svlen = int(svlen)
+            out.set_value_for_info_by_id('svlen', svid, 0, value=svlen)
             
             arr_skip = np.append(arr_skip, mateid)
 
@@ -917,7 +971,8 @@ class Vcf(Bedpe):
         df_info_breakend_id = pd.DataFrame(ls_info_breakend_id, columns=('id', 'value_idx', 'orgbeid'))
         out.add_info_table('orgbeid', df_info_breakend_id, type_='String', number=2, description='Breakend ID which were in original VCF file.', source='Python package, Viola-SV.')
 
-        if out._metadata['variantcaller'] != 'lumpy':
+        if out._metadata['variantcaller'] != 'lumpy': # It is enough to exclude only Lumpy's data because Delly's output have been already returned.
+            # remove the SV records of mateid.
             out = out.drop_by_id(list(arr_skip))
 
         return out

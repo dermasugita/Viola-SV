@@ -1,4 +1,4 @@
-viola.MultiBedpe
+﻿viola.MultiBedpe
 ================
 
 .. currentmodule:: viola
@@ -33,6 +33,7 @@ viola.MultiBedpe
       ~MultiBedpe.merge
       ~MultiBedpe.remove_info_table
       ~MultiBedpe.replace_table
+      ~MultiBedpe.set_value_for_info_by_id
       ~MultiBedpe.to_bedpe
       ~MultiBedpe.to_bedpe_like
       ~MultiBedpe.view

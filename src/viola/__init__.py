@@ -21,6 +21,7 @@ from viola.core.api import (
     TmpVcfForMerge,
     IntervalTreeForMerge,
     merge,
+    concat,
 )
 
 from viola.ml.api import (

@@ -26,3 +26,7 @@ from viola.core.merge import (
     IntervalTreeForMerge,
     merge,
 )
+
+from viola.core.concat import (
+    concat,
+)

@@ -32,8 +32,5 @@ chr3	10	11	chr4	20	21	test12	60	-	-
 def test_concat():
     bedpe1 = viola.read_bedpe(StringIO(data1))
     bedpe2 = viola.read_bedpe(StringIO(data2))
-    
-    multi_bedpe = viola.MultiBedpe([bedpe1], ['bedpe1'])
-    multi_bedpe.concat(bedpe1, bedpe2)
-
+    viola.concat([bedpe1, bedpe2])
     

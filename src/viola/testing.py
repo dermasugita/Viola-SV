@@ -23,6 +23,15 @@ def assert_bedpe_equal(left, right, check_like=True):
         except AssertionError:
             print('\nwhen asserting {} table, following error occured!'.format(tablename))
             raise 
+
+    # assert patient name
+    if left._patient_name is None:
+        assert right._patient_name is None
+    elif right._patient_name is None:
+        assert False
+    else:
+        assert left._patient_name == right._patient_name
+    
         
 
 def assert_vcf_equal(left, right, check_like=True):
@@ -47,3 +56,11 @@ def assert_vcf_equal(left, right, check_like=True):
     
     # assert metadata
     assert left._metadata == right._metadata
+
+    # assert patient name
+    if left._patient_name is None:
+        assert right._patient_name is None
+    elif right._patient_name is None:
+        assert False
+    else:
+        assert left._patient_name == right._patient_name

@@ -24,7 +24,7 @@ pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
 
 
-def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "manta"):
+def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "manta", patient_name = None):
     """
     read_vcf(filepath_or_buffer, variant_callser = "manta")
     Read vcf file of SV and return Vcf object.
@@ -37,6 +37,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         (Acceptable types should be extended in the future)
     variant_caller: str
         Let this function know which SV caller was used to create vcf file.
+    patient name: str or None, default None
     
     Returns
     ---------------
@@ -244,7 +245,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, patient_name]
     return Vcf(*args)
 
 
@@ -268,7 +269,8 @@ def _read_bedpe_empty(df_bedpe):
 
 def read_bedpe(filepath,
     header_info_path = None,
-    svtype_col_name: Optional[str] = None):
+    svtype_col_name: Optional[str] = None,
+    patient_name = None):
     """
     read_bedpe(filepath, header_info_path, svtype_col_name)
     Read a BEDPE file of SV and return Bedpe object.
@@ -281,6 +283,8 @@ def read_bedpe(filepath,
         Haven't been coded yet.
     svtype_col_name: str or None, default None
         If the bedpe file has a svtype column, please pass the column name to this argument.
+    patient_name: str or None, default None
+        The patient name
     
     Returns
     ---------------
@@ -364,7 +368,7 @@ def read_bedpe(filepath,
     ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend'] + ls_header_option
     odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
 
-    args = [df_svpos, odict_df_infos]
+    args = [df_svpos, odict_df_infos, patient_name]
     return Bedpe(*args)
 
 def prepend_chr(ser):

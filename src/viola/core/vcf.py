@@ -45,6 +45,10 @@ class Vcf(Bedpe):
         List of names of all tables included in the object 
     ids
         List of all SV id.
+    patient_name
+        Patient name.
+    contigs
+        List of the contigs (chromosomes)
 
     Parameters
     ----------
@@ -98,7 +102,7 @@ class Vcf(Bedpe):
         "svtype",
     ]
     _repr_column_names_set = set(_repr_column_names)
-    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}, metadata = None):
+    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}, metadata = None, patient_name = None):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
         if not isinstance(odict_df_headers, OrderedDict):
@@ -110,6 +114,7 @@ class Vcf(Bedpe):
         self._df_formats = df_formats
         self._odict_df_headers = odict_df_headers
         self._metadata = metadata
+        self._patient_name = patient_name
         self._ls_infokeys = [ x.lower() for x in odict_df_headers['infos_meta']['id'].tolist()]
         ls_keys = ['positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(odict_df_headers.keys())

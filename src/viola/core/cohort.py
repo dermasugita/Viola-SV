@@ -448,6 +448,35 @@ class MultiVcf(Vcf):
             df_feature_counts = self.get_feature_count_as_data_frame(ls_order=pd_ind_reindex, exclude_empty_cases=exclude_empty_cases)
             return df_feature_counts
     
+    def as_bedpe_multi(self):
+        """
+        as_bedpe_multi()
+        Convert MultiVcf object into MultiBedpe object.
+        
+        Returns
+        --------
+        MultiBedpe
+
+        Notes
+        ------
+        This process is lossy because only the "global_id", "patients", "positions" and INFO tables are inherited by MultiBedpe class.
+        """
+        df_id = self.get_table('global_id')
+        df_patients = self.get_table('patients')
+        df_svpos = self.get_table('positions')
+        odict_df_info_view = self._odict_df_info
+        odict_df_info = OrderedDict((k, v.copy()) for k, v in odict_df_info_view.items())
+        multi_bedpe = MultiBedpe(direct_tables=[df_id, df_patients, df_svpos, odict_df_info])
+        return multi_bedpe
+
+    def as_bedpe(self):
+        """
+        as_bedpe()
+        The same as as_bedpe_multi()
+        """
+        return self.as_bedpe_multi()
+
+    
     def get_feature_count_as_data_frame(self, feature='manual_sv_type', ls_order=None, exclude_empty_cases=False):
         df_feature = self.get_table(feature)
         df_id = self.get_table('global_id')

@@ -249,7 +249,7 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     return Vcf(*args)
 
 
-def _read_bedpe_empty(df_bedpe):
+def _read_bedpe_empty(df_bedpe, patient_name):
     ls_header = list(df_bedpe.columns)
     ls_header_required = ls_header[:10]
     ls_header_option = ls_header[10:]
@@ -263,7 +263,7 @@ def _read_bedpe_empty(df_bedpe):
     ls_df_infos = [df_svlen, df_svtype] + ls_df_infos   
     ls_infokeys = ['svlen', 'svtype'] + ls_header_option
     odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
-    args = [df_svpos, odict_df_infos]
+    args = [df_svpos, odict_df_infos, patient_name]
     return Bedpe(*args)
     
 
@@ -292,7 +292,7 @@ def read_bedpe(filepath,
     """
     df_bedpe = pd.read_csv(filepath, sep='\t')
     if df_bedpe.shape[0] == 0:
-        return _read_bedpe_empty(df_bedpe)
+        return _read_bedpe_empty(df_bedpe, patient_name)
     ls_header = list(df_bedpe.columns)
     ls_header_option = ls_header[10:]
     ls_new_header = ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2'] + ls_header_option
@@ -312,6 +312,7 @@ def read_bedpe(filepath,
     df_svpos = df_svpos.rename(columns={'name': 'id', 'score': 'qual'})
     df_svpos['ref'] = 'N'
     df_svpos = create_alt_field_from_position(df_svpos)
+    df_svpos = df_svpos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
 
     ## below: construct INFO tables
 

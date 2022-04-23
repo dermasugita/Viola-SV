@@ -90,7 +90,8 @@ class Vcf(Bedpe):
         "_metadata",
         "_odict_alltables",
         "_repr_config",
-        "_sig_criteria"
+        "_sig_criteria",
+        "_patient_name",
     ]
     _internal_attrs_set = set(_internal_attrs)
     _repr_column_names = [
@@ -605,7 +606,8 @@ class Vcf(Bedpe):
         6  test6_2   chr17:26470495  chr11:111134697     -+  None    BND
         """
         df_svpos = self.get_table('positions')
-        odict_df_info = self._odict_df_info
+        odict_df_info_view = self._odict_df_info
+        odict_df_info = OrderedDict((k, v.copy()) for k, v in odict_df_info_view.items())
         bedpe = Bedpe(df_svpos, odict_df_info)
         return bedpe
 

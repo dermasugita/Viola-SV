@@ -83,7 +83,8 @@ class Bedpe(Indexer):
         "_ls_infokeys",
         "_odict_alltables",
         "_repr_config",
-        "_sig_criteria"
+        "_sig_criteria",
+        "_patient_name"
     ]
     _internal_attrs_set = set(_internal_attrs)
     _repr_column_names = [

@@ -214,8 +214,7 @@ class Vcf(Bedpe):
         self._odict_df_info[table_name.upper()] = table
         self._odict_alltables[table_name] = table
         df_meta = self.get_table('infos_meta')
-        df_replace = df_meta.append({'id': table_name.upper(), 'number': number, 'type': type_, 'description': description, 'source': source, 'version': version},
-                                    ignore_index=True)
+        df_replace = pd.concat([df_meta, pd.DataFrame({'id': [table_name.upper()], 'number': [number], 'type': [type_], 'description': [description], 'source': [source], 'version': [version]})], ignore_index=True)
         self._odict_df_headers['infos_meta'] = df_replace
         self._odict_alltables['infos_meta'] = df_replace # not beautiful code...
     

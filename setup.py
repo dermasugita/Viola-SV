@@ -1,4 +1,4 @@
-"""setup script for SV_parser relying on setup tools
+"""setup script for Viola-SV relying on setup tools
 """
 import setuptools
 
@@ -37,6 +37,11 @@ setuptools.setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "programming language :: python :: 3.6",
+        "programming language :: python :: 3.7",
+        "programming language :: python :: 3.8",
+        "programming language :: python :: 3.9",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",

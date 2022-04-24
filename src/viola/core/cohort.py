@@ -93,6 +93,40 @@ class MultiBedpe(Bedpe):
         self._repr_config = {
             'info': None,
         }
+    def view(self, custom_infonames=None, return_as_dataframe=False):
+        """
+        view(custom_infonames, return_as_dataframe)
+        Quick view function of the Vcf object.
+
+        Parameters
+        -----------
+        custom_infonames: list_like or None, default None
+            The names of the INFO to show additionally.
+        return_as_dataframe: bool, default False
+            If true, return as pandas DataFrame.
+        """
+        df_svpos = self.get_table('positions')
+        ser_id = df_svpos['id']
+        ser_be1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
+        ser_be2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
+        ser_strand = df_svpos['strand1'] + df_svpos['strand2']
+        ser_qual = df_svpos['qual']
+        ser_svtype = df_svpos['svtype']
+        ls_ser = [ser_id, ser_be1, ser_be2, ser_strand, ser_qual, ser_svtype]
+        ls_key = ['id', 'be1', 'be2', 'strand', 'qual', 'svtype']
+        dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
+        df_out = pd.DataFrame(dict_)
+        if custom_infonames is not None:
+            df_out = self.append_infos(df_out, ls_tablenames=custom_infonames)
+        str_df_out = str(df_out)
+        str_infokeys = ','.join(list(self._ls_infokeys))
+        desc_info = 'INFO='
+        desc_doc = 'Documentation of MultiBedpe object ==> '
+        doc_link = 'https://dermasugita.github.io/ViolaDocs/docs/html/reference/multi_bedpe.html'
+        out = desc_info + str_infokeys + '\n' + desc_doc + doc_link + '\n' + str_df_out
+        if return_as_dataframe:
+            return df_out
+        return str(out)
         
 
     def filter_by_id(self, arrlike_id):
@@ -342,6 +376,41 @@ class MultiVcf(Vcf):
         self._repr_config = {
             'info': None,
         }
+
+    def view(self, custom_infonames=None, return_as_dataframe=False):
+        """
+        view(custom_infonames, return_as_dataframe)
+        Quick view function of the Vcf object.
+
+        Parameters
+        -----------
+        custom_infonames: list_like or None, default None
+            The names of the INFO to show additionally.
+        return_as_dataframe: bool, default False
+            If true, return as pandas DataFrame.
+        """
+        df_svpos = self.get_table('positions')
+        ser_id = df_svpos['id']
+        ser_be1 = df_svpos['chrom1'].astype(str) + ':' + df_svpos['pos1'].astype(str)
+        ser_be2 = df_svpos['chrom2'].astype(str) + ':' + df_svpos['pos2'].astype(str)
+        ser_strand = df_svpos['strand1'] + df_svpos['strand2']
+        ser_qual = df_svpos['qual']
+        ser_svtype = df_svpos['svtype']
+        ls_ser = [ser_id, ser_be1, ser_be2, ser_strand, ser_qual, ser_svtype]
+        ls_key = ['id', 'be1', 'be2', 'strand', 'qual', 'svtype']
+        dict_ = {k: v for k, v in zip(ls_key, ls_ser)}
+        df_out = pd.DataFrame(dict_)
+        if custom_infonames is not None:
+            df_out = self.append_infos(df_out, ls_tablenames=custom_infonames)
+        str_df_out = str(df_out)
+        str_infokeys = ','.join(list(self._ls_infokeys))
+        desc_info = 'INFO='
+        desc_doc = 'Documentation of MultiBedpe object ==> '
+        doc_link = 'https://dermasugita.github.io/ViolaDocs/docs/html/reference/multi_vcf.html'
+        out = desc_info + str_infokeys + '\n' + desc_doc + doc_link + '\n' + str_df_out
+        if return_as_dataframe:
+            return df_out
+        return str(out)
         
 
     def filter_by_id(self, arrlike_id):
@@ -460,6 +529,33 @@ class MultiVcf(Vcf):
         Notes
         ------
         This process is lossy because only the "global_id", "patients", "positions" and INFO tables are inherited by MultiBedpe class.
+
+        Examples
+        ---------
+        The file tree of this script example. You can't run this code itself, sorry!
+
+        .. code-block::
+
+            ├── this_script.py
+            └── vcf
+                ├── patient1.vcf
+                └── patient2.vcf
+        
+        Here is the example code.
+
+        >>> import viola
+        >>> multi_vcf = viola.read_vcf_multi('./vcf', variant_caller='manta')
+        >>> multi_bedpe = multi_vcf.as_bedpe()
+        >>> multi_bedpe
+        INFO=imprecise,svtype,svlen,end,cipos,ciend,cigar,mateid,event,homlen,homseq,svinslen,svinsseq,left_svinsseq,right_svinsseq,contig,bnd_depth,mate_bnd_depth,somatic,somaticscore,junction_somaticscore,inv3,inv5
+        Documentation of MultiBedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/multi_bedpe.html
+                id              be1              be2 strand  qual svtype
+        0    patient1_test1    chr1:82550461    chr1:82554226     +-  None    DEL
+        1    patient1_test2    chr1:22814217    chr1:92581132     --  None    INV
+        2    patient2_test1    chr1:60567906    chr1:60675941     +-  None    DEL
+        3    patient2_test2    chr1:69583190    chr1:69590948     +-  None    DEL
+        5  patient2_test3_1  chr11:111134697   chr17:26470495     +-  None    BND
+        6  patient2_test3_2   chr17:26470495  chr11:111134697     -+  None    BND
         """
         df_id = self.get_table('global_id')
         df_patients = self.get_table('patients')

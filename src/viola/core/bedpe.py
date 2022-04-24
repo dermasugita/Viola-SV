@@ -164,7 +164,8 @@ class Bedpe(Indexer):
         """
         df_svpos = self.get_table('positions')
         odict_df_infos = OrderedDict([(k, self.get_table(k.lower())) for k, v in self._odict_df_info.items()])
-        return Bedpe(df_svpos, odict_df_infos)
+        patient_name = self.patient_name
+        return Bedpe(df_svpos, odict_df_infos, patient_name)
 
     def add_info_table(self, table_name: str, df: pd.DataFrame):
         """

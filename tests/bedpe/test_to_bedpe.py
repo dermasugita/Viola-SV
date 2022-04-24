@@ -21,7 +21,7 @@ chr3	10	11	chr4	20	21	test12	60	-	-
 """
 
 def test_to_bedpe():
-    bedpe = viola.read_bedpe(StringIO(data))
+    bedpe = viola.read_bedpe(StringIO(data), patient_name="patient1")
     bedpe.to_bedpe(os.path.join(HERE, 'data/output.bedpe'))
     bedpe.to_bedpe(os.path.join(HERE, 'data/output.svlen.bedpe'), custom_infonames=['svlen'])
     assert filecmp.cmp(os.path.join(HERE, 'data/output.bedpe'), os.path.join(HERE, 'data/bedpe_expected.bedpe'))

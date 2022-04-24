@@ -9,7 +9,7 @@ The first step is to create an viola.Vcf object.
    :okexcept:
 
    import viola
-   vcf = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/ViolaDocs/main/docs/html/_static/tutorial.manta.vcf')
+   vcf = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/ViolaDocs/main/docs/html/_static/tutorial.manta.vcf', patient_name='manta1')
 
 Then use ``to_bedpe_like`` method to generate bedpe-formatted pandas DataFrame.
 

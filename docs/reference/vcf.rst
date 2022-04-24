@@ -37,6 +37,7 @@ Conversion
 
    Vcf.copy
    Vcf.to_bedpe_like
+   Vcf.as_bedpe
    Vcf.to_vcf_like
    Vcf.breakend2breakpoint
 

@@ -49,6 +49,7 @@
       ~MultiBedpe.contigs
       ~MultiBedpe.ids
       ~MultiBedpe.idx
+      ~MultiBedpe.patient_name
       ~MultiBedpe.repr_config
       ~MultiBedpe.sv_count
       ~MultiBedpe.table_list

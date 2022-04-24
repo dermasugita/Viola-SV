@@ -64,7 +64,7 @@ chr11	15249914	BND00001	A	A]chr10:72297333]	193	PASS	IMPRECISE;SVTYPE=BND;SVMETH
 delly_body_buf = StringIO(delly_HEADER + delly_body)
 
 class TestReadVcfLumpy:
-    vcf_delly = viola.read_vcf(delly_body_buf, variant_caller='delly')
+    vcf_delly = viola.read_vcf(delly_body_buf, variant_caller='delly', patient_name='delly')
     def test_read_vcf_delly(self):
         vcf = self.vcf_delly
 

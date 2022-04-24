@@ -87,8 +87,8 @@ def tra(x):
     return x.filter('svtype == BND').ids
 
 def test_classify_manual_svtype():
-    bedpe1 = viola.read_bedpe(StringIO(data))
-    bedpe2 = viola.read_bedpe(StringIO(data))
+    bedpe1 = viola.read_bedpe(StringIO(data), patient_name="patient1")
+    bedpe2 = viola.read_bedpe(StringIO(data), patient_name="patient1")
     ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
     ls_names = ['small_del', 'large_del', 'small_dup', 'large_dup', 'small_inv', 'tra']
     multibedpe = viola.MultiBedpe([bedpe1, bedpe2], ['bedpe1', 'bedpe2'])
@@ -107,8 +107,8 @@ def test_classify_manual_svtype():
     pd.testing.assert_frame_equal(result, result_expected)
 
 def test_classify_manual_svtype_with_empty():
-    bedpe1 = viola.read_bedpe(StringIO(data))
-    bedpe2 = viola.read_bedpe(StringIO(data))
+    bedpe1 = viola.read_bedpe(StringIO(data), patient_name="patient1")
+    bedpe2 = viola.read_bedpe(StringIO(data), patient_name="patient1")
     empty1 = viola.read_bedpe(StringIO(data_empty))
     empty2 = viola.read_bedpe(StringIO(data_empty))
     ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
@@ -129,8 +129,8 @@ def test_classify_manual_svtype_with_empty():
     pd.testing.assert_frame_equal(result, result_expected)
 
 def test_classify_manual_svtype_exclude_empty():
-    bedpe1 = viola.read_bedpe(StringIO(data))
-    bedpe2 = viola.read_bedpe(StringIO(data))
+    bedpe1 = viola.read_bedpe(StringIO(data), patient_name="patient1")
+    bedpe2 = viola.read_bedpe(StringIO(data), patient_name="patient1")
     empty1 = viola.read_bedpe(StringIO(data_empty))
     empty2 = viola.read_bedpe(StringIO(data_empty))
     ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
@@ -151,8 +151,8 @@ def test_classify_manual_svtype_exclude_empty():
     pd.testing.assert_frame_equal(result, result_expected)
     
 def test_classify_manual_svtype_from_definitions():
-    bedpe1 = viola.read_bedpe(StringIO(data))
-    bedpe2 = viola.read_bedpe(StringIO(data))
+    bedpe1 = viola.read_bedpe(StringIO(data), patient_name="patient1")
+    bedpe2 = viola.read_bedpe(StringIO(data), patient_name="patient1")
     ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
     ls_names = ['small_del', 'large_del', 'small_dup', 'large_dup', 'small_inv', 'tra']
     multibedpe = viola.MultiBedpe([bedpe1, bedpe2], ['bedpe1', 'bedpe2'])
@@ -171,8 +171,8 @@ def test_classify_manual_svtype_from_definitions():
     pd.testing.assert_frame_equal(result, result_expected)
 
 def test_classify_manual_svtype_from_file():
-    bedpe1 = viola.read_bedpe(StringIO(data))
-    bedpe2 = viola.read_bedpe(StringIO(data))
+    bedpe1 = viola.read_bedpe(StringIO(data), patient_name="patient1")
+    bedpe2 = viola.read_bedpe(StringIO(data), patient_name="patient1")
     ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
     ls_names = ['small_del', 'large_del', 'small_dup', 'large_dup', 'small_inv', 'tra']
     multibedpe = viola.MultiBedpe([bedpe1, bedpe2], ['bedpe1', 'bedpe2'])

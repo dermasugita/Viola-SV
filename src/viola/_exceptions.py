@@ -10,3 +10,5 @@ class ContigNotFoundError(KeyError):
     pass
 class IllegalArgumentError(ValueError):
     pass
+class DuplicatedPatientIDError(Exception):
+    pass

@@ -71,6 +71,6 @@ chr15	64186262	gridss68ff_1141h	T	T]chr15:63184301]	3801.43	PASS	EVENT=gridss68f
 """
 
 def test_single():
-    vcf = viola.read_vcf(StringIO(HEADER + body), variant_caller='gridss')
+    vcf = viola.read_vcf(StringIO(HEADER + body), variant_caller='gridss', patient_name='patient1')
     vcf_single = vcf.idx['single_test']
     print(vcf_single.positions)

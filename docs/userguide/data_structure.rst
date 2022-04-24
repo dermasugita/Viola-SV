@@ -40,6 +40,7 @@ chrom2(FK)  Chromosome of the second breakend
 pos2        Position of the second breakend          
 strand1     Strand of the first breakend             
 strand2     Strand of the second breakend            
+qual        Quality of the SV call
 ref         Reference nucleotides in the chrom1:pos1 
 alt(FK)     Details about the alteration             
 svtype      SV type of the event                     

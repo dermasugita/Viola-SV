@@ -61,6 +61,14 @@ Annotation
    MultiVcf.annotate_bed
    MultiVcf.get_microhomology
 
+Conversion
+---------------
+
+.. autosummary::
+   :toctree: api/
+
+   MultiVcf.as_bedpe_multi
+
 Signature_analysis
 --------------------
 

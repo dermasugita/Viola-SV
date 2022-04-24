@@ -14,3 +14,10 @@ VCF Merge
 
     merge
 
+---------------------------------
+MultiBedpe/Bedpe Concatenation
+---------------------------------
+.. autosummary::
+    :toctree: api/
+
+    concat

@@ -88,6 +88,7 @@ def concat(ls_objs):
     Returns
     ---------
     MultiBedpe
+        The MultiBedpe object including all patients in the input data.
 
     Examples
     ---------
@@ -114,7 +115,7 @@ def concat(ls_objs):
     >>> concat_bedpe = viola.concat([multi_bedpe1, bedpe3])
     >>> print(concat_bedpe)
     INFO=svlen,svtype,cipos,ciend,info_0,info_1,info_2
-    Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html
+    Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/multi_bedpe.html
                    id       be1        be2 strand  qual svtype
     0  patient1_test1   chr1:11    chr1:21     +-    60    DEL
     1  patient1_test2  chr1:151   chr1:301     +-    60    DEL

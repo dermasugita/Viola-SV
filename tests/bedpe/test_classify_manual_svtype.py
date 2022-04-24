@@ -73,7 +73,7 @@ def tra(x):
     return x.filter('svtype == BND').ids
 
 def test_classify_manual_svtype():
-    bedpe = viola.read_bedpe(StringIO(data))
+    bedpe = viola.read_bedpe(StringIO(data), patient_name="patient1")
     ls_conditions = [small_del, large_del, small_dup, large_dup, small_inv, tra]
     ls_names = ['small_del', 'large_del', 'small_dup', 'large_dup', 'small_inv', 'tra']
     result = bedpe.classify_manual_svtype(ls_conditions=ls_conditions, ls_names=ls_names)
@@ -89,7 +89,7 @@ def test_classify_manual_svtype():
     pd.testing.assert_series_equal(result, result_expected)
     
 def test_classify_manual_svtype_from_definitions():
-    bedpe = viola.read_bedpe(StringIO(data))
+    bedpe = viola.read_bedpe(StringIO(data), patient_name="patient1")
     result = bedpe.classify_manual_svtype(definitions=StringIO(DEFINITIONS))
     manual_sv_type = bedpe.manual_sv_type
     manual_sv_type.set_index('id', inplace=True)
@@ -104,21 +104,21 @@ def test_classify_manual_svtype_from_definitions():
     pd.testing.assert_series_equal(result, result_expected)
 
 def test_classify_manual_svtype_from_default():
-    bedpe = viola.read_bedpe(StringIO(data))
+    bedpe = viola.read_bedpe(StringIO(data), patient_name="patient1")
     try:
         result = bedpe.classify_manual_svtype(definitions="default")
     except TypeError:
         pass
 
 def test_classify_manual_svtype_from_article():
-    bedpe = viola.read_bedpe(StringIO(data))
+    bedpe = viola.read_bedpe(StringIO(data), patient_name="patient1")
     try:
         result = bedpe.classify_manual_svtype(definitions="article")
     except TypeError:
         pass
 
 def test_classify_manual_svtype_from_file():
-    bedpe = viola.read_bedpe(StringIO(data))
+    bedpe = viola.read_bedpe(StringIO(data), patient_name="patient1")
     path = os.path.join(HERE, 'data/example_definition.txt')
     result = bedpe.classify_manual_svtype(definitions=path)
     manual_sv_type = bedpe.manual_sv_type

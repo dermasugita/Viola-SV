@@ -43,7 +43,7 @@ lumpy_body_inv = """chr10	39984191	43	N	<INV>	.	.	SVTYPE=INV;STRANDS=++:4,--:2;S
 lumpy_body_inv_buf = StringIO(lumpy_HEADER + lumpy_body_inv)
 
 class TestReadVcfLumpy:
-    vcf_lumpy_inv = viola.read_vcf(lumpy_body_inv_buf, variant_caller='lumpy')
+    vcf_lumpy_inv = viola.read_vcf(lumpy_body_inv_buf, variant_caller='lumpy', patient_name='patient1')
     def test_read_vcf_lumpy_inv(self):
         vcf = self.vcf_lumpy_inv
 

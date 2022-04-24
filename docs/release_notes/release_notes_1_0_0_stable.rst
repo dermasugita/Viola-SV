@@ -92,7 +92,8 @@ Python 3.9.0 is now officially supported!
 Fixed Features
 ---------------
 
-- Fixed feature in viola.Vcf.breadend2breakpoint not calculating SVLEN (`GH72`_).
+- Fixed feature in :doc:`viola.Vcf.breadend2breakpoint<../reference/api/viola.Vcf.breakend2breakpoint>` not calculating SVLEN (`GH72`_).
+- Fixed feature in :doc:`viola.MultiVcf.view<../reference/api/viola.MultiVcf.view>` and :doc:`viola.MultiVcf.view<../reference/api/viola.MultiVcf.view>` showing wrong documentation url.
 
 .. _GH72: https://github.com/dermasugita/Viola-SV/issues/72
 
@@ -100,4 +101,4 @@ Fixed Features
 Deprecations
 ---------------
 
-- Passing NoneType to the 'patient_name' argument of viola.read_bedpe/viola.read_vcf is deprecated.
+- Passing NoneType to the 'patient_name' argument of :doc:`viola.read_bedpe<../reference/api/viola.read_bedpe>` or :doc:`viola.read_vcf<../reference/api/viola.read_vcf>` is deprecated.

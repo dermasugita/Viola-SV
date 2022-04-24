@@ -4,6 +4,7 @@ import os
 import re
 import urllib.request
 from collections import OrderedDict
+import warnings
 from typing import (
     Union,
     Optional,
@@ -26,7 +27,7 @@ pd.set_option('display.width', 1000)
 
 def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "manta", patient_name = None):
     """
-    read_vcf(filepath_or_buffer, variant_callser = "manta")
+    read_vcf(filepath_or_buffer, variant_callser = "manta", patient_name = None)
     Read vcf file of SV and return Vcf object.
 
     Parameters
@@ -43,6 +44,11 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     ---------------
     A Vcf object
     """
+    if patient_name is None:
+        warnings.warn(
+            'Passing NoneType to the "patient_name" argument is deprecated.',
+            DeprecationWarning
+        )
     # read vcf files using PyVcf package
     if isinstance(filepath_or_buffer, str) and is_url(filepath_or_buffer):
         b = StringIO(urllib.request.urlopen(filepath_or_buffer).read().decode('utf-8'))
@@ -290,6 +296,11 @@ def read_bedpe(filepath,
     ---------------
     A Bedpe object
     """
+    if patient_name is None:
+        warnings.warn(
+            'Passing NoneType to the "patient_name" argument is deprecated.',
+            DeprecationWarning
+        )
     df_bedpe = pd.read_csv(filepath, sep='\t')
     if df_bedpe.shape[0] == 0:
         return _read_bedpe_empty(df_bedpe, patient_name)

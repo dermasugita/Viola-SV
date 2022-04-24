@@ -61,6 +61,13 @@ Annotation
    MultiBedpe.annotate_bed
    MultiBedpe.get_microhomology
 
+Representation
+--------------
+.. autosummary::
+   :toctree: api/
+
+   MultiBedpe.view
+
 Signature_analysis
 --------------------
 

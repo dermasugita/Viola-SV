@@ -69,6 +69,13 @@ Conversion
 
    MultiVcf.as_bedpe_multi
 
+Representation
+--------------
+.. autosummary::
+   :toctree: api/
+
+   MultiVcf.view
+
 Signature_analysis
 --------------------
 

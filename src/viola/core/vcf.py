@@ -45,6 +45,10 @@ class Vcf(Bedpe):
         List of names of all tables included in the object 
     ids
         List of all SV id.
+    patient_name
+        Patient name.
+    contigs
+        List of the contigs (chromosomes)
 
     Parameters
     ----------
@@ -86,7 +90,8 @@ class Vcf(Bedpe):
         "_metadata",
         "_odict_alltables",
         "_repr_config",
-        "_sig_criteria"
+        "_sig_criteria",
+        "_patient_name",
     ]
     _internal_attrs_set = set(_internal_attrs)
     _repr_column_names = [
@@ -98,7 +103,7 @@ class Vcf(Bedpe):
         "svtype",
     ]
     _repr_column_names_set = set(_repr_column_names)
-    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}, metadata = None):
+    def __init__(self, df_svpos, df_filters, odict_df_info, df_formats, odict_df_headers = {}, metadata = None, patient_name = None):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
         if not isinstance(odict_df_headers, OrderedDict):
@@ -110,6 +115,7 @@ class Vcf(Bedpe):
         self._df_formats = df_formats
         self._odict_df_headers = odict_df_headers
         self._metadata = metadata
+        self._patient_name = patient_name
         self._ls_infokeys = [ x.lower() for x in odict_df_headers['infos_meta']['id'].tolist()]
         ls_keys = ['positions', 'filters'] + self._ls_infokeys + ['formats'] + \
         list(odict_df_headers.keys())
@@ -568,6 +574,42 @@ class Vcf(Bedpe):
         """
         bedpe = self.to_bedpe_like(custom_infonames=custom_infonames, add_filters=add_filters, add_formats=add_formats, confidence_intervals=confidence_intervals)
         bedpe.to_csv(file_or_buf, index=None, sep='\t')
+    
+    def as_bedpe(self):
+        """
+        as_bedpe()
+        Convert Vcf object into Bedpe object.
+
+        Returns
+        --------
+        Bedpe
+
+        Notes
+        ------
+        This process is lossy because only the "positions" table and INFO tables are inherited by Bedpe class.
+
+        Examples
+        ---------
+        >>> import viola
+        >>> vcf = viola.read_vcf('https://raw.githubusercontent.com/dermasugita/ViolaDocs/main/docs/html/_static/tutorial.manta.vcf', patient_name='patient1')
+        >>> bedpe = vcf.as_bedpe()
+        >>> bedpe
+        INFO=imprecise,svtype,svlen,end,cipos,ciend,cigar,mateid,event,homlen,homseq,svinslen,svinsseq,left_svinsseq,right_svinsseq,contig,bnd_depth,mate_bnd_depth,somatic,somaticscore,junction_somaticscore,inv3,inv5
+        Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html
+                id              be1              be2 strand  qual svtype
+        0    test1    chr1:82550461    chr1:82554226     +-  None    DEL
+        1    test2    chr1:22814217    chr1:92581132     --  None    INV
+        2    test3    chr1:60567906    chr1:60675941     +-  None    DEL
+        3    test4    chr1:69583190    chr1:69590948     +-  None    DEL
+        4    test5  chr11:104534877  chr11:104536574     +-  None    DEL
+        5  test6_1  chr11:111134697   chr17:26470495     +-  None    BND
+        6  test6_2   chr17:26470495  chr11:111134697     -+  None    BND
+        """
+        df_svpos = self.get_table('positions')
+        odict_df_info_view = self._odict_df_info
+        odict_df_info = OrderedDict((k, v.copy()) for k, v in odict_df_info_view.items())
+        bedpe = Bedpe(df_svpos, odict_df_info)
+        return bedpe
 
     def append_infos(self, base_df,
         ls_tablenames,

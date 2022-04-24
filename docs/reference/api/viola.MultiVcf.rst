@@ -19,6 +19,8 @@
       ~MultiVcf.append_filters
       ~MultiVcf.append_formats
       ~MultiVcf.append_infos
+      ~MultiVcf.as_bedpe
+      ~MultiVcf.as_bedpe_multi
       ~MultiVcf.breakend2breakpoint
       ~MultiVcf.calculate_info
       ~MultiVcf.change_repr_config
@@ -57,6 +59,7 @@
       ~MultiVcf.contigs
       ~MultiVcf.ids
       ~MultiVcf.idx
+      ~MultiVcf.patient_name
       ~MultiVcf.repr_config
       ~MultiVcf.sv_count
       ~MultiVcf.table_list

@@ -19,6 +19,7 @@
       ~Vcf.append_filters
       ~Vcf.append_formats
       ~Vcf.append_infos
+      ~Vcf.as_bedpe
       ~Vcf.breakend2breakpoint
       ~Vcf.calculate_info
       ~Vcf.change_repr_config
@@ -56,6 +57,7 @@
       ~Vcf.contigs
       ~Vcf.ids
       ~Vcf.idx
+      ~Vcf.patient_name
       ~Vcf.repr_config
       ~Vcf.sv_count
       ~Vcf.table_list

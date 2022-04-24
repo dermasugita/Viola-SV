@@ -22,7 +22,7 @@ data_empty = """chrom1	start1	end1	chrom2	start2	end2	name	score	strand1	strand2
 """
 
 def test_read_bedpe_with_empty():
-    bedpe1 = viola.read_bedpe(StringIO(data))
-    bedpe2 = viola.read_bedpe(StringIO(data))
+    bedpe1 = viola.read_bedpe(StringIO(data), patient_name="patient1")
+    bedpe2 = viola.read_bedpe(StringIO(data), patient_name="patient1")
     bedpe_empty = viola.read_bedpe(StringIO(data_empty))
     multibedpe = viola.MultiBedpe([bedpe1, bedpe2, bedpe_empty], ['bedpe1', 'bedpe2', 'empty'])

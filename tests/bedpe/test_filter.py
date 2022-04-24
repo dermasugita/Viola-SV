@@ -17,5 +17,5 @@ chr3	10	11	chr4	20	21	test12	60	-	-
 """
 
 def test_filter():
-    bedpe = viola.read_bedpe(StringIO(DATA))
+    bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
     f_bedpe = bedpe.filter(['svtype == DEL', 'svtype == DUP', 'svlen > -100'], query_logic='(0 | 1) & 2')

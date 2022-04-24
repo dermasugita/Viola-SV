@@ -48,6 +48,7 @@
       ~Bedpe.contigs
       ~Bedpe.ids
       ~Bedpe.idx
+      ~Bedpe.patient_name
       ~Bedpe.repr_config
       ~Bedpe.sv_count
       ~Bedpe.table_list

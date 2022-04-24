@@ -4,6 +4,7 @@ import os
 import re
 import urllib.request
 from collections import OrderedDict
+import warnings
 from typing import (
     Union,
     Optional,
@@ -24,9 +25,9 @@ pd.set_option('display.max_colwidth', 30)
 pd.set_option('display.width', 1000) 
 
 
-def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "manta"):
+def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "manta", patient_name = None):
     """
-    read_vcf(filepath_or_buffer, variant_callser = "manta")
+    read_vcf(filepath_or_buffer, variant_callser = "manta", patient_name = None)
     Read vcf file of SV and return Vcf object.
 
     Parameters
@@ -37,11 +38,17 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         (Acceptable types should be extended in the future)
     variant_caller: str
         Let this function know which SV caller was used to create vcf file.
+    patient name: str or None, default None
     
     Returns
     ---------------
     A Vcf object
     """
+    if patient_name is None:
+        warnings.warn(
+            'Passing NoneType to the "patient_name" argument is deprecated.',
+            DeprecationWarning
+        )
     # read vcf files using PyVcf package
     if isinstance(filepath_or_buffer, str) and is_url(filepath_or_buffer):
         b = StringIO(urllib.request.urlopen(filepath_or_buffer).read().decode('utf-8'))
@@ -244,11 +251,11 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
     df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, patient_name]
     return Vcf(*args)
 
 
-def _read_bedpe_empty(df_bedpe):
+def _read_bedpe_empty(df_bedpe, patient_name):
     ls_header = list(df_bedpe.columns)
     ls_header_required = ls_header[:10]
     ls_header_option = ls_header[10:]
@@ -262,13 +269,14 @@ def _read_bedpe_empty(df_bedpe):
     ls_df_infos = [df_svlen, df_svtype] + ls_df_infos   
     ls_infokeys = ['svlen', 'svtype'] + ls_header_option
     odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
-    args = [df_svpos, odict_df_infos]
+    args = [df_svpos, odict_df_infos, patient_name]
     return Bedpe(*args)
     
 
 def read_bedpe(filepath,
     header_info_path = None,
-    svtype_col_name: Optional[str] = None):
+    svtype_col_name: Optional[str] = None,
+    patient_name = None):
     """
     read_bedpe(filepath, header_info_path, svtype_col_name)
     Read a BEDPE file of SV and return Bedpe object.
@@ -281,14 +289,21 @@ def read_bedpe(filepath,
         Haven't been coded yet.
     svtype_col_name: str or None, default None
         If the bedpe file has a svtype column, please pass the column name to this argument.
+    patient_name: str or None, default None
+        The patient name
     
     Returns
     ---------------
     A Bedpe object
     """
+    if patient_name is None:
+        warnings.warn(
+            'Passing NoneType to the "patient_name" argument is deprecated.',
+            DeprecationWarning
+        )
     df_bedpe = pd.read_csv(filepath, sep='\t')
     if df_bedpe.shape[0] == 0:
-        return _read_bedpe_empty(df_bedpe)
+        return _read_bedpe_empty(df_bedpe, patient_name)
     ls_header = list(df_bedpe.columns)
     ls_header_option = ls_header[10:]
     ls_new_header = ['chrom1', 'start1', 'end1', 'chrom2', 'start2', 'end2', 'name', 'score', 'strand1', 'strand2'] + ls_header_option
@@ -308,6 +323,7 @@ def read_bedpe(filepath,
     df_svpos = df_svpos.rename(columns={'name': 'id', 'score': 'qual'})
     df_svpos['ref'] = 'N'
     df_svpos = create_alt_field_from_position(df_svpos)
+    df_svpos = df_svpos[['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype']]
 
     ## below: construct INFO tables
 
@@ -364,7 +380,7 @@ def read_bedpe(filepath,
     ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend'] + ls_header_option
     odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
 
-    args = [df_svpos, odict_df_infos]
+    args = [df_svpos, odict_df_infos, patient_name]
     return Bedpe(*args)
 
 def prepend_chr(ser):

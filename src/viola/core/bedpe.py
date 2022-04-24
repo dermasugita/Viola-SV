@@ -43,6 +43,8 @@ class Bedpe(Indexer):
         List of names of all tables included in the object 
     ids
         List of all SV id.
+    patient_name
+        Patient name.
     
     Parameters
     ----------
@@ -81,7 +83,8 @@ class Bedpe(Indexer):
         "_ls_infokeys",
         "_odict_alltables",
         "_repr_config",
-        "_sig_criteria"
+        "_sig_criteria",
+        "_patient_name"
     ]
     _internal_attrs_set = set(_internal_attrs)
     _repr_column_names = [
@@ -94,12 +97,13 @@ class Bedpe(Indexer):
     ]
     _repr_column_names_set = set(_repr_column_names)
 
-    def __init__(self, df_svpos: pd.DataFrame, odict_df_info: 'OrderedDict[str, pd.DataFrame]'):
+    def __init__(self, df_svpos: pd.DataFrame, odict_df_info: 'OrderedDict[str, pd.DataFrame]', patient_name=None):
         if not isinstance(odict_df_info, OrderedDict):
             raise TypeError('the type of the argument "odict_df_info" should be collections.OrderedDict')
         self._df_svpos = df_svpos
         self._odict_df_info = odict_df_info
         self._ls_infokeys = [x.lower() for x in odict_df_info.keys()]
+        self._patient_name = patient_name
         ls_keys = ['positions'] + self._ls_infokeys
         ls_values = [df_svpos] + list(odict_df_info.values())
         self._odict_alltables = OrderedDict([(k, v) for k, v in zip(ls_keys, ls_values)])
@@ -120,6 +124,13 @@ class Bedpe(Indexer):
         Return a list of names of all tables in the object. 
         """
         return list(self._odict_alltables.keys())
+    
+    @property
+    def patient_name(self):
+        """
+        Return the name of the patient.
+        """
+        return self._patient_name
     
     @property
     def ids(self):
@@ -153,7 +164,8 @@ class Bedpe(Indexer):
         """
         df_svpos = self.get_table('positions')
         odict_df_infos = OrderedDict([(k, self.get_table(k.lower())) for k, v in self._odict_df_info.items()])
-        return Bedpe(df_svpos, odict_df_infos)
+        patient_name = self.patient_name
+        return Bedpe(df_svpos, odict_df_infos, patient_name)
 
     def add_info_table(self, table_name: str, df: pd.DataFrame):
         """

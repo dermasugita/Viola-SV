@@ -19,7 +19,7 @@ chr3	10	11	chr4	20	21	test12	60	-	-
 
 
 def test_remove_info():
-    bedpe = viola.read_bedpe(StringIO(data))
+    bedpe = viola.read_bedpe(StringIO(data), patient_name="patient1")
     bedpe_copy = bedpe.copy()
 
     test_info = pd.DataFrame({'id': ['test1', 'test2'], 'value_idx': [0, 0], 'test': ['t', 'u']})

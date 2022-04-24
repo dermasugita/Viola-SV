@@ -267,11 +267,11 @@ def test_read_vcf_empty_manta():
     vcf = viola.read_vcf(StringIO(MANTA))
 
 def test_read_vcf_empty_delly():
-    vcf = viola.read_vcf(StringIO(DELLY), variant_caller='delly')
+    vcf = viola.read_vcf(StringIO(DELLY), variant_caller='delly', patient_name='delly')
 
 def test_read_vcf_empty_lumpy():
-    vcf = viola.read_vcf(StringIO(LUMPY), variant_caller='lumpy')
+    vcf = viola.read_vcf(StringIO(LUMPY), variant_caller='lumpy', patient_name='gridss')
 
 def test_read_vcf_empty_lumpy():
-    vcf = viola.read_vcf(StringIO(GRIDSS), variant_caller='gridss')
+    vcf = viola.read_vcf(StringIO(GRIDSS), variant_caller='gridss', patient_name='lumpy')
     

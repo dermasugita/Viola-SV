@@ -4,13 +4,13 @@ import setuptools
 
 
 PACKAGES = setuptools.find_packages('src')
-DEPENDENCIES = ["pandas",
-                "PyVCF",
-                "intervaltree",
-                "biopython",
-                "scikit-learn",
-                "scipy",
-                "click",]
+DEPENDENCIES = ["pandas >= 1.1.5",
+                "PyVCF >= 0.6.8",
+                "intervaltree >= 3.1.0",
+                "biopython >= 1.79",
+                "scikit-learn >= 0.24.2",
+                "scipy >= 1.5.4",
+                "click >= 8.0.4",]
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()

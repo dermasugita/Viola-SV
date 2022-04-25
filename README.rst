@@ -6,31 +6,30 @@ Welcom to Viola Package!
 
 .. image:: https://dermasugita.github.io/ViolaDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
 
-.. image:: https://img.shields.io/pypi/v/viola-sv
-   :alt: PyPI
-   :target: https://pypi.org/project/Viola-SV/
+|PyPI|_ |PyVersion|_ |License|_
+|DOI|_ |DOC|_ 
+|Issue|_ |Downloads|_
 
-.. image:: https://img.shields.io/pypi/pyversions/viola-sv
-   :alt: PyPI - Python Version
+.. |PyPI| image:: https://img.shields.io/pypi/v/viola-sv
+.. _PyPI: https://pypi.org/project/Viola-SV/
 
-.. image:: https://img.shields.io/pypi/l/viola-sv
-   :alt: PyPI - License
+.. |PyVersion| image:: https://img.shields.io/pypi/pyversions/viola-sv
+.. _PyVersion: https://pypi.org/project/Viola-SV/
 
-.. image:: https://img.shields.io/badge/DOI-10.1093%2Fbioinformatics%2Fbtab662-9cf
-   :alt: DOI
-   :target: https://academic.oup.com/bioinformatics/article/38/2/540/6371863
+.. |License| image:: https://img.shields.io/pypi/l/viola-sv
+.. _License: https://pypi.org/project/Viola-SV/
 
-.. image:: https://img.shields.io/badge/documentation-here-yellow
-   :alt: Documentation
-   :target: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
+.. |DOI| image:: https://img.shields.io/badge/DOI-10.1093%2Fbioinformatics%2Fbtab662-9cf
+.. _DOI: https://academic.oup.com/bioinformatics/article/38/2/540/6371863
 
-.. image:: https://img.shields.io/badge/issue%20tracking-github-brightgreen
-   :alt: Issue Tracking
-   :target: https://github.com/dermasugita/Viola-SV/issues
+.. |DOC| image:: https://img.shields.io/badge/documentation-here-yellow
+.. _DOC: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
 
-.. image:: https://pepy.tech/badge/viola-sv/month
-   :alt: Download/Month
-   :target: https://pepy.tech/project/viola-sv
+.. |Issue| image:: https://img.shields.io/badge/issue%20tracking-github-brightgreen
+.. _Issue: https://github.com/dermasugita/Viola-SV/issues
+
+.. |Downloads| image:: https://pepy.tech/badge/viola-sv/month
+.. _Downloads: https://pepy.tech/project/viola-sv
 
 Viola is a flexible and powerful python package designed specifically for analysis of genomic structural variant (SV) signatures.
 We provide following tools for SV signature analysis:

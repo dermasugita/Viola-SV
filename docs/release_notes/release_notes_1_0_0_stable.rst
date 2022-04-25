@@ -1,7 +1,7 @@
 .. _release_notes_1_0_0_stable:
 
 ====================================
-Viola 1.0.0-stable Release Notes
+Viola 1.0.0 Release Notes
 ====================================
 
 ---------------

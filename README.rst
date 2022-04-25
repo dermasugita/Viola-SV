@@ -31,6 +31,9 @@ Welcom to Viola Package!
 .. |Downloads| image:: https://pepy.tech/badge/viola-sv/month
 .. _Downloads: https://pepy.tech/project/viola-sv
 
+Overview
+==============
+
 Viola is a flexible and powerful python package designed specifically for analysis of genomic structural variant (SV) signatures.
 We provide following tools for SV signature analysis:
 
@@ -110,10 +113,12 @@ Manuals for individual classes/methods/functions are available in the `API Refer
 Documentation
 =============
 
+- `Documentation Home`_
 - `Quick Start`_
 - `Signature Analysis Tutorial`_
 - `API Reference`_
 
+.. _Documentation Home: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
 .. _Quick Start: https://dermasugita.github.io/ViolaDocs/docs/html/quickstart.html
 .. _Signature Analysis Tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/signature_analysis.html
 .. _API Reference: https://dermasugita.github.io/ViolaDocs/docs/html/reference/index.html

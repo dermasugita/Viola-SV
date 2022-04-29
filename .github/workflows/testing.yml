@@ -23,10 +23,10 @@ jobs:
         python -m pip install tox tox-gh-actions pytest-cov
     - name: Test with tox
       run: tox
-    - name: Upload coverage.xml
+    - name: Push coverage.xml to Codecov
       if: ${{matrix.python-version == '3.9'}}
       uses: codecov/codecov-action@v2
       with:
-        files: ./coverage.xms
+        files: ./coverage.xml
         fail_ci_if_error: true
         verbose: true

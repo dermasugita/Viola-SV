@@ -62,13 +62,13 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         #raise TypeError("should be file or buffer")
 
     if variant_caller == 'manta':
-        return read_vcf_manta(vcf_reader)
+        return read_vcf_manta(vcf_reader, patient_name=patient_name)
     elif variant_caller == 'delly':
-        return read_vcf_delly(vcf_reader)
+        return read_vcf_delly(vcf_reader, patient_name)
     elif variant_caller == 'lumpy':
-        return read_vcf_lumpy(vcf_reader)
+        return read_vcf_lumpy(vcf_reader, patient_name)
     elif variant_caller == 'gridss':
-        return read_vcf_gridss(vcf_reader)
+        return read_vcf_gridss(vcf_reader, patient_name)
 
     # obtain header informations
     odict_contigs = vcf_reader.contigs

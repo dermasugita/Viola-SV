@@ -8,7 +8,7 @@ from viola.core.vcf import Vcf
 # Manta
 ################################################
 
-def read_vcf_manta(vcf_reader):
+def read_vcf_manta(vcf_reader, patient_name):
     metadata = vcf_reader.metadata
     metadata['variantcaller'] = 'manta'
     # obtain header informations
@@ -207,7 +207,7 @@ def read_vcf_manta(vcf_reader):
         df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata, patient_name]
     return Vcf(*args)
 
 ################################################
@@ -218,7 +218,7 @@ def read_vcf_manta(vcf_reader):
 # Delly
 ################################################
 
-def read_vcf_delly(vcf_reader):
+def read_vcf_delly(vcf_reader, patient_name):
     """
     Replace table name SVLEN into SVLENORG to avoid name conflict.
     """
@@ -428,7 +428,7 @@ def read_vcf_delly(vcf_reader):
         df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata, patient_name]
     return Vcf(*args)
 
 ################################################
@@ -439,7 +439,7 @@ def read_vcf_delly(vcf_reader):
 # Lumpy
 ################################################
 
-def read_vcf_lumpy(vcf_reader):
+def read_vcf_lumpy(vcf_reader, patient_name):
     """
     split INV lines.
     INFO=SU is modified according to the INFO=STRANDS.
@@ -688,7 +688,7 @@ def read_vcf_lumpy(vcf_reader):
     df_contigs_meta = pd.DataFrame({'id': arr_contigs, 'length': arr_contigs_length})
     odict_df_headers['contigs_meta'] = df_contigs_meta
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata, patient_name]
     return Vcf(*args)
 
 ################################################
@@ -699,7 +699,7 @@ def read_vcf_lumpy(vcf_reader):
 # Gridss
 ################################################
 
-def read_vcf_gridss(vcf_reader):
+def read_vcf_gridss(vcf_reader, patient_name):
     metadata = vcf_reader.metadata
     metadata['variantcaller'] = 'gridss'
     # obtain header informations
@@ -897,7 +897,7 @@ def read_vcf_gridss(vcf_reader):
         df_formats.columns = columns
     ###/FORMAT
    
-    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata]
+    args = [df_pos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata, patient_name]
     return Vcf(*args)
 
 ################################################

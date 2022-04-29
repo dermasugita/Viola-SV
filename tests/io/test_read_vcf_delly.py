@@ -13,6 +13,7 @@ delly_HEADER = """##fileformat=VCFv4.2
 ##ALT=<ID=BND,Description="Translocation">
 ##ALT=<ID=INS,Description="Insertion">
 ##FILTER=<ID=LowQual,Description="Poor quality and insufficient number of PEs and SRs.">
+##FILTER=<ID=LowQual2,Description="Filter for the unit test.">
 ##INFO=<ID=CIEND,Number=2,Type=Integer,Description="PE confidence interval around END">
 ##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="PE confidence interval around POS">
 ##INFO=<ID=CHR2,Number=1,Type=String,Description="Chromosome for POS2 coordinate in case of an inter-chromosomal translocation">
@@ -33,6 +34,7 @@ delly_HEADER = """##fileformat=VCFv4.2
 ##INFO=<ID=SVMETHOD,Number=1,Type=String,Description="Type of approach used to detect SV">
 ##INFO=<ID=INSLEN,Number=1,Type=Integer,Description="Predicted length of the insertion">
 ##INFO=<ID=HOMLEN,Number=1,Type=Integer,Description="Predicted microhomology length using a max. edit distance of 2">
+##INFO=<ID=TEST,Number=1,Type=Integer,Description="test info">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=GL,Number=G,Type=Float,Description="Log10-scaled genotype likelihoods for RR,RA,AA genotypes">
 ##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
@@ -56,7 +58,7 @@ delly_HEADER = """##fileformat=VCFv4.2
 """
 
 delly_body = """chr10	3485568	DEL00001	C	<DEL>	180	PASS	PRECISE;SVTYPE=DEL;SVMETHOD=EMBL.DELLYv0.8.5;END=3485617;PE=0;MAPQ=0;CT=3to5;CIPOS=-38,38;CIEND=-38,38;SRMAPQ=60;INSLEN=0;HOMLEN=38;SR=3;SRQ=1;CONSENSUS=TAGGCATGGTTCTGGAGCAGTAACTAAGAACTTATATTTGATCCATAAGCAGGAGGCAGGGAGAGGGAGAGGGAGAGGGAGAGGGAGAGAGAGAGAGAGAGAGAGAGAGAGCCTAACTCAGAATAGCTTGGGTTTTTGAAAC;CE=1.84411;RDRATIO=0.832798;SOMATIC	GT:GL:GQ:FT:RCL:RC:RCR:CN:DR:DV:RR:RV	0/1:-12.9844,0,-41.0803:130:PASS:1132:1866:1406:1:0:0:15:6	0/0:0,-2.70665,-29.1974:27:PASS:416:859:557:2:0:0:9:0
-chr10	8825909	INV00001	A	<INV>	17	LowQual	IMPRECISE;SVTYPE=INV;SVMETHOD=EMBL.DELLYv0.8.5;END=32816608;PE=2;MAPQ=12;CT=5to5;CIPOS=-209,209;CIEND=-209,209;RDRATIO=0.987391;SOMATIC	GT:GL:GQ:FT:RCL:RC:RCR:CN:DR:DV:RR:RV	0/1:-2.47951,0,-66.449:25:PASS:1411949:5924972:2958545:3:13:7:0:0	0/0:0,-2.10716,-40:21:PASS:617135:2644311:1308820:3:7:0:0:0
+chr10	8825909	INV00001	A	<INV>	17	LowQual;LowQual2	IMPRECISE;SVTYPE=INV;SVMETHOD=EMBL.DELLYv0.8.5;END=32816608;PE=2;MAPQ=12;CT=5to5;CIPOS=-209,209;CIEND=-209,209;RDRATIO=0.987391;SOMATIC	GT:GL:GQ:FT:RCL:RC:RCR:CN:DR:DV:RR:RV	0/1:-2.47951,0,-66.449:25:PASS:1411949:5924972:2958545:3:13:7:0:0	0/0:0,-2.10716,-40:21:PASS:617135:2644311:1308820:3:7:0:0:0
 chr10	11350703	DUP00001	G	<DUP>	29	LowQual	IMPRECISE;SVTYPE=DUP;SVMETHOD=EMBL.DELLYv0.8.5;END=122603091;PE=2;MAPQ=18;CT=5to3;CIPOS=-119,119;CIEND=-119,119;RDRATIO=0.999221;SOMATIC	GT:GL:GQ:FT:RCL:RC:RCR:CN:DR:DV:RR:RV	0/0:0,-0.108547,-39.5411:4:LowQual:2041981:27256025:1977420:14:8:2:0:0	0/0:0,-2.68066,-40.1714:27:PASS:899570:12088575:881723:14:9:0:0:0
 chr10	61016659	INV00002	G	<INV>	10	LowQual	IMPRECISE;SVTYPE=INV;SVMETHOD=EMBL.DELLYv0.8.5;END=111424580;PE=2;MAPQ=5;CT=3to3;CIPOS=-203,203;CIEND=-203,203;RDRATIO=1.00121;SOMATIC	GT:GL:GQ:FT:RCL:RC:RCR:CN:DR:DV:RR:RV	0/0:0,-1.01236,-51.7412:10:LowQual:6123243:12379748:4722845:2:9:3:0:0	0/0:0,-0.903089,-18:10:LowQual:2709579:5484294:2101093:2:3:0:0:0
 chr11	15249914	BND00001	A	A]chr10:72297333]	193	PASS	IMPRECISE;SVTYPE=BND;SVMETHOD=EMBL.DELLYv0.8.5;END=15249915;CHR2=chr10;POS2=72297333;PE=5;MAPQ=37;CT=3to3;CIPOS=-378,378;CIEND=-378,378;RDRATIO=1;SOMATIC	GT:GL:GQ:FT:RCL:RC:RCR:CN:DR:DV:RR:RV	0/1:-14.872,0,-35.0861:149:PASS:32721:68453:35732:2:10:5:0:0	0/0:0,-1.20195,-17.3978:12:LowQual:14993:27908:12915:2:4:0:0:0
@@ -78,6 +80,52 @@ INV00002,chr10,61016659,chr10,111424580,+,+,G,<INV>,10,INV
 BND00001,chr11,15249914,chr10,72297333,+,+,A,A]chr10:72297333],193,BND
 """
         ))
-        pd.testing.assert_frame_equal(vcf.positions, df_pos_expected)
+        df_filters_expected = pd.read_csv(StringIO(
+            """id,filter
+DEL00001,PASS
+INV00001,LowQual
+INV00001,LowQual2
+DUP00001,LowQual
+INV00002,LowQual
+BND00001,PASS
+"""
+        ))
+        df_test_expected = pd.read_csv(StringIO(
+            """id,value_idx,test"""
+        ))
+        df_precise_expected = pd.read_csv(StringIO(
+            """id,value_idx,precise
+DEL00001,0,True
+"""
+        ))
+        df_svlen_expected = pd.read_csv(StringIO(
+            """id,value_idx,svlen
+DEL00001,0,-49
+INV00001,0,23990699
+DUP00001,0,111252388
+INV00002,0,50407921
+BND00001,0,0
+"""
+        ))
+        df_ciend_expected = pd.read_csv(StringIO(
+            """id,value_idx,ciend
+DEL00001,0,-38
+DEL00001,1,38
+INV00001,0,-209
+INV00001,1,209
+DUP00001,0,-119
+DUP00001,1,119
+INV00002,0,-203
+INV00002,1,203
+BND00001,0,-378
+BND00001,1,378
+"""
+        ))
 
-    
+        #assert vcf.patient_name == 'delly'
+        pd.testing.assert_frame_equal(vcf.positions, df_pos_expected)
+        pd.testing.assert_frame_equal(vcf.filters, df_filters_expected)
+        pd.testing.assert_frame_equal(vcf.svlen, df_svlen_expected) # a test for SVLEN that is calculated by Viola-SV, also intended for testing of single value info
+        pd.testing.assert_frame_equal(vcf.ciend, df_ciend_expected) # a test for INFO containing multiple values in one line.
+        pd.testing.assert_frame_equal(vcf.precise, df_precise_expected)
+        pd.testing.assert_frame_equal(vcf.test, df_test_expected)

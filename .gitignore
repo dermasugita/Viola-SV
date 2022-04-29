@@ -98,3 +98,4 @@ output_merged.vcf
 !examples/demo_sig/resources/pcawg/.gitignore
 examples/demo_sig/resources/pcawg/*.bedpe
 examples/demo_sig/resources/annotation/replication_timing.bedgraph
+.bash_history

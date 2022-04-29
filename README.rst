@@ -7,7 +7,7 @@ Welcom to Viola Package!
 .. image:: https://dermasugita.github.io/ViolaDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
 
 |PyPI|_ |PyVersion|_ |License|_
-|DOI|_ |DOC|_ 
+|DOI|_ |DOC|_ |COV|_
 |Issue|_ |Downloads|_
 
 .. |PyPI| image:: https://img.shields.io/pypi/v/viola-sv
@@ -24,6 +24,9 @@ Welcom to Viola Package!
 
 .. |DOC| image:: https://img.shields.io/badge/documentation-here-yellow
 .. _DOC: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
+
+.. |COV| image:: https://codecov.io/gh/dermasugita/Viola-SV/branch/master/graph/badge.svg?token=G7TI1S6FY2 
+.. _COV: https://codecov.io/gh/dermasugita/Viola-SV
 
 .. |Issue| image:: https://img.shields.io/badge/issue%20tracking-github-brightgreen
 .. _Issue: https://github.com/dermasugita/Viola-SV/issues

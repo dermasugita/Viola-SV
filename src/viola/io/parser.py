@@ -357,15 +357,15 @@ def read_bedpe(filepath,
 
     ### cipos and ciend
     df_ci = df_bedpe.copy()
-    df_ci[0] = df_ci['start1'] - df_ci['pos1']
-    df_ci[1] = df_ci['end1'] - df_ci['pos1'] - 1
+    df_ci[0] = df_ci['start1'] - (df_ci['pos1'] - 1)
+    df_ci[1] = df_ci['end1'] - df_ci['pos1']
     df_cipos = df_ci[['name', 0, 1]].rename(columns={'name': 'id'}).set_index('id')
     df_cipos = df_cipos.stack()
     df_cipos = df_cipos.reset_index().rename(columns={'level_1': 'value_idx', 0: 'cipos'})
     
     df_ci = df_bedpe.copy()
-    df_ci[0] = df_ci['start2'] - df_ci['pos2']
-    df_ci[1] = df_ci['end2'] - df_ci['pos2'] - 1
+    df_ci[0] = df_ci['start2'] - (df_ci['pos2'] - 1)
+    df_ci[1] = df_ci['end2'] - df_ci['pos2']
     df_ciend = df_ci[['name', 0, 1]].rename(columns={'name': 'id'}).set_index('id')
     df_ciend = df_ciend.stack()
     df_ciend = df_ciend.reset_index().rename(columns={'level_1': 'value_idx', 0: 'ciend'})

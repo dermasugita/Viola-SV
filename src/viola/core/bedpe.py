@@ -665,7 +665,7 @@ class Bedpe(Indexer):
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
-        return Bedpe(out_svpos, out_odict_df_info)
+        return Bedpe(out_svpos, out_odict_df_info, self.patient_name)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')

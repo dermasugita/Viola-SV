@@ -1,4 +1,4 @@
-﻿viola.Vcf.as\_bedpe
+viola.Vcf.as\_bedpe
 ===================
 
 .. currentmodule:: viola

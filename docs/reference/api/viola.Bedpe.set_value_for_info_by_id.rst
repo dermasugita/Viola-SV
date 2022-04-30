@@ -1,4 +1,4 @@
-﻿viola.Bedpe.set\_value\_for\_info\_by\_id
+viola.Bedpe.set\_value\_for\_info\_by\_id
 =========================================
 
 .. currentmodule:: viola

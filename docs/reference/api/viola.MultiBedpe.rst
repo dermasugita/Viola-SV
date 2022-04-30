@@ -1,4 +1,4 @@
-﻿viola.MultiBedpe
+viola.MultiBedpe
 ================
 
 .. currentmodule:: viola

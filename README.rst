@@ -110,7 +110,7 @@ If you want to get a deeper understanding of how Viola objects are structured, h
 
 Manuals for individual classes/methods/functions are available in the `API Reference`_.
 
-For further discussion, please join our `google group`_.! We're waiting for your comments, ideas, and requests.
+For further discussion, please join our `google group`_! We're waiting for your comments, ideas, and requests.
 The questions about how to use Viola-SV are also welcome!  
 
 .. _google group: https://groups.google.com/g/viola-users

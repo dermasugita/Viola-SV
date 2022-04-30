@@ -38,6 +38,7 @@ Default Behaviour
 Now, let's use :doc:`viola.merge<../reference/api/viola.merge>` function.
 
 .. ipython:: python
+   :okwarning:
 
     merged_vcf = viola.merge([manta, delly, lumpy, gridss], threshold=100)
     print(merged_vcf)
@@ -51,6 +52,7 @@ You can control which SV callers are given priority for selection by changing th
 Here is the example.
 
 .. ipython:: python
+    :okwarning:
 
     merged_vcf = viola.merge([delly, lumpy, manta, gridss], threshold=100)
     print(merged_vcf)

@@ -62,13 +62,13 @@ def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "ma
         #raise TypeError("should be file or buffer")
 
     if variant_caller == 'manta':
-        return read_vcf_manta(vcf_reader)
+        return read_vcf_manta(vcf_reader, patient_name=patient_name)
     elif variant_caller == 'delly':
-        return read_vcf_delly(vcf_reader)
+        return read_vcf_delly(vcf_reader, patient_name)
     elif variant_caller == 'lumpy':
-        return read_vcf_lumpy(vcf_reader)
+        return read_vcf_lumpy(vcf_reader, patient_name)
     elif variant_caller == 'gridss':
-        return read_vcf_gridss(vcf_reader)
+        return read_vcf_gridss(vcf_reader, patient_name)
 
     # obtain header informations
     odict_contigs = vcf_reader.contigs
@@ -357,15 +357,15 @@ def read_bedpe(filepath,
 
     ### cipos and ciend
     df_ci = df_bedpe.copy()
-    df_ci[0] = df_ci['start1'] - df_ci['pos1']
-    df_ci[1] = df_ci['end1'] - df_ci['pos1'] - 1
+    df_ci[0] = df_ci['start1'] - (df_ci['pos1'] - 1)
+    df_ci[1] = df_ci['end1'] - df_ci['pos1']
     df_cipos = df_ci[['name', 0, 1]].rename(columns={'name': 'id'}).set_index('id')
     df_cipos = df_cipos.stack()
     df_cipos = df_cipos.reset_index().rename(columns={'level_1': 'value_idx', 0: 'cipos'})
     
     df_ci = df_bedpe.copy()
-    df_ci[0] = df_ci['start2'] - df_ci['pos2']
-    df_ci[1] = df_ci['end2'] - df_ci['pos2'] - 1
+    df_ci[0] = df_ci['start2'] - (df_ci['pos2'] - 1)
+    df_ci[1] = df_ci['end2'] - df_ci['pos2']
     df_ciend = df_ci[['name', 0, 1]].rename(columns={'name': 'id'}).set_index('id')
     df_ciend = df_ciend.stack()
     df_ciend = df_ciend.reset_index().rename(columns={'level_1': 'value_idx', 0: 'ciend'})

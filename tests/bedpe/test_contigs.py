@@ -17,11 +17,8 @@ chr2	10	11	chr5	20	21	test11	60	+	-
 chr3	10	11	chr4	20	21	test12	60	-	-
 """
 
-
-def test_append_info():
-    bedpe = viola.read_bedpe(StringIO(data), patient_name='patient1')
-    test_info = pd.DataFrame({'id': ['test1', 'test2'], 'value_idx': [0, 0], 'test': ['t', 'u']})
-    bedpe.add_info_table('test', test_info)
-    pd.testing.assert_frame_equal(bedpe._odict_alltables['test'], test_info)
-    pd.testing.assert_frame_equal(bedpe._odict_df_info['test'], test_info)
-    assert 'test' in bedpe._ls_infokeys
+def test_contigs():
+    bedpe = viola.read_bedpe(StringIO(data), patient_name='test')
+    contigs = bedpe.contigs
+    print(contigs)
+    assert set(contigs) == {'chr1', 'chr2', 'chr3', 'chr4', 'chr5'}

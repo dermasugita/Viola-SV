@@ -57,8 +57,8 @@ Currently, Viola supports four popular SV callers as input VCF files:
 * Lumpy
 * Gridss
 
-In the future, we plan to support more SV callers!
-
+In the future, we plan to support more SV callers!  
+  
 Installation
 =========================
 
@@ -109,6 +109,11 @@ For command line interfaces, see `CLI tutorial`_.
 If you want to get a deeper understanding of how Viola objects are structured, how filtering works and how merging works, please refer to the `User Guide`_.
 
 Manuals for individual classes/methods/functions are available in the `API Reference`_.
+
+For further discussion, please join our `google group`_.! We're waiting for your comments, ideas, and requests.
+The questions about how to use Viola-SV are also welcome!  
+
+.. _google group: https://groups.google.com/g/viola-users
 
 Documentation
 =============

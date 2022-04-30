@@ -3,6 +3,16 @@
 ====================================
 Viola 1.0.1 Release Notes
 ====================================
+
+---------------------------------
+Google Group for Viola-SV Users
+---------------------------------
+To facilite discussion between users and developers, we've set up a google group for Viola-SV users!  
+You can enter our group from `here`_.  
+Feel free to join us.
+
+.. _here: https://groups.google.com/g/viola-users
+
 ---------------
 Fixed Features
 ---------------

@@ -466,6 +466,8 @@ class Bedpe(Indexer):
                     return True
                 elif value == 'False':
                     return True
+                elif len(sq) == 1:
+                    return True
                 else:
                     return False
             if sqtail.isdigit():
@@ -683,6 +685,7 @@ class Bedpe(Indexer):
 
     def _filter_infos_flag(self, infoname, exclude=False):
         df = self.get_table(infoname)
+        df = df.loc[df[infoname] == True]
         set_out = set(df['id'])
         if exclude:
             set_out = self.get_ids() - set_out

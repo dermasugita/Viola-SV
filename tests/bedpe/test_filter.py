@@ -1,5 +1,7 @@
 import viola
+import pytest
 from io import StringIO
+from viola._exceptions import ContigNotFoundError
 DATA = """chrom1	start1	end1	chrom2	start2	end2	name	score	strand1	strand2	test1
 chr1	10	11	chr1	20	21	test1	60	+	-	True
 chr1	10	11	chr1	25	26	test2	60	+	-	False
@@ -37,6 +39,10 @@ chr2	100	101	chr2	280	281	test8	60	-	-	False
 chr2	180	181	chr2	2000	2001	test9	60	-	-	False
 chr2	10	11	chr2	40	41	test10	60	+	+	True
 chr2	10	11	chr5	20	21	test11	60	+	-	False
+"""
+data_expected4_2 = """chrom1	start1	end1	chrom2	start2	end2	name	score	strand1	strand2	test1
+chr2	100	101	chr2	280	281	test8	60	-	-	False
+chr2	180	181	chr2	2000	2001	test9	60	-	-	False
 """
 data_expected5 = """chrom1	start1	end1	chrom2	start2	end2	name	score	strand1	strand2	test1
 chr1	10	11	chr1	20	21	test1	60	+	-	True
@@ -105,6 +111,21 @@ def test_filter_pos():
         patient_name='patient1')
     f_bedpe = bedpe.filter(['be1 chr2'])
     viola.testing.assert_bedpe_equal(f_bedpe, bedpe_expected)
+
+
+def test_filter_pos2():
+    bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
+    bedpe_expected = viola.read_bedpe(
+        StringIO(data_expected4_2),
+        patient_name='patient1')
+    f_bedpe = bedpe.filter(['be1 chr2:100-'])
+    viola.testing.assert_bedpe_equal(f_bedpe, bedpe_expected)
+
+
+def test_filter_pos_exception():
+    bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
+    with pytest.raises(ContigNotFoundError):
+        bedpe.filter(['be1 chrM'])
 
 
 def test_filter_pos_exclude():

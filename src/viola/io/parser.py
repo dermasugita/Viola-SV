@@ -51,6 +51,15 @@ class _VcfReader():
 
     def add_value_to_odict_heaers(self, key, value):
         pass
+    def _refine_items(self, key, value):
+        value = value.replace('"', '')
+        if value.isdigit():
+            value = int(value)
+        elif value == ".":
+            value = None
+        elif key == 'Number' and value == 'A':
+            value = -1
+        return value
 
     def _vcf_header_parser(self, line):
         header_content = line[2:]
@@ -66,22 +75,17 @@ class _VcfReader():
             header_key = 'contigs_meta'
         elif header_key == 'INFO':
             header_key = 'infos_meta'
+        elif header_key == 'FILTER':
+            header_key = 'filters_meta'
         elif header_key == 'FORMAT':
             header_key = 'formats_meta'
         elif header_key == 'ALT':
             header_key = 'alts_meta'
 
-        def _refine_items(value):
-            value = value.replace('"', '')
-            if value.isdigit():
-                value = int(value)
-            elif value == ".":
-                value = None
-            return value
 
         odict_header_items = \
-            OrderedDict([(k.lower(), [_refine_items(v)]) for k, v in ls_tuple_header_items])
-
+            OrderedDict([(k.lower(), [self._refine_items(k, v)]) for k, v in ls_tuple_header_items])
+        
         if self.odict_odict_headers.get(header_key) is None:
             self.odict_odict_headers[header_key] = \
                 odict_header_items
@@ -95,7 +99,10 @@ class _VcfReader():
     def _header_df_constructor(self):
         odict_df_headers = OrderedDict()
         for k, v in self.odict_odict_headers.items():
-            df = pd.DataFrame(v)
+            if k == 'infos_meta':
+                df = pd.DataFrame(v, columns=('id', 'number', 'type', 'description', 'source', 'version'))
+            else:
+                df = pd.DataFrame(v)
             odict_df_headers[k] = df
         self.odict_df_headers = odict_df_headers
     
@@ -104,7 +111,7 @@ class _VcfReader():
         ls_header_line = header_line.split('\t')
         ls_samples = ls_header_line[9:]
         self.ls_samples = ls_samples
-        self.odict_odict_headers['samples_meta'] = OrderedDict({'ID': ls_samples})
+        self.odict_odict_headers['samples_meta'] = OrderedDict({'id': ls_samples})
     
     def _filter_parser(self, ls_line):
         svid = ls_line[2]
@@ -152,6 +159,7 @@ class _VcfReader():
             ls_each_format = each_format.split(':')
             for formats_name, each_format_values in zip(ls_formats_names, ls_each_format):
                 ls_each_format_values = each_format_values.split(',')
+                ls_each_format_values = [self._refine_items(None, item) for item in ls_each_format_values]
                 len_each_format_values = len(ls_each_format_values)
                 ls_svid = [svid] * len_each_format_values
                 ls_sample = [sample] * len_each_format_values
@@ -164,9 +172,34 @@ class _VcfReader():
                 self.odict_formats['value'].extend(ls_each_format_values)
             idx_sample += 1
     
+    def _alt_parser_for_bnd(self, alt):
+        if re.search('[\[\]]', alt) is not None:
+            if (alt[0] == '[') or (alt[0] == ']'):
+                strand1 = '-'
+            else:
+                strand1 = '+'
+            if re.search('\[', alt) is not None:
+                strand2 = '-'
+            else:
+                strand2 = '+'
+            ls_alt = re.split('[\[\]]', alt)
+            chrom2, pos2 = ls_alt[1].split(':')
+            pos2 = int(pos2)
+        elif (alt[0] == '.') or (alt[-1] == '.'):
+            chrom2 = None
+            pos2 = None
+            if alt[0] == '.':
+                strand1 = '-'
+            else:
+                strand1 = '+'
+            strand2 = None
+        
+        return chrom2, pos2, strand1, strand2
+
+    
     def _positions_parser(self, ls_line, odict_infos):
         chrom1 = ls_line[0]
-        pos1 = ls_line[1]
+        pos1 = int(ls_line[1])
         svid = ls_line[2]
         ref = ls_line[3]
         alt = ls_line[4]
@@ -176,29 +209,33 @@ class _VcfReader():
         svtype = odict_infos['svtype'][0]
         if svtype == 'DEL':
             chrom2 = chrom1
-            pos2 = odict_infos['end'][0]
+            pos2 = int(odict_infos['end'][0]) + 1
             strand1 = '+'
             strand2 = '-'
         elif svtype == 'DUP':
+            pos1 += 1
             chrom2 = chrom1
-            pos2 = odict_infos['end'][0]
+            pos2 = int(odict_infos['end'][0])
             strand1 = '-'
             strand2 = '+'
         elif svtype == 'INV':
             chrom2 = chrom1
-            pos2 = odict_infos['end'][0]
-            strand1 = '+'
-            strand2 = '+'
+            pos2 = int(odict_infos['end'][0])
+            if odict_infos.get('inv3', False):
+                strand1 = '+'
+                strand2 = '+'
+            else:
+                pos1 += 1
+                pos2 += 1
+                strand1 = '-'
+                strand2 = '-'
         elif svtype == 'INS':
             chrom2 = chrom1
-            pos2 = pos1
+            pos2 = int(pos1)
             strand1 = '+'
             strand2 = '-'
         elif svtype == 'BND':
-            chrom2 = 'chr2'
-            pos2 = 10
-            strand1 = '+'
-            strand2 = '-'
+            chrom2, pos2, strand1, strand2 = self._alt_parser_for_bnd(alt)
         self.odict_svpos['id'].append(svid)
         self.odict_svpos['chrom1'].append(chrom1)
         self.odict_svpos['pos1'].append(pos1)
@@ -226,9 +263,29 @@ class _VcfReader():
 
     def _info_df_constructor(self):
         odict_df_infos = OrderedDict()
-        for k, v in self.odict_odict_infos.items():
-            df = pd.DataFrame(v)
-            odict_df_infos[k] = df
+        ls_info_names = self.odict_odict_headers['infos_meta']['id']
+        ls_info_dtype = self.odict_odict_headers['infos_meta']['type']
+        for k, dtype in zip(ls_info_names, ls_info_dtype):
+            k = k.lower()
+            if self.odict_odict_infos.get(k) is None:
+                odict_df_infos[k] = pd.DataFrame(columns=('id', 'value_idx', k))
+            else:
+                odict_info = self.odict_odict_infos[k]
+                df_info = pd.DataFrame(odict_info)
+                if dtype == 'Integer':
+                    df_info[k] = df_info[k].astype(int)
+                odict_df_infos[k] = df_info
+        #### Generate CIEND table by merging MATEID and CIPOS
+        if 'mateid' in odict_df_infos:
+            df_mateid = odict_df_infos['mateid']
+            df_cipos = odict_df_infos['cipos']
+            df_merged = pd.merge(df_cipos, df_mateid, on='id')
+            df_merged = df_merged[['mateid', 'value_idx_x', 'cipos']]
+            df_merged.columns = ['id', 'value_idx', 'ciend']
+            df_ciend = odict_df_infos['ciend']
+            odict_df_infos['ciend'] = pd.concat([df_ciend, df_merged], ignore_index=True)
+        #### /Generate CIEND table by merging MATEID and CIPOS
+
         self.odict_df_infos = odict_df_infos
     
     def _format_df_constructor(self):

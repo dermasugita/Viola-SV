@@ -436,10 +436,12 @@ class Vcf(Bedpe):
             for row in self.get_table("infos_meta").itertuples():
                 if (row.number == None):
                     str_num = "."
+                elif np.isnan(row.number):
+                    str_num = "."
                 elif (row.number == -1):
                     str_num = "A"
                 else:
-                    str_num = str(row.number)
+                    str_num = str(int(row.number))
                 str_info += "##INFO=<ID={},Number={},Type={},Description=\"{}\">".format(row.id, str_num, row.type,row.description)
                 str_info += "\n"
             return str_info

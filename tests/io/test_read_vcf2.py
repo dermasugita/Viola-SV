@@ -52,26 +52,20 @@ chr11	30625198	test5	C	<DUP:TANDEM>	.	PASS	IMPRECISE;SVTYPE=DUP;SVLEN=575363;END
 
 
 def test_read_vcf2():
-    viola.read_vcf2(os.path.join(HERE, 'data/test.manta.vcf'), variant_caller='manta', patient_name='test')
+    vcf1 = viola.read_vcf(os.path.join(HERE, 'data/test.manta.vcf'), variant_caller='manta', patient_name='test')
+    vcf2 = viola.read_vcf2(os.path.join(HERE, 'data/test.manta.vcf'), variant_caller='manta', patient_name='test')
+    viola.testing.assert_vcf_equal(vcf1, vcf2)
 
-def test_reac_vcf2_performance():
-    start_time = time.perf_counter()
-    for i in range(100):
-        viola.read_vcf2(os.path.join(HERE, '../../../SV_parser_test/manta/manta1.vcf'), variant_caller='manta', patient_name='test')
-    end_time = time.perf_counter()
-    elapsed_time = end_time - start_time
-    print(elapsed_time)
-    start_time = time.perf_counter()
-    for i in range(100):
-        viola.read_vcf2(os.path.join(HERE, '../../../SV_parser_test/manta/manta1.vcf'), variant_caller='manta', patient_name='test')
-    end_time = time.perf_counter()
-    elapsed_time = end_time - start_time
-    print(elapsed_time)
-    start_time = time.perf_counter()
-    for i in range(100):
-        viola.read_vcf(os.path.join(HERE, '../../../SV_parser_test/manta/manta1.vcf'), variant_caller='manta', patient_name='test')
-    end_time = time.perf_counter()
-    elapsed_time = end_time - start_time
-    print(elapsed_time)
-
-    
+"""
+def test_performance():
+    st = time.perf_counter()
+    for i in range(3):
+        vcf1 = viola.read_vcf(os.path.join(HERE, '../../../DGCmouse/manta/mouse3/results/variants/somaticSV.vcf'), variant_caller='manta', patient_name='test')
+    en = time.perf_counter()
+    print(en-st)
+    st = time.perf_counter()
+    for i in range(3):
+        vcf1 = viola.read_vcf2(os.path.join(HERE, '../../../DGCmouse/manta/mouse3/results/variants/somaticSV.vcf'), variant_caller='manta', patient_name='test')
+    en = time.perf_counter()
+    print(en-st)
+"""

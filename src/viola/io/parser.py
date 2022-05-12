@@ -1,7 +1,7 @@
 import vcf
 import pandas as pd
-import os
 import re
+import itertools
 import urllib.request
 from collections import OrderedDict
 import warnings
@@ -22,7 +22,260 @@ from viola.io._vcf_parser import (
 )
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_colwidth', 30)
-pd.set_option('display.width', 1000) 
+pd.set_option('display.width', 1000)
+
+
+class _VcfReader():
+    def __init__(self):
+        self.odict_odict_headers = OrderedDict()
+        self.odict_filters = OrderedDict({'id': [], 'filter': []})
+        self.odict_odict_infos = OrderedDict()
+        self.odict_formats = OrderedDict({'id': [], 'sample': [], \
+            'format': [], 'value_idx': [], 'value': []})
+        self.odict_svpos = OrderedDict({
+            'id': [],
+            'chrom1': [],
+            'pos1': [],
+            'chrom2': [],
+            'pos2': [],
+            'strand1': [],
+            'strand2': [],
+            'qual': [],
+            'ref': [],
+            'alt': [],
+            'svtype': [],
+        })
+        self.re_header_split = re.compile(r"^(?P<key>[^=]*)=(?P<items>.*)")
+        self.re_header_items = re.compile(r'([^<=,\s]*)=([^,\s]*|".*")[,>]')
+        self.metadata = dict()
+
+    def add_value_to_odict_heaers(self, key, value):
+        pass
+
+    def _vcf_header_parser(self, line):
+        header_content = line[2:]
+        header_split = self.re_header_split.match(header_content)
+        header_key = header_split.group('key')
+        header_items = header_split.group('items')
+        if not header_items.startswith('<'):
+            self.metadata[header_key] = header_items
+            return
+        ls_tuple_header_items = self.re_header_items.findall(header_items)
+
+        if header_key == 'contig':
+            header_key = 'contigs_meta'
+        elif header_key == 'INFO':
+            header_key = 'infos_meta'
+        elif header_key == 'FORMAT':
+            header_key = 'formats_meta'
+        elif header_key == 'ALT':
+            header_key = 'alts_meta'
+
+        def _refine_items(value):
+            value = value.replace('"', '')
+            if value.isdigit():
+                value = int(value)
+            elif value == ".":
+                value = None
+            return value
+
+        odict_header_items = \
+            OrderedDict([(k.lower(), [_refine_items(v)]) for k, v in ls_tuple_header_items])
+
+        if self.odict_odict_headers.get(header_key) is None:
+            self.odict_odict_headers[header_key] = \
+                odict_header_items
+        else:
+            for k, v in odict_header_items.items():
+                if self.odict_odict_headers[header_key].get(k) is None:
+                    self.odict_odict_headers[header_key][k] = v
+                else:
+                    self.odict_odict_headers[header_key][k].extend(v)
+        
+    def _header_df_constructor(self):
+        odict_df_headers = OrderedDict()
+        for k, v in self.odict_odict_headers.items():
+            df = pd.DataFrame(v)
+            odict_df_headers[k] = df
+        self.odict_df_headers = odict_df_headers
+    
+    def _sample_extractor(self, header_line):
+        header_line = header_line.replace('\n', '')
+        ls_header_line = header_line.split('\t')
+        ls_samples = ls_header_line[9:]
+        self.ls_samples = ls_samples
+        self.odict_odict_headers['samples_meta'] = OrderedDict({'ID': ls_samples})
+    
+    def _filter_parser(self, ls_line):
+        svid = ls_line[2]
+        ls_filter_ = ls_line[6].split(';')
+        len_filter_ = len(ls_filter_)
+        ls_svid = [svid] * len_filter_
+        self.odict_filters['id'].extend(ls_svid)
+        self.odict_filters['filter'].extend(ls_filter_)
+        
+    
+    def _info_parser(self, ls_line):
+        odict_infos_out = OrderedDict()
+        svid = ls_line[2]
+        info_line = ls_line[7]
+        ls_info = info_line.split(';')
+        for info in ls_info:
+            ls_key_item = info.split('=')
+            k = ls_key_item[0].lower()
+            if len(ls_key_item) == 1:
+                ls_v = [True]
+                odict_infos = OrderedDict({'id': [svid], \
+                    'value_idx': [0], k: ls_v})
+            else:
+                v = ls_key_item[1]
+                ls_v = v.split(',')
+                len_v = len(ls_v)
+                ls_svid = [svid] * len_v
+                odict_infos = OrderedDict({'id': ls_svid, \
+                    'value_idx': list(range(len_v)), k: ls_v})
+            odict_infos_out[k] = ls_v
+            if self.odict_odict_infos.get(k) is None:
+                self.odict_odict_infos[k] = odict_infos
+            else:
+                for table_key, table_value in odict_infos.items():
+                    self.odict_odict_infos[k][table_key].extend(table_value)
+        return odict_infos_out
+    
+    def _format_parser(self, ls_line):
+        svid = ls_line[2]
+        format_ = ls_line[8]
+        ls_formats_names = format_.split(':')
+        idx_sample = 9
+        for sample in self.ls_samples:
+            each_format = ls_line[idx_sample]
+            ls_each_format = each_format.split(':')
+            for formats_name, each_format_values in zip(ls_formats_names, ls_each_format):
+                ls_each_format_values = each_format_values.split(',')
+                len_each_format_values = len(ls_each_format_values)
+                ls_svid = [svid] * len_each_format_values
+                ls_sample = [sample] * len_each_format_values
+                ls_format_names = [formats_name] * len_each_format_values
+                ls_value_idx = list(range(len_each_format_values))
+                self.odict_formats['id'].extend(ls_svid)
+                self.odict_formats['sample'].extend(ls_sample)
+                self.odict_formats['format'].extend(ls_format_names)
+                self.odict_formats['value_idx'].extend(ls_value_idx)
+                self.odict_formats['value'].extend(ls_each_format_values)
+            idx_sample += 1
+    
+    def _positions_parser(self, ls_line, odict_infos):
+        chrom1 = ls_line[0]
+        pos1 = ls_line[1]
+        svid = ls_line[2]
+        ref = ls_line[3]
+        alt = ls_line[4]
+        qual = ls_line[5]
+        if qual == '.':
+            qual = None
+        svtype = odict_infos['svtype'][0]
+        if svtype == 'DEL':
+            chrom2 = chrom1
+            pos2 = odict_infos['end'][0]
+            strand1 = '+'
+            strand2 = '-'
+        elif svtype == 'DUP':
+            chrom2 = chrom1
+            pos2 = odict_infos['end'][0]
+            strand1 = '-'
+            strand2 = '+'
+        elif svtype == 'INV':
+            chrom2 = chrom1
+            pos2 = odict_infos['end'][0]
+            strand1 = '+'
+            strand2 = '+'
+        elif svtype == 'INS':
+            chrom2 = chrom1
+            pos2 = pos1
+            strand1 = '+'
+            strand2 = '-'
+        elif svtype == 'BND':
+            chrom2 = 'chr2'
+            pos2 = 10
+            strand1 = '+'
+            strand2 = '-'
+        self.odict_svpos['id'].append(svid)
+        self.odict_svpos['chrom1'].append(chrom1)
+        self.odict_svpos['pos1'].append(pos1)
+        self.odict_svpos['chrom2'].append(chrom2)
+        self.odict_svpos['pos2'].append(pos2)
+        self.odict_svpos['strand1'].append(strand1)
+        self.odict_svpos['strand2'].append(strand2)
+        self.odict_svpos['qual'].append(qual)
+        self.odict_svpos['ref'].append(ref)
+        self.odict_svpos['alt'].append(alt)
+        self.odict_svpos['svtype'].append(svtype)
+    
+    def _main_line_parser(self, line):
+        line = line.replace('\n', '')
+        ls_line = line.split('\t')
+        self._filter_parser(ls_line)
+        odict_infos = self._info_parser(ls_line)
+        self._format_parser(ls_line)
+        self._positions_parser(ls_line, odict_infos)
+
+    
+    def _filter_df_constructor(self):
+        df_filters = pd.DataFrame(self.odict_filters)
+        self.df_filters = df_filters
+
+    def _info_df_constructor(self):
+        odict_df_infos = OrderedDict()
+        for k, v in self.odict_odict_infos.items():
+            df = pd.DataFrame(v)
+            odict_df_infos[k] = df
+        self.odict_df_infos = odict_df_infos
+    
+    def _format_df_constructor(self):
+        df_formats = pd.DataFrame(self.odict_formats)
+        self.df_formats = df_formats
+    
+    def _position_df_constructor(self):
+        df_svpos = pd.DataFrame(self.odict_svpos)
+        self.df_svpos = df_svpos
+    
+
+        
+def read_vcf2(filepath_or_buffer, variant_caller, patient_name=None):
+    reader = _VcfReader()
+    if patient_name is None:
+        warnings.warn(
+            'Passing NoneType to the "patient_name" argument is deprecated.',
+            DeprecationWarning
+        )
+    f = open(filepath_or_buffer, 'r')
+    for line in f:
+        if line.startswith('##'):
+            reader._vcf_header_parser(line)
+            continue
+        elif line.startswith('#'):
+            reader._sample_extractor(line)
+            continue
+        reader._main_line_parser(line)
+        
+    reader._header_df_constructor()
+    reader._filter_df_constructor()
+    reader._info_df_constructor()
+    reader._format_df_constructor()
+    reader._position_df_constructor()
+
+    out = [
+        reader.df_svpos,
+        reader.df_filters,
+        reader.odict_df_infos,
+        reader.df_formats,
+        reader.odict_df_headers,
+        reader.metadata,
+        patient_name
+    ]
+
+    return Vcf(*out)
+
 
 
 def read_vcf(filepath_or_buffer: Union[str, StringIO], variant_caller: str = "manta", patient_name = None):

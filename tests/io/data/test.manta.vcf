@@ -1,5 +1,7 @@
 ##fileformat=VCFv4.1
 ##variantcaller=manta
+##testmetadata=test
+##fileDate=20090805
 ##contig=<ID=chr1,length=195471971>
 ##contig=<ID=chr2,length=182113224>
 ##contig=<ID=chr11,length=122082543>
@@ -35,6 +37,7 @@
 ##ALT=<ID=DEL,Description="Deletion">
 ##ALT=<ID=INS,Description="Insertion">
 ##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##testmetadata=test2
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse1_N	mouse1_T
 chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	IMPRECISE;SVTYPE=DEL;SVLEN=-3764;END=82554225;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
 chr1	22814216	test2	T	<INV>	.	MinSomaticScore;MaxMQ0Frac	SVTYPE=INV;SVLEN=69766915;END=92581131;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5

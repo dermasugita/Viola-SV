@@ -873,7 +873,8 @@ class Vcf(Bedpe):
         out_formats = self._filter_by_id('formats', arrlike_id)
         out_odict_df_headers = self._odict_df_headers.copy()
         out_metadata = self._metadata
-        return Vcf(out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers, out_metadata)
+        out_patient_name = self.patient_name
+        return Vcf(out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers, out_metadata, out_patient_name)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')

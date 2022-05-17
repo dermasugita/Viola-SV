@@ -152,6 +152,3 @@ chr15	64186262	gridss68ff_1141h	T	T]chr15:63184301]	3801.43	PASS	AS=1;ASC=256M1X
 def test_read_vcf_gridss_cipos():
     vcf = viola.read_vcf(StringIO(DATA), variant_caller='gridss', patient_name='patient1')
     # assert positions table equal
-    print(vcf.cipos)
-
-    

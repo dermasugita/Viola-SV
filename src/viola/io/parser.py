@@ -522,6 +522,8 @@ def read_vcf2(filepath_or_buffer, variant_caller, patient_name=None):
         arr_contigs_length = np.repeat('.', len(arr_contigs))
         df_contigs_meta = pd.DataFrame({'id': arr_contigs, 'length': arr_contigs_length})
         reader.odict_df_headers['contigs_meta'] = df_contigs_meta
+    
+    reader.odict_df_infos = OrderedDict([(k.upper(), v) for k, v in reader.odict_df_infos.items()])
    
 
     args = [

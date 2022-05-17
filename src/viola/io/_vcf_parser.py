@@ -23,7 +23,6 @@ def read_vcf_manta(vcf_reader, patient_name):
     # obtain info field information
     odict_infos = vcf_reader.infos
     df_infos_meta = pd.DataFrame(odict_infos, index=('id', 'number', 'type', 'description', 'source', 'version')).T.reset_index(drop=True)
-    df_infos_meta['number'] = df_infos_meta['number'].astype(float)
 
     # obtain FORMAT informations
     odict_formats = vcf_reader.formats
@@ -229,6 +228,7 @@ def read_vcf_delly(vcf_reader, patient_name):
     # obtain header informations
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)
+    df_contigs_meta['length'] = df_contigs_meta['length'].astype(int)
 
     # obtain alteration class informations
     odict_alts = vcf_reader.alts
@@ -452,6 +452,7 @@ def read_vcf_lumpy(vcf_reader, patient_name):
     ################# This is empty DataFrame! ############################
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)
+    df_contigs_meta['length'] = df_contigs_meta['length'].astype(int)
 
     # obtain alteration class informations
     odict_alts = vcf_reader.alts
@@ -707,6 +708,7 @@ def read_vcf_gridss(vcf_reader, patient_name):
     # obtain header informations
     odict_contigs = vcf_reader.contigs
     df_contigs_meta = pd.DataFrame(odict_contigs, index=('id', 'length')).T.reset_index(drop=True)
+    df_contigs_meta['length'] = df_contigs_meta['length'].astype(int)
 
     # obtain alteration class informations
     odict_alts = vcf_reader.alts

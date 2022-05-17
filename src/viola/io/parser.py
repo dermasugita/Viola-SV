@@ -1,4 +1,5 @@
 import vcf
+import numpy as np
 import pandas as pd
 import re
 import itertools
@@ -26,7 +27,12 @@ pd.set_option('display.width', 1000)
 
 
 class _VcfReader():
-    def __init__(self):
+    _singular_metadata = ['fileformat', 'fileDate', 'reference', 'variantcaller']
+    def __init__(self, variant_caller, patient_name):
+        self.variant_caller = variant_caller
+        self.patient_name = patient_name
+        self.metadata = OrderedDict()
+        self._svtype = ''
         self.odict_odict_headers = OrderedDict()
         self.odict_filters = OrderedDict({'id': [], 'filter': []})
         self.odict_odict_infos = OrderedDict()
@@ -47,18 +53,31 @@ class _VcfReader():
         })
         self.re_header_split = re.compile(r"^(?P<key>[^=]*)=(?P<items>.*)")
         self.re_header_items = re.compile(r'([^<=,\s]*)=([^,\s]*|".*")[,>]')
-        self.metadata = dict()
 
-    def add_value_to_odict_heaers(self, key, value):
-        pass
-    def _refine_items(self, key, value):
+    def _refine_items(self, key, dtype, value):
         value = value.replace('"', '')
-        if value.isdigit():
-            value = int(value)
-        elif value == ".":
-            value = None
-        elif key == 'Number' and value == 'A':
-            value = -1
+        if dtype is None:
+            if value.isdigit():
+                value = int(value)
+            elif key == 'GT' and value == '.':
+                value = '.'
+            elif value == ".":
+                value = None
+            elif value.replace('.', '', 1).isdigit():
+                value = float(value)
+            elif key == 'Number' and value == 'A':
+                value = -1
+            elif key == 'Number' and value == 'G':
+                value = -2
+        else:
+            if dtype == 'Integer':
+                value = int(value)
+            elif dtype == 'Float':
+                value = float(value)
+            elif dtype == 'String':
+                value = str(value)
+            elif dtype == 'Flag':
+                value = bool(value)
         return value
 
     def _vcf_header_parser(self, line):
@@ -67,7 +86,12 @@ class _VcfReader():
         header_key = header_split.group('key')
         header_items = header_split.group('items')
         if not header_items.startswith('<'):
-            self.metadata[header_key] = header_items
+            if header_key in self._singular_metadata:
+                self.metadata[header_key] = header_items
+            else:
+                if header_key not in self.metadata:
+                    self.metadata[header_key] = []
+                self.metadata[header_key].append(header_items)
             return
         ls_tuple_header_items = self.re_header_items.findall(header_items)
 
@@ -84,7 +108,29 @@ class _VcfReader():
 
 
         odict_header_items = \
-            OrderedDict([(k.lower(), [self._refine_items(k, v)]) for k, v in ls_tuple_header_items])
+            OrderedDict([(k.lower(), [self._refine_items(k, None, v)]) for k, v in ls_tuple_header_items])
+        
+        if self.variant_caller == 'delly':
+            if header_key == 'infos_meta' and odict_header_items['id'][0] == 'SVLEN':
+                odict_header_items.update({'id': ['SVLENORG', 'SVLEN']})
+                odict_header_items['number'].append(None)
+                odict_header_items['type'].append('Integer')
+                odict_header_items['description'].append('Length of SV')
+                if 'source' in odict_header_items:
+                    odict_header_items['source'].append(None)
+                if 'version' in odict_header_items:
+                    odict_header_items['version'].append(None)
+        elif self.variant_caller == 'lumpy':
+            if header_key == 'infos_meta' and odict_header_items['id'][0] == 'SU':
+                odict_header_items.update({'id': ['SU', 'SUORG']})
+                odict_header_items['number'].append(None)
+                odict_header_items['type'].append('Integer')
+                odict_header_items['description'].append('Original value of Lumpy SU')
+                if 'source' in odict_header_items:
+                    odict_header_items['source'].append(None)
+                if 'version' in odict_header_items:
+                    odict_header_items['version'].append(None)
+
         
         if self.odict_odict_headers.get(header_key) is None:
             self.odict_odict_headers[header_key] = \
@@ -103,7 +149,13 @@ class _VcfReader():
                 df = pd.DataFrame(v, columns=('id', 'number', 'type', 'description', 'source', 'version'))
             else:
                 df = pd.DataFrame(v)
+            
+            if 'number' in df.columns:
+                df['number'] = df['number'].astype(object) # backward compatibility
             odict_df_headers[k] = df
+        if self.variant_caller == 'lumpy':
+            odict_df_headers['contigs_meta'] = pd.DataFrame(columns=('id', 'length'))
+            odict_df_headers['filters_meta'] = pd.DataFrame(columns=('id', 'description'))
         self.odict_df_headers = odict_df_headers
     
     def _sample_extractor(self, header_line):
@@ -116,20 +168,36 @@ class _VcfReader():
     def _filter_parser(self, ls_line):
         svid = ls_line[2]
         ls_filter_ = ls_line[6].split(';')
+        ls_filter_ = ['PASS' if filter_ == '.' else filter_ for filter_ in ls_filter_]
         len_filter_ = len(ls_filter_)
-        ls_svid = [svid] * len_filter_
+        if self.variant_caller == 'lumpy' and self._svtype == 'INV':
+            svid1 = str(svid) + '_1'
+            svid2 = str(svid) + '_2'
+            ls_svid = [svid1, svid2] * len_filter_
+            ls_filter_ = ls_filter_ * 2
+        else:
+            ls_svid = [svid] * len_filter_
         self.odict_filters['id'].extend(ls_svid)
         self.odict_filters['filter'].extend(ls_filter_)
         
+    def _get_sv_type(self, ls_info):
+        for info in ls_info:
+            ls_key_item = info.split('=')
+            k = ls_key_item[0]
+            if k == 'SVTYPE':
+                self._svtype = ls_key_item[1]
+                return ls_key_item[1]
     
     def _info_parser(self, ls_line):
+        odict_infos = OrderedDict()
         odict_infos_out = OrderedDict()
         svid = ls_line[2]
         info_line = ls_line[7]
         ls_info = info_line.split(';')
-        for info in ls_info:
-            ls_key_item = info.split('=')
-            k = ls_key_item[0].lower()
+        if self.variant_caller == 'lumpy':
+            is_inv = self._get_sv_type(ls_info) == 'INV'
+        
+        def _append_info_to_odict(svid, ls_key_item, k, info_dtype):
             if len(ls_key_item) == 1:
                 ls_v = [True]
                 odict_infos = OrderedDict({'id': [svid], \
@@ -137,6 +205,7 @@ class _VcfReader():
             else:
                 v = ls_key_item[1]
                 ls_v = v.split(',')
+                ls_v = [self._refine_items(None, info_dtype, item) for item in ls_v]
                 len_v = len(ls_v)
                 ls_svid = [svid] * len_v
                 odict_infos = OrderedDict({'id': ls_svid, \
@@ -147,6 +216,92 @@ class _VcfReader():
             else:
                 for table_key, table_value in odict_infos.items():
                     self.odict_odict_infos[k][table_key].extend(table_value)
+        
+        for info in ls_info:
+            ls_key_item = info.split('=')
+            k = ls_key_item[0]
+            info_dtype_idx = self.odict_odict_headers['infos_meta']['id'].index(k)
+            info_dtype = self.odict_odict_headers['infos_meta']['type'][info_dtype_idx]
+            k = k.lower()
+            if self.variant_caller == 'delly' and k == 'svlen':
+                k = 'svlenorg'
+            if self.variant_caller == 'lumpy' and is_inv:
+                if k == 'strands':
+                    ls_v = ls_key_item[1].split(',')
+                    for idx_v, each_v in enumerate(ls_v):
+                        svid_ = str(svid) + '_' + str(idx_v + 1)
+                        su = each_v.split(':')[1]
+                        k_su = 'su'
+                        ls_key_item = [k, each_v]
+                        ls_key_item_su = ['su', su]
+                        info_dtype_su = 'Integer'
+                        _append_info_to_odict(svid_, ls_key_item, k, info_dtype)
+                        _append_info_to_odict(svid_, ls_key_item_su, k_su, info_dtype_su)
+                else:
+                    if k == 'su':
+                        k = 'suorg'
+                        ls_key_item[0] = k
+                    svid1 = str(svid) + '_1'
+                    svid2 = str(svid) + '_2'
+                    _append_info_to_odict(svid1, ls_key_item, k, info_dtype)
+                    _append_info_to_odict(svid2, ls_key_item, k, info_dtype)
+                continue
+                    
+            _append_info_to_odict(svid, ls_key_item, k, info_dtype)
+        
+        if self.variant_caller == 'delly':
+            svtype = odict_infos_out['svtype'][0]
+            pos1 = int(ls_line[1])
+            end = odict_infos_out['end'][0]
+            if svtype == 'BND':
+                svlen = 0
+            elif svtype == 'TRA':
+                svlen = 0
+            elif svtype == 'DEL':
+                svlen = pos1 - end
+            elif svtype == 'DUP':
+                svlen = end - pos1
+            elif svtype == 'INV':
+                svlen = end - pos1
+            else:
+                svlen = 0
+            if 'svlen' not in self.odict_odict_infos:
+                self.odict_odict_infos['svlen'] = OrderedDict({
+                    'id': [],
+                    'value_idx': [],
+                    'svlen': []
+                })
+            self.odict_odict_infos['svlen']['id'].extend([svid])
+            self.odict_odict_infos['svlen']['value_idx'].extend([0])
+            self.odict_odict_infos['svlen']['svlen'].extend([svlen])
+            odict_infos_out['svlen'] = [svlen]
+        elif self.variant_caller == 'lumpy' and is_inv:
+            odict_infos_out['event'] = [svid]
+            svid1 = str(svid) + '_1'
+            svid2 = str(svid) + '_2'
+            if 'event' not in self.odict_odict_infos:
+                self.odict_odict_infos['event'] = OrderedDict({
+                    'id': [svid1, svid2],
+                    'value_idx': [0, 0],
+                    'event': [svid, svid]
+                })
+            else:
+                self.odict_odict_infos['event']['id'].extend([svid1, svid2])
+                self.odict_odict_infos['event']['value_idx'].extend([0, 0])
+                self.odict_odict_infos['event']['event'].extend([svid, svid])
+        elif self.variant_caller == 'gridss' and odict_infos.get('cipos') is None:
+            odict_infos_out['cipos'] = [0, 0]
+            if self.odict_odict_infos.get('cipos') is None:
+                self.odict_odict_infos['cipos'] = OrderedDict({
+                    'id': [svid, svid],
+                    'value_idx': [0, 1],
+                    'cipos': [0, 0]
+                })
+            else:
+                self.odict_odict_infos['cipos']['id'].extend([svid, svid])
+                self.odict_odict_infos['cipos']['value_idx'].extend([0, 1])
+                self.odict_odict_infos['cipos']['cipos'].extend([0, 0])
+        
         return odict_infos_out
     
     def _format_parser(self, ls_line):
@@ -158,13 +313,24 @@ class _VcfReader():
             each_format = ls_line[idx_sample]
             ls_each_format = each_format.split(':')
             for formats_name, each_format_values in zip(ls_formats_names, ls_each_format):
+                formats_dtype_idx = self.odict_odict_headers['formats_meta']['id'].index(formats_name)
+                formats_dtype = self.odict_odict_headers['formats_meta']['type'][formats_dtype_idx]
                 ls_each_format_values = each_format_values.split(',')
-                ls_each_format_values = [self._refine_items(None, item) for item in ls_each_format_values]
+                ls_each_format_values = [self._refine_items(formats_name, formats_dtype, item) for item in ls_each_format_values]
                 len_each_format_values = len(ls_each_format_values)
-                ls_svid = [svid] * len_each_format_values
-                ls_sample = [sample] * len_each_format_values
-                ls_format_names = [formats_name] * len_each_format_values
-                ls_value_idx = list(range(len_each_format_values))
+                if self.variant_caller == 'lumpy' and self._svtype == 'INV':
+                    svid1 = str(svid) + '_1'
+                    svid2 = str(svid) + '_2'
+                    ls_svid = [svid1, svid2] * len_each_format_values
+                    ls_sample = [sample] * len_each_format_values * 2
+                    ls_format_names = [formats_name] * len_each_format_values * 2
+                    ls_value_idx = list(range(len_each_format_values)) * 2
+                    ls_each_format_values *= 2
+                else:
+                    ls_svid = [svid] * len_each_format_values
+                    ls_sample = [sample] * len_each_format_values
+                    ls_format_names = [formats_name] * len_each_format_values
+                    ls_value_idx = list(range(len_each_format_values))
                 self.odict_formats['id'].extend(ls_svid)
                 self.odict_formats['sample'].extend(ls_sample)
                 self.odict_formats['format'].extend(ls_format_names)
@@ -203,9 +369,8 @@ class _VcfReader():
         svid = ls_line[2]
         ref = ls_line[3]
         alt = ls_line[4]
-        qual = ls_line[5]
-        if qual == '.':
-            qual = None
+        qual = self._refine_items(None, None, ls_line[5])
+
         svtype = odict_infos['svtype'][0]
         if svtype == 'DEL':
             chrom2 = chrom1
@@ -221,14 +386,21 @@ class _VcfReader():
         elif svtype == 'INV':
             chrom2 = chrom1
             pos2 = int(odict_infos['end'][0])
-            if odict_infos.get('inv3', False):
-                strand1 = '+'
-                strand2 = '+'
-            else:
-                pos1 += 1
-                pos2 += 1
-                strand1 = '-'
-                strand2 = '-'
+            if self.variant_caller == 'manta':
+                if odict_infos.get('inv3', False):
+                    strand1 = '+'
+                    strand2 = '+'
+                else:
+                    pos1 += 1
+                    pos2 += 1
+                    strand1 = '-'
+                    strand2 = '-'
+            elif self.variant_caller == 'delly':
+                if odict_infos['ct'][0] == '3to3':
+                    strand1, strand2 = '+', '+'
+                else:
+                    strand1, strand2 = '-', '-'
+
         elif svtype == 'INS':
             chrom2 = chrom1
             pos2 = int(pos1)
@@ -236,23 +408,34 @@ class _VcfReader():
             strand2 = '-'
         elif svtype == 'BND':
             chrom2, pos2, strand1, strand2 = self._alt_parser_for_bnd(alt)
-        self.odict_svpos['id'].append(svid)
-        self.odict_svpos['chrom1'].append(chrom1)
-        self.odict_svpos['pos1'].append(pos1)
-        self.odict_svpos['chrom2'].append(chrom2)
-        self.odict_svpos['pos2'].append(pos2)
-        self.odict_svpos['strand1'].append(strand1)
-        self.odict_svpos['strand2'].append(strand2)
-        self.odict_svpos['qual'].append(qual)
-        self.odict_svpos['ref'].append(ref)
-        self.odict_svpos['alt'].append(alt)
-        self.odict_svpos['svtype'].append(svtype)
+
+        keys = ['id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', \
+            'strand2', 'qual', 'ref', 'alt', 'svtype']
+        
+        if self.variant_caller == 'lumpy' and svtype == 'INV':
+            svid1 = str(svid) + '_1'
+            svid2 = str(svid) + '_2'
+            items1 = [svid1, chrom1, pos1, chrom2, pos2, '+', \
+                '+', qual, ref, alt, svtype]
+            items2 = [svid2, chrom1, pos1+1, chrom2, pos2+1, '-', \
+                '-', qual, ref, alt, svtype]
+            for key, item in zip(keys, items1):
+                self.odict_svpos[key].append(item)
+            for key, item in zip(keys, items2):
+                self.odict_svpos[key].append(item)
+
+        else:
+            items = [svid, chrom1, pos1, chrom2, pos2, strand1, \
+                strand2, qual, ref, alt, svtype]
+
+            for key, item in zip(keys, items):
+                self.odict_svpos[key].append(item)
     
     def _main_line_parser(self, line):
         line = line.replace('\n', '')
         ls_line = line.split('\t')
-        self._filter_parser(ls_line)
         odict_infos = self._info_parser(ls_line)
+        self._filter_parser(ls_line)
         self._format_parser(ls_line)
         self._positions_parser(ls_line, odict_infos)
 
@@ -276,14 +459,20 @@ class _VcfReader():
                     df_info[k] = df_info[k].astype(int)
                 odict_df_infos[k] = df_info
         #### Generate CIEND table by merging MATEID and CIPOS
-        if 'mateid' in odict_df_infos:
-            df_mateid = odict_df_infos['mateid']
-            df_cipos = odict_df_infos['cipos']
-            df_merged = pd.merge(df_cipos, df_mateid, on='id')
-            df_merged = df_merged[['mateid', 'value_idx_x', 'cipos']]
-            df_merged.columns = ['id', 'value_idx', 'ciend']
-            df_ciend = odict_df_infos['ciend']
-            odict_df_infos['ciend'] = pd.concat([df_ciend, df_merged], ignore_index=True)
+        if self.variant_caller == 'lumpy':
+            pass
+        else:
+            if 'mateid' in odict_df_infos:
+                df_mateid = odict_df_infos['mateid']
+                df_cipos = odict_df_infos['cipos']
+                df_merged = pd.merge(df_cipos, df_mateid, on='id')
+                df_merged = df_merged[['mateid', 'value_idx_x', 'cipos']]
+                df_merged.columns = ['id', 'value_idx', 'ciend']
+                df_ciend = odict_df_infos['ciend']
+                if df_ciend.empty:
+                    odict_df_infos['ciend'] = df_merged
+                else:
+                    odict_df_infos['ciend'] = pd.concat([df_ciend, df_merged], ignore_index=True)
         #### /Generate CIEND table by merging MATEID and CIPOS
 
         self.odict_df_infos = odict_df_infos
@@ -299,13 +488,17 @@ class _VcfReader():
 
         
 def read_vcf2(filepath_or_buffer, variant_caller, patient_name=None):
-    reader = _VcfReader()
     if patient_name is None:
         warnings.warn(
             'Passing NoneType to the "patient_name" argument is deprecated.',
             DeprecationWarning
         )
-    f = open(filepath_or_buffer, 'r')
+    reader = _VcfReader(variant_caller, patient_name)
+    if isinstance(filepath_or_buffer, StringIO):
+        f = filepath_or_buffer
+    else:
+        f = open(filepath_or_buffer, 'r')
+
     for line in f:
         if line.startswith('##'):
             reader._vcf_header_parser(line)
@@ -320,8 +513,18 @@ def read_vcf2(filepath_or_buffer, variant_caller, patient_name=None):
     reader._info_df_constructor()
     reader._format_df_constructor()
     reader._position_df_constructor()
+    reader.metadata['variantcaller'] = variant_caller
 
-    out = [
+    ############## Generate contigs_meta ####################
+    if variant_caller == 'lumpy':
+        arr_contigs = np.append(reader.df_svpos['chrom1'].values,  reader.df_svpos['chrom2'].values)
+        arr_contigs = np.unique(arr_contigs)
+        arr_contigs_length = np.repeat('.', len(arr_contigs))
+        df_contigs_meta = pd.DataFrame({'id': arr_contigs, 'length': arr_contigs_length})
+        reader.odict_df_headers['contigs_meta'] = df_contigs_meta
+   
+
+    args = [
         reader.df_svpos,
         reader.df_filters,
         reader.odict_df_infos,
@@ -331,7 +534,7 @@ def read_vcf2(filepath_or_buffer, variant_caller, patient_name=None):
         patient_name
     ]
 
-    return Vcf(*out)
+    return Vcf(*args)
 
 
 

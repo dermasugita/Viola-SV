@@ -309,7 +309,8 @@ class Vcf(Bedpe):
         df_formats = self.get_table('formats')
         odict_df_headers = OrderedDict([(k, self.get_table(k)) for k,v in self._odict_df_headers.items()])
         metadata = self._metadata
-        return Vcf(df_svpos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata)
+        patient_name = self.patient_name
+        return Vcf(df_svpos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata, patient_name)
 
     def to_vcf_like(self) -> pd.DataFrame:
         """

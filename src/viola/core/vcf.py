@@ -415,11 +415,11 @@ class Vcf(Bedpe):
             out = ''
             if metadata is None:
                 return out
-            for key, value in metadata.items():
-                if not isinstance(value, list):
-                    value = [value]
-                value = [str(s) for s in value]
-                out += '##' + str(key) + '=' + ','.join(value) + '\n'
+            for key, values in metadata.items():
+                if not isinstance(values, list):
+                    values = [values]
+                for value in values:
+                    out += '##' + str(key) + '=' + str(value) + '\n'
             return out
         
         def get_contig():

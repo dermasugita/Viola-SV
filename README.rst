@@ -2,9 +2,10 @@
 Welcom to Viola Package!
 ************************
 
-.. _here: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
+.. _here: https://viola-sv.readthedocs.io
 
-.. image:: https://dermasugita.github.io/ViolaDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
+.. image:: https://viola-sv.readthedocs.io/en/latest/_static/Viola-logo/JPG/wide.jpg
+   
 
 |PyPI|_ |PyVersion|_ |License|_
 |DOI|_ |DOC|_ |COV|_
@@ -22,8 +23,8 @@ Welcom to Viola Package!
 .. |DOI| image:: https://img.shields.io/badge/DOI-10.1093%2Fbioinformatics%2Fbtab662-9cf
 .. _DOI: https://academic.oup.com/bioinformatics/article/38/2/540/6371863
 
-.. |DOC| image:: https://img.shields.io/badge/documentation-here-yellow
-.. _DOC: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
+.. |DOC| image:: https://readthedocs.org/projects/viola-sv/badge/?version=latest
+.. _DOC: https://viola-sv.readthedocs.io
 
 .. |COV| image:: https://codecov.io/gh/dermasugita/Viola-SV/branch/master/graph/badge.svg?token=G7TI1S6FY2 
 .. _COV: https://codecov.io/gh/dermasugita/Viola-SV

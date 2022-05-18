@@ -1,4 +1,4 @@
-﻿viola.concat
+viola.concat
 ============
 
 .. currentmodule:: viola

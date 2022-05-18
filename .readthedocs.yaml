@@ -26,7 +26,6 @@ formats:
 # Optionally declare the Python requirements required to build your docs
 python:
    install:
-   - method: pip
-     path: setuptools==57.4.0
+   - [setuptools==57.4.0]
    - method: pip
      path: .

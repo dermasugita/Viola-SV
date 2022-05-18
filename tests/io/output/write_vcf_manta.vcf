@@ -1,5 +1,8 @@
 ##fileformat=VCFv4.1
 ##variantcaller=manta
+##testmetadata=test
+##testmetadata=test2
+##fileDate=20090805
 ##contig=<ID=chr1,length=195471971>
 ##contig=<ID=chr2,length=182113224>
 ##contig=<ID=chr11,length=122082543>

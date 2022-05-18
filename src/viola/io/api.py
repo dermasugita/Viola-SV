@@ -1,5 +1,6 @@
 from viola.io.parser import (
     read_vcf,
+    read_vcf2,
     read_bedpe,
     read_bed,
 )

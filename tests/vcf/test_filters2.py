@@ -1,10 +1,13 @@
-##fileformat=VCFv4.1
-##variantcaller=manta
-##testmetadata=test
-##fileDate=20090805
+import viola
+import pandas as pd
+import sys, os
+from io import StringIO
+
+HERE = os.path.abspath(os.path.dirname(__file__))
+
+HEADER = """##fileformat=VCFv4.1
 ##contig=<ID=chr1,length=195471971>
 ##contig=<ID=chr2,length=182113224>
-##contig=<ID=chr11,length=122082543>
 ##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
 ##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
@@ -37,11 +40,49 @@
 ##ALT=<ID=DEL,Description="Deletion">
 ##ALT=<ID=INS,Description="Insertion">
 ##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
-##testmetadata=test2
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse1_N	mouse1_T
-chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	IMPRECISE;SVTYPE=DEL;SVLEN=-3764;END=82554225;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
-chr1	22814216	test2	T	<INV>	.	MinSomaticScore;MaxMQ0Frac	SVTYPE=INV;SVLEN=69766915;END=92581131;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
-chr8	69735694	test4_1	A	A[chr11:30018803[	.	MinSomaticScore	IMPRECISE;SVTYPE=BND;CIPOS=-100,100;MATEID=test4_2;BND_DEPTH=49;MATE_BND_DEPTH=35;SOMATIC;SOMATICSCORE=12	PR	30,1	68,9
-chr11	46689527	test3	C	<INV>	.	MinSomaticScore	IMPRECISE;SVTYPE=INV;SVLEN=61679;END=46751206;CIPOS=-64,64;CIEND=-65,65;SOMATIC;SOMATICSCORE=13;INV3	PR	17,1	55,19
-chr11	30018803	test4_2	G	]chr8:69735694]G	.	MinSomaticScore	IMPRECISE;SVTYPE=BND;CIPOS=-50,50;MATEID=test4_1;BND_DEPTH=35;MATE_BND_DEPTH=49;SOMATIC;SOMATICSCORE=12	PR	30,1	68,9
-chr11	30625198	test5	C	<DUP:TANDEM>	.	PASS	IMPRECISE;SVTYPE=DUP;SVLEN=575363;END=31200561;CIPOS=-27,27;CIEND=-69,70;SOMATIC;SOMATICSCORE=39	PR	14,0	38,10
+"""
+
+class TestFilters:
+    body = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
+chr1	22814216	test2	T	<INV>	.	MinSomaticScore	END=92581131;SVTYPE=INV;SVLEN=69766915;IMPRECISE;CIPOS=-51,51;CIEND=-89,90;SOMATIC;SOMATICSCORE=11;INV5	PR	24,0	35,5
+chr1	60567906	test3	T	<DEL>	.	MinSomaticScore	END=60675940;SVTYPE=DEL;SVLEN=-108034;CIPOS=-44,44;CIEND=-38,39;SOMATIC;SOMATICSCORE=18	PR	23,0	44,6
+chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE;CIPOS=-123,123;CIEND=-135,136;SOMATIC;SOMATICSCORE=47	PR	21,0	20,12
+"""
+    data = HEADER + body
+    b = StringIO(data)
+    obj = viola.read_vcf2(b, variant_caller='manta', patient_name='test')
+    
+    def test_filter_infos(self):
+        result_svlen = self.obj._filter_infos('svlen', 0, operator="<", threshold=10000)
+        result_svtype = self.obj._filter_infos('svtype', 0, operator='==', threshold='INV')
+        assert result_svlen == {'test1' ,'test3', 'test4'}
+        assert result_svtype == {'test2'}
+
+    def test_filter_infos_flag(self):
+        result_imprecise = self.obj._filter_infos_flag('imprecise', exclude=False)
+        result_imprecise_ex = self.obj._filter_infos_flag('imprecise', exclude=True)
+        assert result_imprecise == {'test1', 'test2', 'test4'}
+        assert result_imprecise_ex == {'test3'}
+    
+    def test_filter_filters(self):
+        result_filter = self.obj._filter_filters('PASS', exclude=False)
+        result_filter_ex = self.obj._filter_filters('PASS', exclude=True)
+        assert result_filter == {'test4'}
+        assert result_filter_ex == {'test1', 'test2', 'test3'}
+    
+    def test_filter_formats(self):
+        result_format = self.obj._filter_formats('mouse1_T', 'PR', 1, '>', 5)
+        assert result_format == {'test3', 'test4'}
+    
+    def test_filter_by_id(self):
+        body_expected = """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
+chr1	60567906	test3	T	<DEL>	.	MinSomaticScore	END=60675940;SVTYPE=DEL;SVLEN=-108034;CIPOS=-44,44;CIEND=-38,39;SOMATIC;SOMATICSCORE=18	PR	23,0	44,6
+"""
+        expected_b = StringIO(HEADER + body_expected)
+        obj_expected = viola.read_vcf2(
+            expected_b,
+            variant_caller='manta',
+            patient_name='test')
+        obj_result = self.obj.filter_by_id(['test1', 'test3'])
+        viola.testing.assert_vcf_equal(obj_expected, obj_result)

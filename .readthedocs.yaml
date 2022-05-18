@@ -28,4 +28,5 @@ python:
    install:
    - method: pip
      path: setuptools==57.4.0
+   - method: pip
      path: .

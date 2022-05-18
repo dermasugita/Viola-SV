@@ -43,4 +43,14 @@ def test_as_bedpe():
         df = bedpe.get_table(info)
         pd.testing.assert_frame_equal(df_expected, df)
 
-    
+def test_as_bedpe2():
+    vcf = viola.read_vcf2(StringIO(data), variant_caller='manta', patient_name='patient1')
+    bedpe = vcf.as_bedpe()
+    df_positions_expected = vcf.get_table('positions')
+    df_positions = bedpe.get_table('positions')
+    pd.testing.assert_frame_equal(df_positions_expected, df_positions)
+    ls_infonames = vcf._ls_infokeys
+    for info in ls_infonames:
+        df_expected = vcf.get_table(info)
+        df = bedpe.get_table(info)
+        pd.testing.assert_frame_equal(df_expected, df)

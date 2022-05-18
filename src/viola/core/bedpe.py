@@ -466,6 +466,8 @@ class Bedpe(Indexer):
                     return True
                 elif value == 'False':
                     return True
+                elif len(sq) == 1:
+                    return True
                 else:
                     return False
             if sqtail.isdigit():
@@ -665,7 +667,7 @@ class Bedpe(Indexer):
         """
         out_svpos = self._filter_by_id('positions', arrlike_id)
         out_odict_df_info = OrderedDict([(k, self._filter_by_id(k, arrlike_id)) for k in self._ls_infokeys])
-        return Bedpe(out_svpos, out_odict_df_info)
+        return Bedpe(out_svpos, out_odict_df_info, self.patient_name)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')
@@ -683,6 +685,7 @@ class Bedpe(Indexer):
 
     def _filter_infos_flag(self, infoname, exclude=False):
         df = self.get_table(infoname)
+        df = df.loc[df[infoname] == True]
         set_out = set(df['id'])
         if exclude:
             set_out = self.get_ids() - set_out

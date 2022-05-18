@@ -150,6 +150,8 @@ class TmpVcfForMerge(MultiVcf):
                             lumpy_index = lumpy_index[0]
                             value = [v for i, v in enumerate(value) if i != lumpy_index]
                 for idx, df in enumerate(value):
+                    if 'number' in df.columns:
+                        df['number'] = df['number'].astype(object)
                     if idx == 0:
                         df_merged = df
                         continue

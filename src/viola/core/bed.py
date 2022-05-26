@@ -15,6 +15,12 @@ class Bed(object):
         self._header = header
         self._tree = self._intervaltree_init(df)
     
+    def __repr__(self):
+        return str(self._df)
+
+    def __str__(self):
+        return str(self._df)
+    
     def _intervaltree_init(self, df):
         dict_tree = dict()
         for idx, row in df.iterrows():

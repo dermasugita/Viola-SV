@@ -19,6 +19,10 @@ def is_url(x):
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     return re.match(regex, x) is not None
 
+def is_gz_file(filepath):
+    with open(filepath, 'rb') as f:
+        return f.read(2) == b'\x1f\x8b'
+
 def get_inslen_and_insseq_from_alt(alt):
     """
     parse_alt(str)

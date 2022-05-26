@@ -56,6 +56,11 @@ def test_read_vcf2():
     vcf2 = viola.read_vcf2(os.path.join(HERE, 'data/test.manta.vcf'), variant_caller='manta', patient_name='test')
     viola.testing.assert_vcf_equal(vcf1, vcf2)
 
+def test_read_vcf2_gzip():
+    vcf1 = viola.read_vcf(os.path.join(HERE, 'data/test.manta.vcf'), variant_caller='manta', patient_name='test')
+    vcf2 = viola.read_vcf2(os.path.join(HERE, 'data/compressed/test.manta.vcf.gz'), variant_caller='manta', patient_name='test')
+    viola.testing.assert_vcf_equal(vcf1, vcf2)
+
 """
 def test_performance():
     st = time.perf_counter()

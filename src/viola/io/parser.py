@@ -14,7 +14,7 @@ from io import StringIO
 from viola.core.bedpe import Bedpe
 from viola.core.vcf import Vcf
 from viola.core.bed import Bed
-from viola.utils.utils import is_url
+from viola.utils.utils import is_url, is_gz_file
 from viola.io._vcf_parser import (
     read_vcf_manta,
     read_vcf_delly,
@@ -496,6 +496,9 @@ def read_vcf2(filepath_or_buffer, variant_caller, patient_name=None):
     reader = _VcfReader(variant_caller, patient_name)
     if isinstance(filepath_or_buffer, StringIO):
         f = filepath_or_buffer
+    elif is_gz_file(filepath_or_buffer):
+        import gzip
+        f = gzip.open(filepath_or_buffer, 'rt')
     else:
         f = open(filepath_or_buffer, 'r')
 
@@ -535,6 +538,7 @@ def read_vcf2(filepath_or_buffer, variant_caller, patient_name=None):
         reader.metadata,
         patient_name
     ]
+    f.close()
 
     return Vcf(*args)
 
@@ -977,13 +981,19 @@ def read_bed(filepath_or_buffer):
     https://genome.ucsc.edu/FAQ/FAQformat.html#format1
     """
     header=None
-    with open(filepath_or_buffer, 'r') as f:
-        data = []
-        for line in f:
-            if line.startswith('track'):
-                header = line
-            else:
-                data.append(line)
+    if is_gz_file(filepath_or_buffer):
+        import gzip
+        f = gzip.open(filepath_or_buffer, 'rt')
+    else:
+        f = open(filepath_or_buffer, 'r')
+    data = []
+    for line in f:
+        if line.startswith('track'):
+            header = line
+        else:
+            data.append(line)
+    f.close()
+
     df = pd.read_csv(
         StringIO(''.join(data)),
         sep='\t',
@@ -995,6 +1005,3 @@ def read_bed(filepath_or_buffer):
     df.columns = df_columns
 
     return Bed(df, header)
-
-
-    

@@ -127,12 +127,12 @@ Documentation
 - `Signature Analysis Tutorial`_
 - `API Reference`_
 
-.. _Documentation Home: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
-.. _Quick Start: https://dermasugita.github.io/ViolaDocs/docs/html/quickstart.html
-.. _Signature Analysis Tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/signature_analysis.html
-.. _API Reference: https://dermasugita.github.io/ViolaDocs/docs/html/reference/index.html
-.. _User Guide: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/index.html
-.. _CLI tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/cli.html
+.. _Documentation Home: https://viola-sv.readthedocs.io/
+.. _Quick Start: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/quickstart.html
+.. _Signature Analysis Tutorial: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/signature_analysis.html
+.. _API Reference: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/reference/index.html
+.. _User Guide: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/userguide/index.html
+.. _CLI tutorial: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/userguide/cli.html
 
 Publications
 =============

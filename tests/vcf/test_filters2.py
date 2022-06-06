@@ -51,29 +51,7 @@ chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE
 """
     data = HEADER + body
     b = StringIO(data)
-    obj = viola.read_vcf(b, variant_caller='manta', patient_name='test')
-
-    def test_filter_with_empty_or(self):
-        df_filtered = self.obj.filter(['SVTYPE == DEL', 'nonexist'], query_logic='or')
-        df_expected = viola.read_vcf(
-            StringIO(HEADER + """chr1	82550461	test1	G	<DEL>	.	MinSomaticScore	END=82554225;SVTYPE=DEL;SVLEN=-3764;IMPRECISE;CIPOS=-51,52;CIEND=-51,52;SOMATIC;SOMATICSCORE=10	PR:SR	21,0:10,0	43,4:15,3
-chr1	60567906	test3	T	<DEL>	.	MinSomaticScore	END=60675940;SVTYPE=DEL;SVLEN=-108034;CIPOS=-44,44;CIEND=-38,39;SOMATIC;SOMATICSCORE=18	PR	23,0	44,6
-chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE;CIPOS=-123,123;CIEND=-135,136;SOMATIC;SOMATICSCORE=47	PR	21,0	20,12
-"""),
-            variant_caller='manta',
-            patient_name='test'
-        )
-        viola.testing.assert_vcf_equal(df_filtered, df_expected)
-
-    def test_filter_with_empty_and(self):
-        df_filtered = self.obj.filter(['SVTYPE == DEL', 'nonexist'], query_logic='and')
-        df_expected = viola.read_vcf(
-            StringIO(HEADER + """
-"""),
-            variant_caller='manta',
-            patient_name='test'
-        )
-        viola.testing.assert_vcf_equal(df_filtered, df_expected)
+    obj = viola.read_vcf2(b, variant_caller='manta', patient_name='test')
     
     def test_filter_infos(self):
         result_svlen = self.obj._filter_infos('svlen', 0, operator="<", threshold=10000)
@@ -102,7 +80,7 @@ chr1	69583190	test4	T	<DEL>	.	PASS	END=69590947;SVTYPE=DEL;SVLEN=-7757;IMPRECISE
 chr1	60567906	test3	T	<DEL>	.	MinSomaticScore	END=60675940;SVTYPE=DEL;SVLEN=-108034;CIPOS=-44,44;CIEND=-38,39;SOMATIC;SOMATICSCORE=18	PR	23,0	44,6
 """
         expected_b = StringIO(HEADER + body_expected)
-        obj_expected = viola.read_vcf(
+        obj_expected = viola.read_vcf2(
             expected_b,
             variant_caller='manta',
             patient_name='test')

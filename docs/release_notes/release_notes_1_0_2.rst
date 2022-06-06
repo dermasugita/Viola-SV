@@ -1,11 +1,14 @@
+
 .. _release_notes_1_0_2:
 
 ====================================
-Viola 1.0.2 Release Notes
+Viola 1.0.1 Release Notes
 ====================================
+
 ---------------
 Fixed Features
 ---------------
 
-- Fixed feature in :doc:`viola.Bedpe.filter_by_id<../reference/api/viola.Bedpe.filter_by_id>` not inherit patient name.
-- Fixed feature in :doc:`viola.Bedpe.filter_by_id<../reference/api/viola.Bedpe.filter_by_id>` wrongly raising exception when filtering boolean INFO.
+- Fixed feature in :doc:`viola.Bedpe.filter<../reference/api/viola.Bedpe.filter>` incorrectly raising exception if even one of the condition is NoneType.
+- Fixed feature in :doc:`viola.Vcf.filter<../reference/api/viola.Vcf.filter>`  incorrectly raising exception if even one of the condition is NoneType.
+- Fixed feature in :doc:`viola.read_bedpe<../reference/api/viola.read_bedpe>` not generating cipos and ciend table on empty BEDPE.

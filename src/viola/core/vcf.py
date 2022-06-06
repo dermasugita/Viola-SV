@@ -309,7 +309,8 @@ class Vcf(Bedpe):
         df_formats = self.get_table('formats')
         odict_df_headers = OrderedDict([(k, self.get_table(k)) for k,v in self._odict_df_headers.items()])
         metadata = self._metadata
-        return Vcf(df_svpos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata)
+        patient_name = self.patient_name
+        return Vcf(df_svpos, df_filters, odict_df_infos, df_formats, odict_df_headers, metadata, patient_name)
 
     def to_vcf_like(self) -> pd.DataFrame:
         """
@@ -415,11 +416,11 @@ class Vcf(Bedpe):
             out = ''
             if metadata is None:
                 return out
-            for key, value in metadata.items():
-                if not isinstance(value, list):
-                    value = [value]
-                value = [str(s) for s in value]
-                out += '##' + str(key) + '=' + ','.join(value) + '\n'
+            for key, values in metadata.items():
+                if not isinstance(values, list):
+                    values = [values]
+                for value in values:
+                    out += '##' + str(key) + '=' + str(value) + '\n'
             return out
         
         def get_contig():
@@ -436,10 +437,12 @@ class Vcf(Bedpe):
             for row in self.get_table("infos_meta").itertuples():
                 if (row.number == None):
                     str_num = "."
+                elif np.isnan(row.number):
+                    str_num = "."
                 elif (row.number == -1):
                     str_num = "A"
                 else:
-                    str_num = str(row.number)
+                    str_num = str(int(row.number))
                 str_info += "##INFO=<ID={},Number={},Type={},Description=\"{}\">".format(row.id, str_num, row.type,row.description)
                 str_info += "\n"
             return str_info
@@ -826,14 +829,19 @@ class Vcf(Bedpe):
             set_result = self.get_ids()
             for query in ls_query:
                 set_query = self._parse_filter_query(query)
+                if set_query is None:
+                    set_query = set()
                 set_result = set_result & set_query
         elif query_logic == 'or':
             set_result = set()
             for query in ls_query:
                 set_query = self._parse_filter_query(query)
+                if set_query is None:
+                    set_query = set()
                 set_result = set_result | set_query
         else:
             ls_set_query = [self._parse_filter_query(q) for q in ls_query]
+            ls_set_query = [set() if q is None else q for q in ls_set_query]
             pattern = re.compile('([^0-9]*)([0-9]+)([^0-9]*)')
             target = r"\1ls_set_query[\2]\3"
             expr = pattern.sub(target, query_logic)
@@ -870,7 +878,8 @@ class Vcf(Bedpe):
         out_formats = self._filter_by_id('formats', arrlike_id)
         out_odict_df_headers = self._odict_df_headers.copy()
         out_metadata = self._metadata
-        return Vcf(out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers, out_metadata)
+        out_patient_name = self.patient_name
+        return Vcf(out_svpos, out_filters, out_odict_df_info, out_formats, out_odict_df_headers, out_metadata, out_patient_name)
 
     def _filter_pos_table(self, item, operator, threshold):
         df = self.get_table('positions')

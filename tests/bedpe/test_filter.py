@@ -69,6 +69,8 @@ chr2	100	101	chr2	280	281	test8	60	-	-	False
 chr2	180	181	chr2	2000	2001	test9	60	-	-	False
 chr2	10	11	chr5	20	21	test11	60	+	-	False
 """
+data_empty = """chrom1	start1	end1	chrom2	start2	end2	name	score	strand1	strand2	test1
+"""
 
 
 def test_filter():
@@ -169,6 +171,14 @@ def test_filter_empty():
         StringIO(data_expected7),
         patient_name='patient1')
     f_bedpe = bedpe.filter(['!test1', 'nonexist'], query_logic='or')
+    viola.testing.assert_bedpe_equal(f_bedpe, bedpe_expected)
+
+def test_filter_empty2():
+    bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
+    bedpe_expected = viola.read_bedpe(
+        StringIO(data_empty),
+        patient_name='patient1')
+    f_bedpe = bedpe.filter(['!test1', 'nonexist'], query_logic='and')
     viola.testing.assert_bedpe_equal(f_bedpe, bedpe_expected)
 
 def test_filter_flag_exception3():

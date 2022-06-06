@@ -81,6 +81,15 @@ def test_filter():
         query_logic='(0 | 1) & 2')
     viola.testing.assert_bedpe_equal(f_bedpe, bedpe_expected)
 
+def test_filter_with_empty():
+    bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
+    bedpe_expected = viola.read_bedpe(
+        StringIO(data_expected1),
+        patient_name='patient1')
+    f_bedpe = bedpe.filter(
+        ['svtype == DEL', 'svtype == DUP', 'svlen > -100', 'nonexist'],
+        query_logic='(0 | 1) & (2 | 3)')
+    viola.testing.assert_bedpe_equal(f_bedpe, bedpe_expected)
 
 def test_filter_and():
     bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
@@ -154,6 +163,13 @@ def test_filter_flag_exception():
     f_bedpe = bedpe.filter(['!test1'])
     viola.testing.assert_bedpe_equal(f_bedpe, bedpe_expected)
 
+def test_filter_empty():
+    bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
+    bedpe_expected = viola.read_bedpe(
+        StringIO(data_expected7),
+        patient_name='patient1')
+    f_bedpe = bedpe.filter(['!test1', 'nonexist'], query_logic='or')
+    viola.testing.assert_bedpe_equal(f_bedpe, bedpe_expected)
 
 def test_filter_flag_exception3():
     bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")

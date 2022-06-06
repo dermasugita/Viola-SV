@@ -777,12 +777,14 @@ def _read_bedpe_empty(df_bedpe, patient_name):
     df_svpos = pd.DataFrame(columns=('id', 'chrom1', 'pos1', 'chrom2', 'pos2', 'strand1', 'strand2', 'ref', 'alt', 'qual', 'svtype'))
     df_svlen = pd.DataFrame(columns=('id', 'value_idx', 'svlen'))
     df_svtype = pd.DataFrame(columns=('id', 'value_idx', 'svtype'))
+    df_cipos = pd.DataFrame(columns=('id', 'value_idx', 'svtype'))
+    df_ciend = pd.DataFrame(columns=('id', 'value_idx', 'svtype'))
     ls_df_infos = []
     for info in ls_header_option:
         df_info = pd.DataFrame(columns=('id', 'value_idx', info))
         ls_df_infos.append(df_info)
-    ls_df_infos = [df_svlen, df_svtype] + ls_df_infos   
-    ls_infokeys = ['svlen', 'svtype'] + ls_header_option
+    ls_df_infos = [df_svlen, df_svtype, df_cipos, df_ciend] + ls_df_infos   
+    ls_infokeys = ['svlen', 'svtype', 'cipos', 'ciend'] + ls_header_option
     odict_df_infos = OrderedDict([(k, v) for k, v in zip(ls_infokeys, ls_df_infos)])
     args = [df_svpos, odict_df_infos, patient_name]
     return Bedpe(*args)

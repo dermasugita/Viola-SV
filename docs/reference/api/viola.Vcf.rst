@@ -1,4 +1,4 @@
-﻿viola.Vcf
+viola.Vcf
 =========
 
 .. currentmodule:: viola

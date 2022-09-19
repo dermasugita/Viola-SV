@@ -1,4 +1,4 @@
-﻿viola.Bedpe
+viola.Bedpe
 ===========
 
 .. currentmodule:: viola

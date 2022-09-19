@@ -2,9 +2,10 @@
 Welcom to Viola Package!
 ************************
 
-.. _here: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
+.. _here: https://viola-sv.readthedocs.io
 
-.. image:: https://dermasugita.github.io/ViolaDocs/docs/html/_static/Viola-logo/JPG/wide.jpg
+.. image:: https://viola-sv.readthedocs.io/en/latest/_static/Viola-logo/JPG/wide.jpg
+   
 
 |PyPI|_ |PyVersion|_ |License|_
 |DOI|_ |DOC|_ |COV|_
@@ -22,8 +23,8 @@ Welcom to Viola Package!
 .. |DOI| image:: https://img.shields.io/badge/DOI-10.1093%2Fbioinformatics%2Fbtab662-9cf
 .. _DOI: https://academic.oup.com/bioinformatics/article/38/2/540/6371863
 
-.. |DOC| image:: https://img.shields.io/badge/documentation-here-yellow
-.. _DOC: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
+.. |DOC| image:: https://readthedocs.org/projects/viola-sv/badge/?version=latest
+.. _DOC: https://viola-sv.readthedocs.io
 
 .. |COV| image:: https://codecov.io/gh/dermasugita/Viola-SV/branch/master/graph/badge.svg?token=G7TI1S6FY2 
 .. _COV: https://codecov.io/gh/dermasugita/Viola-SV
@@ -113,7 +114,7 @@ If you want to get a deeper understanding of how Viola objects are structured, h
 
 Manuals for individual classes/methods/functions are available in the `API Reference`_.
 
-For further discussion, please join our `google group`_.! We're waiting for your comments, ideas, and requests.
+For further discussion, please join our `google group`_! We're waiting for your comments, ideas, and requests.
 The questions about how to use Viola-SV are also welcome!  
 
 .. _google group: https://groups.google.com/g/viola-users
@@ -126,12 +127,12 @@ Documentation
 - `Signature Analysis Tutorial`_
 - `API Reference`_
 
-.. _Documentation Home: https://dermasugita.github.io/ViolaDocs/docs/html/index.html
-.. _Quick Start: https://dermasugita.github.io/ViolaDocs/docs/html/quickstart.html
-.. _Signature Analysis Tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/signature_analysis.html
-.. _API Reference: https://dermasugita.github.io/ViolaDocs/docs/html/reference/index.html
-.. _User Guide: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/index.html
-.. _CLI tutorial: https://dermasugita.github.io/ViolaDocs/docs/html/userguide/cli.html
+.. _Documentation Home: https://viola-sv.readthedocs.io/
+.. _Quick Start: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/quickstart.html
+.. _Signature Analysis Tutorial: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/signature_analysis.html
+.. _API Reference: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/reference/index.html
+.. _User Guide: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/userguide/index.html
+.. _CLI tutorial: https://viola-sv.readthedocs.io/en/1.0.x-stable-doc/userguide/cli.html
 
 Publications
 =============

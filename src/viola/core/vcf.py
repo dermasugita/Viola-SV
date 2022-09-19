@@ -830,14 +830,19 @@ class Vcf(Bedpe):
             set_result = self.get_ids()
             for query in ls_query:
                 set_query = self._parse_filter_query(query)
+                if set_query is None:
+                    set_query = set()
                 set_result = set_result & set_query
         elif query_logic == 'or':
             set_result = set()
             for query in ls_query:
                 set_query = self._parse_filter_query(query)
+                if set_query is None:
+                    set_query = set()
                 set_result = set_result | set_query
         else:
             ls_set_query = [self._parse_filter_query(q) for q in ls_query]
+            ls_set_query = [set() if q is None else q for q in ls_set_query]
             pattern = re.compile('([^0-9]*)([0-9]+)([^0-9]*)')
             target = r"\1ls_set_query[\2]\3"
             expr = pattern.sub(target, query_logic)

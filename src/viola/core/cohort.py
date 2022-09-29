@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import sys, os
 from collections import OrderedDict
@@ -587,7 +588,7 @@ class MultiVcf(Vcf):
             df_feature_counts = df_feature_counts.reindex(columns=pd_ind_reindex, fill_value=0)
         return df_feature_counts
 
-def create_PON_as_Vcf(ls_vcf):
+def create_PON_as_Vcf(ls_vcf, priority=None):
     ls_patient_names = [vcf.patient_name for vcf in ls_vcf]
 
     multivcf = MultiVcf(
@@ -600,4 +601,29 @@ def create_PON_as_Vcf(ls_vcf):
         str_missing = True,
         integration = False,
     )
-    print(merged.mergedid)
+
+    ## integration
+    ### step1: patients priority control
+    patient_names = multivcf.get_table('patients')['patients'].values
+
+    if priority is None:
+        priority = multivcf.get_table('patients')['id'].values
+        print(priority)
+    else:
+        priority = np.array(priority)
+        if len(priority) != len(patient_names):
+            raise ValueError('Argument "priority": Discrepancy in patient count')
+        if set(priority) != set(patient_names):
+            raise ValueError('Argument "priority": Discrepancy in patient names')
+        df_patients = multivcf.get_table('patients')
+        df_patients.set_index('patients', inplace=True)
+        priority = df_patients.reindex(priority).id.values
+
+    ### step2: header integration
+    ### ToDo 1. 
+    print(merged.get_table('mergedid'))
+    print(multivcf.table_list)
+    print(merged.table_list)
+    print(merged.caller)
+    print(multivcf.get_table('patients'))
+    

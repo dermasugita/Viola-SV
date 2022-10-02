@@ -12,3 +12,7 @@ class IllegalArgumentError(ValueError):
     pass
 class DuplicatedPatientIDError(Exception):
     pass
+class DestructiveTableValueError(ValueError):
+    pass
+class TableValueConfliction(ValueError):
+    pass

@@ -1,4 +1,4 @@
-viola.MultiBedpe
+﻿viola.MultiBedpe
 ================
 
 .. currentmodule:: viola
@@ -32,6 +32,7 @@ viola.MultiBedpe
       ~MultiBedpe.is_reciprocal
       ~MultiBedpe.merge
       ~MultiBedpe.remove_info_table
+      ~MultiBedpe.rename_info
       ~MultiBedpe.replace_table
       ~MultiBedpe.set_value_for_info_by_id
       ~MultiBedpe.to_bedpe

@@ -1,4 +1,4 @@
-viola.MultiVcf
+﻿viola.MultiVcf
 ==============
 
 .. currentmodule:: viola
@@ -39,6 +39,7 @@ viola.MultiVcf
       ~MultiVcf.is_reciprocal
       ~MultiVcf.merge
       ~MultiVcf.remove_info_table
+      ~MultiVcf.rename_info
       ~MultiVcf.replace_svid
       ~MultiVcf.replace_table
       ~MultiVcf.set_value_for_info_by_id

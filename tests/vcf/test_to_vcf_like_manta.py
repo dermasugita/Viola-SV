@@ -59,9 +59,10 @@ chr11	30018803	test4_2	G	]chr8:69735694]G	.	MinSomaticScore	IMPRECISE;SVTYPE=BND
 chr11	30625198	test5	C	<DUP:TANDEM>	.	PASS	IMPRECISE;SVTYPE=DUP;SVLEN=575363;END=31200561;CIPOS=-27,27;CIEND=-69,70;SOMATIC;SOMATICSCORE=39	PR	14,0	38,10
 """
     b = StringIO(HEADER + body)
-    result = viola.read_vcf(b)
+    result = viola.read_vcf(b, patient_name='patient1')
     def test_to_vcf_like(self):
         df_vcf = self.result.to_vcf_like()
         df_expected = pd.read_csv(StringIO(self.expected_out), index_col=False, names=df_vcf.columns, sep='\t')
+        print(df_vcf)
         pd.testing.assert_frame_equal(df_vcf, df_expected)
         

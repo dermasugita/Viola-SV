@@ -25,6 +25,8 @@ from viola._exceptions import (
     InfoNotFoundError,
     ContigNotFoundError,
     SVIDNotFoundError,
+    DestructiveTableValueError,
+    TableValueConfliction,
 )
 
 from sklearn.cluster import AgglomerativeClustering
@@ -231,6 +233,64 @@ class Bedpe(Indexer):
         df.loc[sv_id] = [value_idx, value]
         df.reset_index(inplace=True)
         self.replace_table(table_name, df)
+    
+    def rename_info(self, table_name, value, safety_mode=True):
+        '''
+        rename_info(table_name, value, safety_mode=True)
+        Rename INFO name of this object.
+
+        Parameters
+        -------------
+        table_name: str
+            Current table name.
+        value: str
+            A New table name.
+        safety_mode: bool
+            Protect against potentially destructive renaming.
+
+        Returns
+        ------------
+        None
+
+        Examples
+        ------------
+        >>> DATA = """chrom1	start1	end1	chrom2	start2	end2	name	score	strand1	strand2	test1	test2
+            chr1	10	11	chr1	20	21	test1	60	+	-	True	1
+            chr2	10	11	chr2	20	21	test2	60	-	+	False	23
+            chr2	10	11	chr2	40	41	test3	60	+	+	True	32
+            chr3	10	11	chr4	20	21	test4	60	-	-	True	13
+        """
+        >>> bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
+        >>> print(bedpe)
+            INFO=svlen,svtype,cipos,ciend,test1,test2
+            Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html
+                  id      be1      be2 strand  qual svtype
+            0  test1  chr1:11  chr1:21     +-    60    DEL
+            1  test2  chr2:11  chr2:21     -+    60    DUP
+            2  test3  chr2:11  chr2:41     ++    60    INV
+            3  test4  chr3:11  chr4:21     --    60    BND
+        >>> bedpe.rename_info('test1', 'renamed')
+            INFO=svlen,svtype,cipos,ciend,renamed,test2
+            Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html
+                  id      be1      be2 strand  qual svtype
+            0  test1  chr1:11  chr1:21     +-    60    DEL
+            1  test2  chr2:11  chr2:21     -+    60    DUP
+            2  test3  chr2:11  chr2:41     ++    60    INV
+            3  test4  chr3:11  chr4:21     --    60    BND
+        '''
+        ## Input value validation
+        if table_name not in self._ls_infokeys:
+            raise InfoNotFoundError(table_name)
+        if safety_mode:
+            black_list = ['svlen', 'svtype', 'cipos', 'ciend']
+            if table_name in black_list:
+                raise DestructiveTableValueError('The table "' + table_name + '" is protected since the change of it may break this object. To force a change, set the argument "safety_mode" to False.')
+        if value in self.table_list:
+            raise TableValueConfliction('The table "' + value + '" already exists.')
+        ## /Input value validation
+        self._odict_alltables[value] = self._odict_alltables.pop(table_name)
+        self._ls_infokeys = [value if i == table_name else i for i in self._ls_infokeys]
+        self._odict_alltables[value].columns = ['id', 'value_idx', value]
 
     def change_repr_config(self, key, value):
         self._repr_config[key] = value

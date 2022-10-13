@@ -333,7 +333,7 @@ class Vcf(Bedpe):
             else:
                 return x
                 
-        df_base = df_base_before_position_modification.groupby('svtype').apply(_modify_positions)
+        df_base = df_base_before_position_modification.groupby('svtype', group_keys=False).apply(_modify_positions)
         df_base = df_base[['chrom1', 'pos1', 'id', 'ref', 'alt', 'qual']]
         df_base['qual'] = df_base['qual'].fillna('.')
         ser_id = df_base['id']

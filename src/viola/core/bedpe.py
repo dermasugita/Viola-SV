@@ -254,6 +254,8 @@ class Bedpe(Indexer):
 
         Examples
         ------------
+        >>> import viola
+        >>> from io import StringIO
         >>> DATA = """chrom1	start1	end1	chrom2	start2	end2	name	score	strand1	strand2	test1	test2
             chr1	10	11	chr1	20	21	test1	60	+	-	True	1
             chr2	10	11	chr2	20	21	test2	60	-	+	False	23
@@ -262,21 +264,21 @@ class Bedpe(Indexer):
         """
         >>> bedpe = viola.read_bedpe(StringIO(DATA), patient_name="patient1")
         >>> print(bedpe)
-            INFO=svlen,svtype,cipos,ciend,test1,test2
-            Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html
-                  id      be1      be2 strand  qual svtype
-            0  test1  chr1:11  chr1:21     +-    60    DEL
-            1  test2  chr2:11  chr2:21     -+    60    DUP
-            2  test3  chr2:11  chr2:41     ++    60    INV
-            3  test4  chr3:11  chr4:21     --    60    BND
+        INFO=svlen,svtype,cipos,ciend,test1,test2
+        Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html
+              id      be1      be2 strand  qual svtype
+        0  test1  chr1:11  chr1:21     +-    60    DEL
+        1  test2  chr2:11  chr2:21     -+    60    DUP
+        2  test3  chr2:11  chr2:41     ++    60    INV
+        3  test4  chr3:11  chr4:21     --    60    BND
         >>> bedpe.rename_info('test1', 'renamed')
-            INFO=svlen,svtype,cipos,ciend,renamed,test2
-            Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html
-                  id      be1      be2 strand  qual svtype
-            0  test1  chr1:11  chr1:21     +-    60    DEL
-            1  test2  chr2:11  chr2:21     -+    60    DUP
-            2  test3  chr2:11  chr2:41     ++    60    INV
-            3  test4  chr3:11  chr4:21     --    60    BND
+        INFO=svlen,svtype,cipos,ciend,renamed,test2
+        Documentation of Bedpe object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/bedpe.html
+              id      be1      be2 strand  qual svtype
+        0  test1  chr1:11  chr1:21     +-    60    DEL
+        1  test2  chr2:11  chr2:21     -+    60    DUP
+        2  test3  chr2:11  chr2:41     ++    60    INV
+        3  test4  chr3:11  chr4:21     --    60    BND
         '''
         ## Input value validation
         if table_name not in self._ls_infokeys:

@@ -27,6 +27,8 @@ from viola._exceptions import (
     ContigNotFoundError,
     IllegalArgumentError,
     SVIDNotFoundError,
+    DestructiveTableValueError,
+    TableValueConfliction,
 )
 
 from sklearn.cluster import AgglomerativeClustering
@@ -226,6 +228,76 @@ class Vcf(Bedpe):
         self._odict_df_headers['infos_meta'] = df_replace
         self._odict_alltables['infos_meta'] = df_replace
         self._ls_infokeys.remove(table_name)
+
+    def rename_info(self, table_name, value, safety_mode=True):
+        '''
+        rename_info(table_name, value, safety_mode=True)
+        Rename INFO name of this object.
+
+        Parameters
+        -------------
+        table_name: str
+            Current table name.
+        value: str
+            A New table name.
+        safety_mode: bool
+            Protect against potentially destructive renaming.
+
+        Returns
+        ------------
+        None
+
+        Examples
+        ------------
+        >>> import viola
+        >>> from io import StringIO
+        >>> DATA = """DATA_manta = """##fileformat=VCFv4.1
+            ##contig=<ID=chr1,length=195471971>
+            ##INFO=<ID=TEST,Number=1,Type=String,Description="Test INFO">
+            ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+            ##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+            ##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+            ##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Confidence interval around POS">
+            ##INFO=<ID=CIEND,Number=2,Type=Integer,Description="Confidence interval around END">
+            ##INFO=<ID=EVENT,Number=1,Type=String,Description="ID of event associated to breakend">
+            ##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
+            ##ALT=<ID=DEL,Description="Deletion">
+            #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mouse1_N	mouse1_T
+            chr1	82550461	test1	G	<DEL>	.	.	TEST=test;SVTYPE=DEL;SVLEN=-3764;END=82554225;CIPOS=-51,52;CIEND=-51,52	PR	21,0	43,4
+            """
+        >>> vcf = viola.read_vcf(StringIO(DATA), patient_name='patient1')
+        >>> print(vcf)
+        INFO=test,svtype,svlen,end,cipos,ciend,event
+        Documentation of Vcf object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/vcf.html
+            id            be1            be2 strand  qual svtype
+        0  test1  chr1:82550461  chr1:82554226     +-  None    DEL
+        >>> vcf.rename_info('test', 'renamed')
+        >>> print(vcf)
+        INFO=renamed,svtype,svlen,end,cipos,ciend,event
+        Documentation of Vcf object ==> https://dermasugita.github.io/ViolaDocs/docs/html/reference/vcf.html
+            id            be1            be2 strand  qual svtype
+        0  test1  chr1:82550461  chr1:82554226     +-  None    DEL
+        '''
+        ## Input value validation
+        if table_name not in self._ls_infokeys:
+            raise InfoNotFoundError(table_name)
+        if safety_mode:
+            black_list = ['svlen', 'svtype', 'cipos', 'ciend', 'end', 'mateid', 'inv3', 'inv5', 'chr2', 'pos2']
+            if table_name in black_list:
+                raise DestructiveTableValueError('The table "' + table_name + '" is protected since the change of it may break this object. To force a change, set the argument "safety_mode" to False.')
+        if value in self.table_list:
+            raise TableValueConfliction('The table "' + value + '" already exists.')
+        ## /Input value validation
+        self._odict_alltables[value] = self._odict_alltables.pop(table_name)
+        self._ls_infokeys = [value if i == table_name else i for i in self._ls_infokeys]
+        self._odict_alltables[value].columns = ['id', 'value_idx', value]
+        self._odict_df_info[value.upper()] = self._odict_df_info.pop(table_name.upper())
+        self._odict_df_info[value.upper()].columns = ['id', 'value_idx', value]
+        ### df_infos_meta is the "view" of the infos_meta table
+        ### The change of the value in this variable consequently results in the change of the involving items of OrderedDicts of this class.
+        df_infos_meta = self._odict_alltables['infos_meta']
+        df_infos_meta.loc[df_infos_meta.id == table_name.upper(), 'id'] = value.upper()
+
 
     def set_value_for_info_by_id(self, table_name, sv_id, value_idx=0, value=None):
         """

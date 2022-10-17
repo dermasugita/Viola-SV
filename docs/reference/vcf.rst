@@ -69,6 +69,7 @@ Managing Tables
    Vcf.append_filters
    Vcf.get_table
    Vcf.remove_info_table
+   Vcf.rename_info
    Vcf.replace_table
    Vcf.set_value_for_info_by_id
 

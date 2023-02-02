@@ -1,0 +1,11 @@
+version: '3'
+services:
+  viola:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+      - $HOME/.ssh:/home/vscode/.ssh
+      - $HOME/.gitconfig:/home/vscode/.gitconfig
+    command: /bin/sh -c "while sleep 1000; do :; done"

@@ -1,0 +1,10 @@
+version: "3.0"
+
+services:
+  viola:
+    volumes:
+      - ~/.gitconfig:/home/python/.gitconfig
+      - ~/.ssh:/home/python/.ssh
+    build:
+      context: .
+      dockerfile: Dockerfile

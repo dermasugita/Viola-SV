@@ -1,6 +1,7 @@
 from __future__ import annotations
 from pydantic import BaseModel
 from enum import Enum
+from viola.domain.vcf.data_types import DataType
 
 class InfoNumber(BaseModel):
     value: str
@@ -17,22 +18,11 @@ class InfoNumber(BaseModel):
     def __str__(self):
         return self.value
 
-class InfoType(str, Enum):
-    INTEGER = "Integer"
-    FLOAT = "Float"
-    FLAG = "Flag"
-    STRING = "String"
-
-    def __repr__(self):
-        return f"InfoType.{self.value}"
-    def __str__(self):
-        return self.value
-
 
 class Info(BaseModel):
     _id: str
     number: InfoNumber
-    type: InfoType
+    type: DataType
     description: str
     source: str | None
     version: str | None

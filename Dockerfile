@@ -11,8 +11,9 @@ WORKDIR /workspaces
 COPY setup.py .
 COPY pyproject.toml .
 COPY README.rst .
-COPY ./src/viola/_version.py ./src/viola/_version.py
-RUN pip install --upgrade pip setuptools && pip install --editable . && \
+COPY ./python/viola/_version.py ./python/viola/_version.py
+#RUN pip install --upgrade pip setuptools && pip install --editable . && \
+RUN python -m pip install --upgrade pip setuptools maturin virtualenv && \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
     mv /root/.cargo  /home/python/ && chown -R python:python /home/python/.cargo && \
     echo "source \$HOME/.cargo/env" >> /home/python/.bashrc

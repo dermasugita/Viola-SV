@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools >= 61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
 
 [project]
 dynamic = ["version"]
@@ -13,6 +13,7 @@ dependencies = [
     "scikit-learn >= 0.24.2",
     "scipy >= 1.5.4",
     "click >= 8.0.4",
+    "maturin",
 ]
 authors = [
     {name = "SUGITA Itsuki", email = "i-sugita@medopstech.com"},
@@ -25,10 +26,11 @@ readme = {file = "README.rst", content-type = "text/x-rst"}
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Rust",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
@@ -39,3 +41,8 @@ keywords = ["bioinformatics"]
 [project.urls]
 Repository = "https://github.com/dermasugita/Viola-SV"
 Documentation = "https://viola-sv.readthedocs.io"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+python-source = "python"
+module-name = "viola._lib_name"

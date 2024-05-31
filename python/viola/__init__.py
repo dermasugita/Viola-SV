@@ -1,12 +1,12 @@
 import pandas
-import vcf
+#import vcf
 from viola.io.api import (
-    read_vcf,
+    #read_vcf,
     read_vcf2,
     read_bedpe,
     read_bed,
-    read_vcf_multi,
-    read_bedpe_multi,
+    #read_vcf_multi,
+    #read_bedpe_multi,
     read_fasta,
 )
 from viola.core.api import (

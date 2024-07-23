@@ -37,12 +37,18 @@ classifiers = [
 ]
 keywords = ["bioinformatics"]
 
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
+
 
 [project.urls]
 Repository = "https://github.com/dermasugita/Viola-SV"
 Documentation = "https://viola-sv.readthedocs.io"
 
+
 [tool.maturin]
 features = ["pyo3/extension-module"]
 python-source = "python"
-module-name = "viola._lib_name"
+module-name = "viola.rs"

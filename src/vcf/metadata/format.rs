@@ -19,6 +19,13 @@ impl ViolaVcfFormatId {
             _ => Ok(ViolaVcfFormatId::Others(s.to_string())),
         }
     }
+    pub fn to_string(&self) -> String {
+        match self {
+            ViolaVcfFormatId::PR => "PR".to_string(),
+            ViolaVcfFormatId::SR => "SR".to_string(),
+            ViolaVcfFormatId::Others(s) => s.to_string(),
+        }
+    }
 }
 #[derive(Getters, Clone)]
 pub struct FormatMeta {

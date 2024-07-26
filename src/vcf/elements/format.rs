@@ -51,7 +51,9 @@ impl FormatUnit {
     pub fn get(&self, format_id: &str) -> Option<&Vec<VcfData>> {
         self.0.get(&ViolaVcfFormatId::from_str(format_id).unwrap())
     }
-
+    pub fn get_hashmap(&self) -> &HashMap<ViolaVcfFormatId, Vec<VcfData>> {
+        &self.0
+    }
 }
 
 impl Format {
@@ -63,5 +65,8 @@ impl Format {
     }
     pub fn get(&self, sample_id: &str) -> Option<&FormatUnit> {
         self.0.get(sample_id)
+    }
+    pub fn get_hashmap(&self) -> &HashMap<String, FormatUnit> {
+        &self.0
     }
 }

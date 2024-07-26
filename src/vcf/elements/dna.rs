@@ -104,6 +104,7 @@ impl DNABaseSeq {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+// 5' ---[A]---> 3' in forward strand
 pub enum End {
     ThreePrime,
     FivePrime,

@@ -24,6 +24,16 @@ impl ViolaVcfInfoId {
             _ => Ok(ViolaVcfInfoId::Others(s.to_string())),
         }
     }
+    pub fn to_string(&self) -> String {
+        match self {
+            ViolaVcfInfoId::CIPOS => "CIPOS".to_string(),
+            ViolaVcfInfoId::CIEND => "CIEND".to_string(),
+            ViolaVcfInfoId::IMPRECISE => "IMPRECISE".to_string(),
+            ViolaVcfInfoId::PRECISE => "PRECISE".to_string(),
+            ViolaVcfInfoId::SVTYPE => "SVTYPE".to_string(),
+            ViolaVcfInfoId::Others(s) => s.to_string(),
+        }
+    }
 }
 
 #[derive(Getters, Clone)]

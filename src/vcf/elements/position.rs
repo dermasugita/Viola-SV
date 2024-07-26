@@ -5,11 +5,11 @@ use crate::vcf::elements::contig::Contig;
 #[derive(Getters, Clone, Debug, PartialEq, Eq)]
 pub struct Position {
     chrom: Contig,
-    pos: i128,
+    pos: i64,
 }
 
 impl Position {
-    pub fn new(chrom: Contig, pos: i128) -> Self {
+    pub fn new(chrom: Contig, pos: i64) -> Self {
         Self {
             chrom,
             pos,

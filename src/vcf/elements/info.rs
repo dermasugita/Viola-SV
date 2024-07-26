@@ -68,4 +68,7 @@ impl Info {
     pub fn get(&self, key: &str) -> Option<&Vec<VcfData>> {
         self.0.get(&ViolaVcfInfoId::from_str(key).unwrap())
     }
+    pub fn get_hashmap(&self) -> &HashMap<ViolaVcfInfoId, Vec<VcfData>> {
+        &self.0
+    }
 }

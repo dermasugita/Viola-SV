@@ -1,9 +1,10 @@
 use anyhow::{Result, anyhow};
+use derive_getters::Getters;
 use regex::Regex;
 use crate::vcf::elements::{DNABaseSeq, Position, End};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Breakend {
+#[derive(Debug, Clone, PartialEq, Eq, Getters)]
+pub struct Breakend {
     t: DNABaseSeq,
     this_end: End,
     other_end_pos: Option<Position>,
@@ -63,7 +64,7 @@ impl Breakend {
                 t,
                 this_end: End::ThreePrime,
                 other_end_pos: Some(other_end_pos),
-                other_end_extend_to: Some(End::ThreePrime)
+                other_end_extend_to: Some(End::FivePrime)
             })
         }
         let mut it = s.split('[');
@@ -73,8 +74,33 @@ impl Breakend {
             t,
             this_end: End::ThreePrime,
             other_end_pos: Some(other_end_pos),
-            other_end_extend_to: Some(End::FivePrime)
+            other_end_extend_to: Some(End::ThreePrime)
         })
+    }
+    pub fn to_string(&self) -> String {
+        if let None = self.other_end_pos {
+            match self.this_end() {
+                End::FivePrime => return format!(".{}", self.t().to_string()),
+                End::ThreePrime => return format!("{}.", self.t().to_string()),
+            }
+        }
+        let other_end_pos = self.other_end_pos().as_ref().unwrap();
+        let other_end_extend_to = self.other_end_extend_to().as_ref().unwrap();
+        match self.this_end() {
+            End::FivePrime => {
+                match other_end_extend_to {
+                    End::FivePrime => format!("]{}]{}", other_end_pos.get_colon_separated(), self.t().to_string()),
+                    End::ThreePrime => format!("[{}[{}", other_end_pos.get_colon_separated(), self.t().to_string()),
+                }
+            },
+            End::ThreePrime => {
+                match other_end_extend_to {
+                    End::FivePrime => format!("{}]{}[", self.t().to_string(), other_end_pos.get_colon_separated()),
+                    End::ThreePrime => format!("{}[{}[", self.t().to_string(), other_end_pos.get_colon_separated()),
+                }
+            }
+
+        }
     }
 }
 
@@ -102,5 +128,14 @@ impl AltElement {
             return Ok(Self::Breakend(Breakend::from_str(s)?))
         }
         Ok(Self::BaseSeq(DNABaseSeq::from_str(s)?))
+    }
+    pub fn to_string(&self) -> String {
+        match self {
+            Self::BaseSeq(base_seq) => base_seq.to_string(),
+            Self::Asterisk => "*".to_string(),
+            Self::Missing => ".".to_string(),
+            Self::AngleBracket(s) => format!("<{}>", s),
+            Self::Breakend(breakend) => breakend.to_string(),
+        }
     }
 }

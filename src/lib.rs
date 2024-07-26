@@ -1,12 +1,8 @@
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::path::PathBuf;
-use std::fs::File;
 mod vcf;
-mod vcf_impls;
-use vcf::vcf::Vcf;
-use vcf::mrec::InMemoryVcfRecords;
-use vcf_impls::VcfInMemory;
+use crate::vcf::VcfInMemory;
+
 
 #[pyfunction]
 fn rust_bounded(invalue: &str) -> PyResult<String> {
@@ -15,8 +11,8 @@ fn rust_bounded(invalue: &str) -> PyResult<String> {
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn read_vcf(path: PathBuf) -> PyResult<VcfInMemory> {
-    VcfInMemory::read_from_file(path)
+fn read_vcf(path: PathBuf, caller: &str) -> PyResult<VcfInMemory> {
+    VcfInMemory::read_from_file(path, caller)
 }
 
 /// A Python module implemented in Rust.

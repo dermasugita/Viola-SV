@@ -1,7 +1,10 @@
 pub mod vcf;
+pub mod mvcf;
+pub mod vcf_tables_impl;
 pub mod metadata;
 pub mod records;
-pub mod mrec;
-pub mod metadata_impl;
 pub mod elements;
 pub mod utils;
+pub mod callers;
+use crate::vcf::vcf::Vcf;
+pub use crate::vcf::mvcf::*;

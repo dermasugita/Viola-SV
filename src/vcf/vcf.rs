@@ -1,5 +1,6 @@
 use chrono::{NaiveDate};
 use anyhow::{Result, anyhow};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::path::PathBuf;
@@ -8,8 +9,11 @@ use crate::vcf::metadata::*;
 use crate::vcf::records::*;
 use crate::vcf::utils::header_parser::{parse_vcf_header, ABCVcfHeader};
 
+use crate::vcf::callers::*;
+
 //#[derive(FromPyObject)]
 pub struct Vcf<T> where T: VcfRecords {
+    caller: SupportedCallers,
     fileformat: String,
     filedate: Option<NaiveDate>,
     source: Option<String>,
@@ -29,8 +33,9 @@ pub struct Vcf<T> where T: VcfRecords {
     records: T,
 }
 
-impl<T> Vcf<T> where T: VcfRecords {
-    pub fn read_from_file(file: &PathBuf) -> Result<Self> {
+impl<'a, T> Vcf<T> where T: VcfRecords {
+    pub fn read_from_file(file: &PathBuf, caller: &str) -> Result<Self> {
+        let caller = SupportedCallers::from_str(caller);
         let mut fileformat: String = "".to_string();
         let mut filedate: Option<NaiveDate> = None;
         let mut source: Option<String> = None;
@@ -76,7 +81,7 @@ impl<T> Vcf<T> where T: VcfRecords {
                             let meta_meta = Meta::from_hashmap(nkv.value())?;
                             meta.push(meta_meta);
                         },
-                        "CONTIG" => {
+                        "contig" => {
                             let contig_meta = ContigMeta::from_hashmap(nkv.value())?;
                             match &mut contig {
                                 Some(some_contig) => {
@@ -141,9 +146,9 @@ impl<T> Vcf<T> where T: VcfRecords {
                 }
             }
         }
-       let records = T::from_path(&PathBuf::from(file))?; 
-       Ok(
-        Self {
+       let records = T::from_path(&PathBuf::from(file), &caller)?; 
+       let vcf = Self {
+            caller,
             fileformat,
             filedate,
             source,
@@ -161,10 +166,34 @@ impl<T> Vcf<T> where T: VcfRecords {
             required_header,
             optional_header,
             records,
-        }
-       )
+        };
+        Ok(vcf)
     }
-    pub fn get_by_id(&self, id: &str) -> Option<VcfRecord> {
-        self.records.get_by_id(id)
+    pub fn get_records(&'a self) -> &'a T {
+        &self.records
+    }
+    pub fn get_records_mut(&'a mut self) -> &'a mut T {
+        &mut self.records
+    }
+    pub fn get_caller(&self) -> SupportedCallers {
+        self.caller
+    }
+    pub fn sv_count(&self) -> usize {
+        self.get_records().count()
+    }
+    pub fn ids(&mut self) -> Vec<String> {
+        let mut ret = Vec::new();
+        for record in self.get_records_mut().into_iter() {
+            ret.push(record.id().clone());
+        }
+        ret
+    }
+    pub fn contigs(&self) -> Vec<String> {
+        let mut ret = Vec::new();
+        let contigs = self.contig.as_ref().unwrap();
+        for contig in contigs {
+            ret.push(contig.id().clone());
+        }
+        ret
     }
 }
